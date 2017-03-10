@@ -1,6 +1,7 @@
 #include "NeuralNet.h"
 
-NeuralNet::NeuralNet()
+NeuralNet::NeuralNet(NeuralNetParameters p) :
+  _params(new NeuralNetParameters(p))
 {
 
 }

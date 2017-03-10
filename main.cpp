@@ -4,7 +4,7 @@
 #include <vector>
 using namespace std;
 
-#include "NeuralNet/NeuralNet.h"
+#include "neuralpso.h"
 
 #define DT_UNSIGNED_TYPE 0X08
 #define DT_SIGNED_BYTE 0x09
@@ -60,14 +60,16 @@ int main() {
     return 0;
   }
 
-  NeuralNet *net = new NeuralNet();
-  net->setTotalInputs(trainingImages[0].size() * trainingImages[0][0].size());
-  net->setTotalInnerNets(2);
-  net->setInnerNetNodes(100, 0);
-  net->setInnerNetNodes(50, 1);
-  net->setTotalOutputs(10);
-  net->trainData(trainingImages, trainingLabels);
-  net->buildNets();
+  NeuralNetParameters params;
+  params.inputs = trainingImages[0].size() * trainingImages[0][0].size();
+  params.innerNets = 2;
+  params.innerNetNodes.push_back(100);
+  params.innerNetNodes.push_back(50);
+  params.outputs = 10;
+
+  NeuralPso *np = new NeuralPso(params);
+  np->neuralNet()->trainData(trainingImages, trainingLabels);
+  np->neuralNet()->buildNets();
 
   //net->resetInputs();
 

@@ -25,3 +25,21 @@
 	<cmath>
 	<ctime>
 
+1489119436 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralnet\neuralnet.cpp
+	"NeuralNet.h"
+
+1489123610 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralpso.cpp
+	"neuralpso.h"
+
+1489123550 c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralpso.h
+	"PSO/pso.h"
+
+1489123081 c:\users\wboler\desktop\testcodehere\pso_neural_net\pso\pso.h
+	<iostream>
+	<cinttypes>
+	<cstdlib>
+	<vector>
+	"particles.h"
+
+1489119349 c:\users\wboler\desktop\testcodehere\pso_neural_net\pso\particles.h
+

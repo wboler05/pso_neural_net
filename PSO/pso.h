@@ -4,23 +4,29 @@
 #include <iostream>
 #include <cinttypes>
 #include <cstdlib>
+#include <vector>
+#include "particles.h"
 
 template <class T>
 class Pso {
 public:
-  PSO();
-  ~PSO();
+  Pso();
+  ~Pso();
 
-  build();
+  void run();
+  virtual void fly();
+  virtual double getCost();
 
-  run();
-  fly();
-  getCost();
-
-  vector<Particle<T> > * particles() { return &_particles; }
+  std::vector<Particle<T> > * particles() { return &_particles; }
 
 private:
-  vector<Particle<T> > _particles;
+  std::vector<Particle<T> > _particles;
+
+  bool _terminationIterationFlag;
+  bool _terminationDeltaFlag;
+
+  uint32_t _terminationIterations;
+  double _terminationDelta;
 
 };
 

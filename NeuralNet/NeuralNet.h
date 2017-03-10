@@ -12,9 +12,16 @@ using namespace std;
 #define uint uint32_t
 #define byte uint8_t
 
+struct NeuralNetParameters {
+  int inputs;
+  int innerNets;
+  vector<int> innerNetNodes;
+  int outputs;
+};
+
 class NeuralNet {
 public:
-  NeuralNet();
+  NeuralNet(NeuralNetParameters params);
   ~NeuralNet();
 
   void resetInputs();
@@ -34,6 +41,8 @@ public:
   double activation(double in);
   bool buildNets();
 
+  NeuralNetParameters * params() { return _params; }
+
 private:
   // Weights and Data
   vector<double> _inputNodes;
@@ -41,6 +50,8 @@ private:
   vector<double> _outputNodes;
 
   vector<vector<vector<double>>> _edges;
+
+  NeuralNetParameters *_params;
 
 /// Inner Edge index:           0           1            2  ... n-1            n
 /// Nodes:               input -> inner (0) -> inner (1) -> ... -> inner (n-1) -> output
