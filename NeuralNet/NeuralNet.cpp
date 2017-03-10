@@ -1,4 +1,4 @@
-#include "NueralNet.h"
+#include "NeuralNet.h"
 
 NeuralNet::NeuralNet()
 {

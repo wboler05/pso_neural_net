@@ -4,7 +4,7 @@
 #include <vector>
 using namespace std;
 
-#include "NueralNet.h"
+#include "NeuralNet/NeuralNet.h"
 
 #define DT_UNSIGNED_TYPE 0X08
 #define DT_SIGNED_BYTE 0x09
@@ -62,8 +62,9 @@ int main() {
 
   NeuralNet *net = new NeuralNet();
   net->setTotalInputs(trainingImages[0].size() * trainingImages[0][0].size());
-  net->setTotalInnerNets(1);
+  net->setTotalInnerNets(2);
   net->setInnerNetNodes(100, 0);
+  net->setInnerNetNodes(50, 1);
   net->setTotalOutputs(10);
   net->trainData(trainingImages, trainingLabels);
   net->buildNets();
