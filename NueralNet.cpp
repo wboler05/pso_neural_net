@@ -117,7 +117,7 @@ bool NeuralNet::buildNets() {
   for (uint i = 0; i < _edges.capacity(); i++) {
     for (uint j = 0; j < _edges[i].capacity(); j++) {
       for (uint k = 0; k < _edges[i][j].capacity(); k++) {
-        _edges[i][j][k] = 0;
+        _edges[i][j][k] = (double) (rand() % 10000) / 10000.0;
       }
     }
   }
@@ -145,11 +145,13 @@ vector<double> NeuralNet::process() {
 
   resetInnerNodes();
 
+  cout << _inputNodes.size() << "\t" << _innerNodes.size();
+
   // Handle the input to the inner
   for (uint i = 0; i < _inputNodes.size(); i++) {
     for (uint j = 0; j < _innerNodes[0].size(); j++) {
       double shasta = _inputNodes[i] * _edges[0][i][j];
-      _innerNodes[i][j] += shasta / _inputNodes.size();
+      _innerNodes[0][j] += shasta / _inputNodes.size();
     }
   }
 
