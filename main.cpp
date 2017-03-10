@@ -71,6 +71,8 @@ int main() {
   np->neuralNet()->trainData(trainingImages, trainingLabels);
   np->neuralNet()->buildNets();
 
+  NeuralNet *net = np->neuralNet();
+
   //net->resetInputs();
 
   for (uint i = 0; i < trainingImages[0].size(); i++) {

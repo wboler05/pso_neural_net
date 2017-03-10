@@ -1,28 +1,23 @@
 #include "neuralpso.h"
 
-template <class T>
-NeuralPso<T>::NeuralPso(NeuralNetParams params) :
+NeuralPso::NeuralPso(NeuralNetParameters params) :
   _neuralNet(new NeuralNet(params)) {
 
 }
 
-template <class T>
-NeuralPso<T>::~NeuralPso() {
+NeuralPso::~NeuralPso() {
   delete _neuralNet;
 }
 
-template <class T>
-void NeuralPso<T>::build() {
+void NeuralPso::build(vector<vector<vector<byte> > > &images, vector<byte> &labels) {
 
 }
 
-template <class T>
-void NeuralPso<T>::fly() {
+void NeuralPso::fly() {
 
 }
 
-template <class T>
-double NeuralPso<T>::getCost() {
+double NeuralPso::getCost() {
 
   return 0;
 }

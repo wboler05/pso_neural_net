@@ -10,7 +10,7 @@ class Pso;
 template <class T>
 struct Particle;
 
-class NeuralPso : public Pso<Particle<vector<vector<vector<double>>>> > {
+class NeuralPso : public Pso<Particle<vector<vector<vector<double>>>>> {
 public:
   NeuralPso(NeuralNetParameters params);
   ~NeuralPso();
