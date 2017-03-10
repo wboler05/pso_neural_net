@@ -1,0 +1,19 @@
+# depslib dependency file v1.0
+1488564548 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\main.cpp
+	<iostream>
+	<fstream>
+	<cinttypes>
+	<vector>
+	"NueralNet.h"
+
+1488564543 c:\users\wboler\desktop\testcodehere\pso_neural_net\nueralnet.h
+	<iostream>
+	<cstdlib>
+	<cinttypes>
+	<vector>
+	<cmath>
+	<ctime>
+
+1488564784 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\nueralnet.cpp
+	"NueralNet.h"
+
