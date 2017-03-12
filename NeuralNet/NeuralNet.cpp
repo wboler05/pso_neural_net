@@ -1,9 +1,19 @@
 #include "NeuralNet.h"
 
 NeuralNet::NeuralNet(NeuralNetParameters p) :
-  _params(new NeuralNetParameters(p))
+  _nParams(p)
 {
+  resetInputs();
+  resetWeights();
+  setTotalInputs(_nParams.inputs);
+  setTotalInnerNets(_nParams.innerNets);
 
+  for (int i = 0; i < _nParams.innerNets; i++) {
+    setInnerNetNodes(_nParams.innerNetNodes[i], i);
+  }
+
+  setTotalOutputs(_nParams.outputs);
+  buildNets();
 }
 
 NeuralNet::~NeuralNet() {
@@ -200,10 +210,6 @@ vector<double> NeuralNet::process() {
   cout << "\n" << endl;
 
   return _outputNodes;
-}
-
-void NeuralNet::trainData(vector<vector<vector<byte> > > &images, vector<byte> &labels) {
-  cout << "fuck" << endl;
 }
 
 void NeuralNet::resetInnerNodes() {

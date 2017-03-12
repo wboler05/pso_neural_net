@@ -27,12 +27,14 @@ public:
   void resetInputs();
   void resetInnerNodes();
   void resetWeights();
-  void trainData(vector<vector<vector<byte> > > &images, vector<byte> &labels);
 
   void setTotalInputs(uint n);
   void setTotalInnerNets(uint n);
   void setInnerNetNodes(uint nodes, uint i);
   void setTotalOutputs(uint n);
+
+  void setWeights(vector<vector<vector<double>>> * w);
+  vector<vector<vector<double>>> * getWeights();
 
   void loadInput(double in, uint i);
   void setOutputs(vector<double> out);
@@ -41,7 +43,7 @@ public:
   double activation(double in);
   bool buildNets();
 
-  NeuralNetParameters * params() { return _params; }
+  NeuralNetParameters * nParams() { return &_nParams; }
 
 private:
   // Weights and Data
@@ -51,7 +53,7 @@ private:
 
   vector<vector<vector<double>>> _edges;
 
-  NeuralNetParameters *_params;
+  NeuralNetParameters _nParams;
 
 /// Inner Edge index:           0           1            2  ... n-1            n
 /// Nodes:               input -> inner (0) -> inner (1) -> ... -> inner (n-1) -> output

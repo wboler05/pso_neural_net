@@ -60,21 +60,30 @@ int main() {
     return 0;
   }
 
-  NeuralNetParameters params;
-  params.inputs = trainingImages[0].size() * trainingImages[0][0].size();
-  params.innerNets = 2;
-  params.innerNetNodes.push_back(100);
-  params.innerNetNodes.push_back(50);
-  params.outputs = 10;
+  PsoParams pParams;
+  pParams.particles = 50;
+  pParams.neighbors = 10;
+  pParams.iterations = 100;
+  pParams.delta = 5E-6;
+  pParams.termIterationFlag = true;
+  pParams.termDeltaFlag = false;
 
-  NeuralPso *np = new NeuralPso(params);
-  np->neuralNet()->trainData(trainingImages, trainingLabels);
-  np->neuralNet()->buildNets();
+  NeuralNetParameters nParams;
+  nParams.inputs = trainingImages[0].size() * trainingImages[0][0].size();
+  nParams.innerNets = 2;
+  nParams.innerNetNodes.push_back(100);
+  nParams.innerNetNodes.push_back(50);
+  nParams.outputs = 10;
+
+  NeuralPso *np = new NeuralPso(pParams, nParams);
+  np->build(trainingImages, trainingLabels);
 
   NeuralNet *net = np->neuralNet();
 
-  //net->resetInputs();
+  // Train this shit
+  np->runTrainer();
 
+  net->resetInputs();
   for (uint i = 0; i < trainingImages[0].size(); i++) {
     int N = trainingImages[0].size();
     for (uint j = 0; j < trainingImages[0][0].size(); j++) {

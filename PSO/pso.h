@@ -7,26 +7,35 @@
 #include <vector>
 #include "particles.h"
 
+struct PsoParams {
+  uint32_t particles;
+  uint32_t neighbors;
+  uint32_t iterations;
+  double delta;
+
+  bool termIterationFlag;
+  bool termDeltaFlag;
+
+};
+
 template <class T>
 class Pso {
 public:
-  Pso();
+  Pso(PsoParams p);
   ~Pso();
 
   void run();
-  virtual void fly();
-  virtual double getCost();
+  virtual void fly();       // Fly particles
+  virtual void getCost();   // Calculate fitness
 
   std::vector<Particle<T> > * particles() { return &_particles; }
+  Particle<T> * gb() { return &_gb; }
 
-private:
+protected:
   std::vector<Particle<T> > _particles;
+  Particle<T> _gb;
 
-  bool _terminationIterationFlag;
-  bool _terminationDeltaFlag;
-
-  uint32_t _terminationIterations;
-  double _terminationDelta;
+  PsoParams _psoParams;
 
 };
 

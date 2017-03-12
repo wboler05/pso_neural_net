@@ -1,7 +1,10 @@
 #include "pso.h"
 
 template <class T>
-Pso<T>::Pso() {
+Pso<T>::Pso(PsoParams p) :
+    _psoParams(p)
+{
+  _particles.resize(p.particles);
 
 }
 
@@ -14,15 +17,18 @@ Pso<T>::~Pso() {
 
 template <class T>
 void Pso<T>::run() {
-  double cost = 0;
+  double cost = _gb._fit_pb;
   double prevCost = 0;
   uint32_t iterations = 0;
 
   do {
-    prevCost = cost;
-    fly();
-    cost = getCost();
 
-  } while ((_terminationIterationFlag && (++iterations < _terminationIterations)) ||
-           (_terminationDeltaFlag && (cost - prevCost > _terminationDelta)));
+    fly();
+    getCost();
+
+    prevCost = cost;
+    cost = _gb._fit_pb;
+
+  } while ((_psoParams.termIterationFlag && (++iterations < _psoParams.iterations)) ||
+           (_psoParams.termDeltaFlag && (cost - prevCost > _psoParams.termDeltaFlag)));
 }
