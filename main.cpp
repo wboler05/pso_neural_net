@@ -63,29 +63,81 @@ int main() {
   }
 
   PsoParams pParams;
-  pParams.particles = 200;
-  pParams.neighbors = 60;
+  pParams.particles = 50;
+  pParams.neighbors = 5;
   pParams.iterations = 100;
   pParams.delta = 5E-6;
   pParams.termIterationFlag = true;
   pParams.termDeltaFlag = false;
 
+  /*
   NeuralNetParameters nParams;
   nParams.inputs = trainingImages[0].size() * trainingImages[0][0].size();
   nParams.innerNets = 1;
   nParams.innerNetNodes.push_back(100);
   //nParams.innerNetNodes.push_back(50);
   nParams.outputs = 10;
+  */
+  NeuralNetParameters nParams;
+  nParams.inputs = 2;
+  nParams.innerNets = 1;
+  nParams.innerNetNodes.push_back(10);
+  nParams.outputs = 2;
+
+  vector<vector<double>> inputTruth;
+  vector<double> outputResult;
+  inputTruth.resize(500);
+  outputResult.resize(inputTruth.capacity());
+  for (uint i = 0; i < inputTruth.capacity(); i++) {
+    inputTruth[i].resize(2);
+    int x = rand() % 2;
+    int y = rand() % 2;
+    bool z = (x == 1) && (y == 1);
+    inputTruth[i][0] = (double) x;
+    inputTruth[i][1] = (double) y;
+    if (z) {
+      outputResult[i] = 1;
+    } else {
+      outputResult[i] = 0;
+    }
+  }
 
   NeuralPso *np = new NeuralPso(pParams, nParams);
-  np->build(trainingImages, trainingLabels);
+  //np->build(trainingImages, trainingLabels);
+  np->build(inputTruth, outputResult);
 
   NeuralNet *net = np->neuralNet();
 
   // Train this shit
   np->runTrainer();
 
-  net->resetInputs();
+  for (int j = 0; j < 15; j++) { // Test point
+    net->resetInputs();
+    int I = rand() % inputTruth.size();
+    net->loadInput(inputTruth[I][0], 0);
+    net->loadInput(inputTruth[I][1], 1);
+
+    vector<double> res = net->process();
+    cout << "X AND Y = ?? " << endl;
+    cout << "Input: " << endl;
+    for (int i = 0; i < inputTruth[I].size(); i++) {
+      cout << " - " << inputTruth[I][i] << endl;
+    }
+    cout << endl;
+
+    cout << "Expected: " << outputResult[I] << endl;
+    cout << endl;
+
+    cout << "Result: " << endl;
+    for (int i = 0; i < res.size(); i++) {
+      cout << "- (" << i << "): " << res[i] << endl;
+    }
+    cout << endl;
+  }
+
+  return 0;
+
+  //net->resetInputs();
   for (uint i = 0; i < trainingImages[0].size(); i++) {
     int N = trainingImages[0].size();
     for (uint j = 0; j < trainingImages[0][0].size(); j++) {

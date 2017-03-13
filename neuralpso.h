@@ -28,7 +28,9 @@ public:
   NeuralPso(PsoParams pp, NeuralNetParameters np);
   ~NeuralPso();
 
+  void buildPso();
   void build(vector<vector<vector<byte> > > &images, vector<byte> &labels);
+  void build(vector<vector<double>> &input, vector<double> &output);
   void fly();
   void getCost();
 
@@ -43,6 +45,10 @@ private:
   NeuralNet *_neuralNet;
   vector<vector<vector<byte> > > *_images;
   vector<byte> *_labels;
+
+  // Test input
+  vector<vector<double> > *_input;
+  vector<double> *_output;
 
 };
 
