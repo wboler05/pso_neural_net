@@ -41,6 +41,11 @@ public:
   int randomizeTestInputs();
   void runTrainer();
 
+  void printGB();
+  void printParticle(uint i);
+  void printParticlePBest(uint i);
+  void printParticleLBest(uint i);
+
 private:
   NeuralNet *_neuralNet;
   vector<vector<vector<byte> > > *_images;

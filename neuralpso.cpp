@@ -157,9 +157,9 @@ void NeuralPso::getCost() {
       //if (fit > 0.005) _overideTermFlag = false;
       //else _overideTermFlag = true;
 
-      for (uint i = 0; i < _gb._x.size(); i++) {
-        for (uint j = 0; j < _gb._x[i].size(); j++) {
-          for (uint k = 0; k < _gb._x[k].size(); k++) {
+      for (uint i = 0; i < p->_x.size(); i++) {
+        for (uint j = 0; j < p->_x[i].size(); j++) {
+          for (uint k = 0; k < p->_x[i][j].size(); k++) {
             _gb._x[i][j][k] = p->_x[i][j][k];
           }
         }
@@ -195,10 +195,19 @@ void NeuralPso::getCost() {
       }
     } // End local best
 
-    //cout << "Particle (" << i << "):: Fit: " << fit << "\tPersonal: " << p->_fit_pb << "\tLocal: " << p->_fit_lb << "\tGlobal: " << gb()->_fit_pb << endl;
+    cout << "Particle (" << i << "):: Fit: " << fit << "\tPersonal: " << p->_fit_pb << "\tLocal: " << p->_fit_lb << "\tGlobal: " << gb()->_fit_pb << endl;
 
   } // end for each particle
 
+  // Debugging test prints
+  printGB();
+/*
+  for (uint i = 0; i < _particles.size(); i++) {
+    printParticlePBest(i);
+    cout << endl;
+  }
+  cout << endl;
+  */
 } // end getCost()
 
 double NeuralPso::testRun() {
@@ -208,8 +217,7 @@ double NeuralPso::testRun() {
 
   for (int someSets = 0; someSets < runThemSets; someSets++) {
     // Set a random input
-    //int I = randomizeTestInputs();
-    int I = 0;
+    int I = randomizeTestInputs();
 
     // Get the result from random input
     vector<double> output = _neuralNet->process();
@@ -235,12 +243,16 @@ double NeuralPso::testRun() {
 
     // Compare the output to expected
     for (int i = 0; i < outputSize; i++) {
-      errSqr += pow(expectedOutput[i] - output[i], 2);
+      //errSqr += pow(expectedOutput[i] - output[i], 2);
+      // Just try Gaussian???
+      double asdf = -exp(-pow(expectedOutput[i] - output[i], 2));
+      errSqr += -exp(-pow(expectedOutput[i] - output[i], 2)) / outputSize;
     }
   }
 
   // return mean sqr error
-  return sqrt(errSqr) / sqrt(runThemSets);
+  //return sqrt(errSqr) / sqrt(runThemSets);
+  return errSqr / runThemSets;
 }
 
 int NeuralPso::randomizeTestInputs() {
@@ -269,8 +281,15 @@ int NeuralPso::randomizeTestInputs() {
 }
 
 void NeuralPso::runTrainer() {
+
   run();
 
+  printGB();
+
+  _neuralNet->setWeights(&gb()->_x);
+}
+
+void NeuralPso::printGB() {
   cout << "Global Best: " << endl;
   for (uint i = 0; i < _gb._x.size(); i++) {
     cout << "  Inner Net " << i+1 << endl;
@@ -280,7 +299,46 @@ void NeuralPso::runTrainer() {
       }
     }
   }
+}
 
+void NeuralPso::printParticle(uint I) {
+  if (I > _particles.size()) return;
 
-  _neuralNet->setWeights(&gb()->_x);
+  cout << "Particle (" << I << "): " << endl;
+  for (uint i = 0; i < _particles[I]._x.size(); i++) {
+    cout << "  Inner Net " << i+1 << endl;
+    for (uint j = 0; j < _particles[I]._x[i].size(); j++) {
+      for (uint k = 0; k < _particles[I]._x[i][j].size(); k++) {
+        cout << "  -- " << j+1 << " : " << k+1 << " = " << _particles[I]._x[i][j][k] << endl;
+      }
+    }
+  }
+}
+
+void NeuralPso::printParticlePBest(uint I) {
+  if (I > _particles.size()) return;
+
+  cout << "Particle pBest (" << I << "): " << endl;
+  for (uint i = 0; i < _particles[I]._x_pb.size(); i++) {
+    cout << "  Inner Net " << i+1 << endl;
+    for (uint j = 0; j < _particles[I]._x_pb[i].size(); j++) {
+      for (uint k = 0; k < _particles[I]._x_pb[i][j].size(); k++) {
+        cout << "  -- " << j+1 << " : " << k+1 << " = " << _particles[I]._x_pb[i][j][k] << endl;
+      }
+    }
+  }
+}
+
+void NeuralPso::printParticleLBest(uint I) {
+  if (I > _particles.size()) return;
+
+  cout << "Particle lBest (" << I << "): " << endl;
+  for (uint i = 0; i < _particles[I]._x_lb.size(); i++) {
+    cout << "  Inner Net " << i+1 << endl;
+    for (uint j = 0; j < _particles[I]._x_lb[i].size(); j++) {
+      for (uint k = 0; k < _particles[I]._x_lb[i][j].size(); k++) {
+        cout << "  -- " << j+1 << " : " << k+1 << " = " << _particles[I]._x_lb[i][j][k] << endl;
+      }
+    }
+  }
 }

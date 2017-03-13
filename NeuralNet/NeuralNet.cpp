@@ -142,8 +142,9 @@ void NeuralNet::loadInput(double in, uint i) {
 }
 
 double NeuralNet::activation(double in) {
-  double act = 1.0 / (1.0 + exp(-in));
-  //cout << "Activation: " << act << endl;
+  //double act = in / (1 + abs(in));
+  //double act = 1 / (1 + exp(-in));
+  double act = exp(-pow(in, 2));
   return act;
 }
 
@@ -205,6 +206,7 @@ vector<double> NeuralNet::process() {
     uint innerIndex = _innerNodes.size() - 1 ;
     uint innerSize = _innerNodes[innerIndex].size();
     for (uint j = 0; j < innerSize; j++) {
+        double wuz = _innerNodes[innerIndex][j];
       _outputNodes[i] += _edges[_edges.size()-1][j][i] * activation(_innerNodes[innerIndex][j]) / innerSize;
     }
   }
@@ -235,16 +237,29 @@ void NeuralNet::resetInnerNodes() {
 bool NeuralNet::setWeights(vector<vector<vector<double>>> * w) {
   //cout << "Edges: " << _edges.size() << " Setting: " << w->size() << endl;
   if (_edges.size() != w->size()) return false;
-
   for (uint i = 0; i < w->size(); i++) {
     if (w->at(i).size() != _edges[i].size()) return false;
     for (uint j = 0; j < (*w)[i].size(); j++) {
       if ((*w)[i][j].size() != _edges[i][j].size()) return false;
       for (uint k = 0; k < (*w)[i][j].size(); k++) {
         _edges[i][j][k] = (*w)[i][j][k];
+ //       cout << i << ": " << j << ", " << k << ": " << _edges[i][j][k];
+ //       cout << endl;
       }
     }
   }
   return true;
+}
+
+void NeuralNet::printEdges() {
+  cout << "An edge: " << endl;
+  for (uint i = 0; i < _edges.size(); i++) {
+    cout << "  Inner Net " << i+1 << endl;
+    for (uint j = 0; j < _edges[i].size(); j++) {
+      for (uint k = 0; k < _edges[i][j].size(); k++) {
+        cout << "  -- " << j+1 << " : " << k+1 << " = " << _edges[i][j][k] << endl;
+      }
+    }
+  }
 }
 

@@ -45,6 +45,8 @@ public:
 
   NeuralNetParameters * nParams() { return &_nParams; }
 
+  void printEdges();
+
 private:
   // Weights and Data
   vector<double> _inputNodes;

@@ -63,7 +63,7 @@ int main() {
   }
 
   PsoParams pParams;
-  pParams.particles = 50;
+  pParams.particles = 10;
   pParams.neighbors = 5;
   pParams.iterations = 100;
   pParams.delta = 5E-6;
@@ -79,9 +79,9 @@ int main() {
   nParams.outputs = 10;
   */
   NeuralNetParameters nParams;
-  nParams.inputs = 2;
+  nParams.inputs = 1;
   nParams.innerNets = 1;
-  nParams.innerNetNodes.push_back(10);
+  nParams.innerNetNodes.push_back(4);
   nParams.outputs = 2;
 
   vector<vector<double>> inputTruth;
@@ -89,12 +89,12 @@ int main() {
   inputTruth.resize(500);
   outputResult.resize(inputTruth.capacity());
   for (uint i = 0; i < inputTruth.capacity(); i++) {
-    inputTruth[i].resize(2);
+    inputTruth[i].resize(1);
     int x = rand() % 2;
-    int y = rand() % 2;
-    bool z = (x == 1) && (y == 1);
+    //int y = rand() % 2;
+    bool z = (x == 1);// && (y == 1);
     inputTruth[i][0] = (double) x;
-    inputTruth[i][1] = (double) y;
+    //inputTruth[i][1] = (double) y;
     if (z) {
       outputResult[i] = 1;
     } else {
@@ -114,13 +114,14 @@ int main() {
   for (int j = 0; j < 15; j++) { // Test point
     net->resetInputs();
     int I = rand() % inputTruth.size();
-    net->loadInput(inputTruth[I][0], 0);
-    net->loadInput(inputTruth[I][1], 1);
+    for (uint i = 0; i < inputTruth[I].size(); i++) {
+      net->loadInput(inputTruth[I][i], i);
+    }
 
     vector<double> res = net->process();
     cout << "X AND Y = ?? " << endl;
     cout << "Input: " << endl;
-    for (int i = 0; i < inputTruth[I].size(); i++) {
+    for (uint i = 0; i < inputTruth[I].size(); i++) {
       cout << " - " << inputTruth[I][i] << endl;
     }
     cout << endl;
@@ -129,7 +130,7 @@ int main() {
     cout << endl;
 
     cout << "Result: " << endl;
-    for (int i = 0; i < res.size(); i++) {
+    for (uint i = 0; i < res.size(); i++) {
       cout << "- (" << i << "): " << res[i] << endl;
     }
     cout << endl;

@@ -10,23 +10,27 @@
 				<Option output="bin/Debug/pso_neural_net" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="gnu_gcc_with_opencl" />
 				<Compiler>
 					<Add option="-std=c++11" />
 					<Add option="-g" />
 				</Compiler>
+				<Linker>
+					<Add directory="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/lib/Win32" />
+				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option output="bin/Release/pso_neural_net" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="gnu_gcc_with_opencl" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-std=c++11" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\lib\x64\OpenCL.lib" />
+					<Add directory="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/lib/Win32" />
 				</Linker>
 			</Target>
 		</Build>
