@@ -5,6 +5,7 @@ Pso<T>::Pso(PsoParams p) :
     _psoParams(p)
 {
   _particles.resize(p.particles);
+  _overideTermFlag = true;
 
 }
 
@@ -30,5 +31,15 @@ void Pso<T>::run() {
     cost = _gb._fit_pb;
 
   } while ((_psoParams.termIterationFlag && (++iterations < _psoParams.iterations)) ||
-           (_psoParams.termDeltaFlag && (cost - prevCost > _psoParams.termDeltaFlag)));
+           (_psoParams.termDeltaFlag && (cost - prevCost > _psoParams.termDeltaFlag)) ||
+           (!_overideTermFlag));
+  _overideTermFlag = true;
+}
+
+template <class T>
+void Pso<T>::fly() {
+}
+
+template <class T>
+void Pso<T>::getCost() {
 }

@@ -33,8 +33,8 @@ public:
   void setInnerNetNodes(uint nodes, uint i);
   void setTotalOutputs(uint n);
 
-  void setWeights(vector<vector<vector<double>>> * w);
-  vector<vector<vector<double>>> * getWeights();
+  bool setWeights(vector<vector<vector<double>>> * w);
+  vector<vector<vector<double>>> & getWeights() {return _edges; }
 
   void loadInput(double in, uint i);
   void setOutputs(vector<double> out);

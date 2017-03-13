@@ -5,12 +5,21 @@
 #include "NeuralNet/NeuralNet.h"
 
 #include <ctime>
+#include <limits>
 
+#include "CL/opencl.h"
+
+/*
 template <class T>
 class Pso;
+*/
+template class Pso<vector<vector<vector<double>>>>;
 
+/*
 template <class T>
 struct Particle;
+*/
+template struct Particle<vector<vector<vector<double>>>>;
 
 class NeuralNet;
 

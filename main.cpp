@@ -35,10 +35,12 @@ bool readLabelHeading(ifstream &in, LabelInfo &lb);
 bool readImageHeading(ifstream &in, ImageInfo &im);
 uint32_t char2uint(uint8_t *input);
 uint32_t readUnsignedInt(ifstream &input);
+void initializeCL();
 
 int main() {
   srand(time(NULL));
 
+  initializeCL();
 
   /// image.rows.cols
   vector<vector<vector<uint8_t> > > trainingImages;
@@ -61,8 +63,8 @@ int main() {
   }
 
   PsoParams pParams;
-  pParams.particles = 50;
-  pParams.neighbors = 10;
+  pParams.particles = 200;
+  pParams.neighbors = 60;
   pParams.iterations = 100;
   pParams.delta = 5E-6;
   pParams.termIterationFlag = true;
@@ -70,9 +72,9 @@ int main() {
 
   NeuralNetParameters nParams;
   nParams.inputs = trainingImages[0].size() * trainingImages[0][0].size();
-  nParams.innerNets = 2;
+  nParams.innerNets = 1;
   nParams.innerNetNodes.push_back(100);
-  nParams.innerNetNodes.push_back(50);
+  //nParams.innerNetNodes.push_back(50);
   nParams.outputs = 10;
 
   NeuralPso *np = new NeuralPso(pParams, nParams);
@@ -231,6 +233,71 @@ uint32_t char2uint(uint8_t *input) {
   num +=  (((uint32_t) input[2]) << 16) & 0x00FF0000;
   num +=  (((uint32_t) input[3]) << 24) & 0xFF000000;
   return num;
+}
+
+void initializeCL() {
+
+unsigned int numPlatforms;
+    int getPlatformIDSuccess = clGetPlatformIDs(0, NULL, &numPlatforms);
+    //qDebug() << "Success: " << getPlatformIDSuccess << "\tNum Platforms: " << numPlatforms;
+
+    cl_platform_id *platforms = new cl_platform_id[numPlatforms];
+    getPlatformIDSuccess = clGetPlatformIDs(numPlatforms, platforms, NULL);
+
+    if (getPlatformIDSuccess == CL_SUCCESS) {
+        cout<< "Got "<< numPlatforms << " Platform IDs. " <<endl;
+    } else {
+        cout << "Failed to get Platform IDs." << endl;
+        return;
+    }
+
+    //FIXME: Set these inside the loop at delete them after formation.
+    //       Set up QVector or std::vectors for adding devices[devicetype][device].
+    // Set up device ID arrays
+    cl_device_id *cpuDevices;
+    cl_device_id *gpuDevices;
+
+    for (unsigned int i = 0; i < numPlatforms; i++) {
+        cl_uint numDevicesCPU;
+        cl_uint numDevicesGPU;
+
+        cl_device_type devTypeCPU = CL_DEVICE_TYPE_CPU;
+        cl_device_type devTypeGPU = CL_DEVICE_TYPE_GPU;
+
+        cl_int deviceIDSuccessCPU = clGetDeviceIDs(platforms[i], devTypeCPU, 0, NULL, &numDevicesCPU);
+        cl_int deviceIDSuccessGPU = clGetDeviceIDs(platforms[i], devTypeGPU, 0, NULL, &numDevicesGPU);
+
+        if (deviceIDSuccessCPU == CL_SUCCESS) {
+            cpuDevices = new cl_device_id[numDevicesCPU];
+            deviceIDSuccessCPU = clGetDeviceIDs(platforms[i], devTypeCPU, numDevicesCPU, cpuDevices, NULL);
+            if (deviceIDSuccessCPU == CL_SUCCESS) {
+                cout << "CPU Platform(" << platforms[i] << "): \tDevices: " << numDevicesCPU << endl;
+                for (unsigned int j = 0; j < numDevicesCPU; j++) {
+                    cout << " - " << cpuDevices[j] << endl;
+                }
+            } else {
+                //qDebug() << "Failed to get CPU devices for platform " << i << ", " << platforms[i];
+            }
+        } else {
+            //qDebug() << "Failed to get CPU device count for platform " << i << ", " << platforms[i];
+        }
+
+        if (deviceIDSuccessGPU == CL_SUCCESS) {
+            gpuDevices = new cl_device_id[numDevicesGPU];
+            deviceIDSuccessGPU = clGetDeviceIDs(platforms[i], devTypeGPU, numDevicesGPU, gpuDevices, NULL);
+            if (deviceIDSuccessGPU == CL_SUCCESS) {
+                cout << "GPU Platform(" << platforms[i] << "): \tDevices: " << numDevicesGPU << endl;
+                for (unsigned int j = 0; j < numDevicesGPU; j++) {
+                    cout << " - " << gpuDevices[j] << endl;
+                }
+            } else {
+                //qDebug() << "Failed to get GPU devices for platform " << i << ", " << platforms[i];
+            }
+        } else {
+            //qDebug() << "Failed to get GPU device count for platform " << i << ", " << platforms[i];
+        }
+    }
+
 }
 
 

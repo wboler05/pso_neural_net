@@ -156,7 +156,9 @@ vector<double> NeuralNet::process() {
 
   resetInnerNodes();
 
+  /*
   cout << _inputNodes.size() << "\t" << _innerNodes.size();
+  */
 
   // Handle the input to the inner
   for (uint i = 0; i < _inputNodes.size(); i++) {
@@ -166,6 +168,7 @@ vector<double> NeuralNet::process() {
     }
   }
 
+  /*
   cout << "Inputs (" << _inputNodes.size() << "): ";
   for (uint i = 0; i < _inputNodes.size(); i++) {
     cout << _inputNodes[i] << ", ";
@@ -177,6 +180,7 @@ vector<double> NeuralNet::process() {
     cout << _innerNodes[0][i] << ", ";
   }
   cout << "\n" << endl;
+  */
 
   // Handle the rest of the inner nodes
   for (uint i = 0; i < _innerNodes.size()-1; i++) {
@@ -186,11 +190,13 @@ vector<double> NeuralNet::process() {
       }
     }
 
+    /*
     cout << "Stage " << i+1 << " Inner Node (" << _innerNodes[i+1].size() << "): ";
     for (uint f = 0; f < _innerNodes[i+1].size(); f++) {
       cout << _innerNodes[i+1][f] << ", ";
     }
     cout << "\n" << endl;
+    */
 
   }
 
@@ -203,11 +209,13 @@ vector<double> NeuralNet::process() {
     }
   }
 
+  /*
   cout << "Output (" << _outputNodes.size() << "): ";
   for (uint i = 0; i < _outputNodes.size(); i++) {
     cout << _outputNodes[i] << ", ";
   }
   cout << "\n" << endl;
+  */
 
   return _outputNodes;
 }
@@ -222,5 +230,21 @@ void NeuralNet::resetInnerNodes() {
   for (uint i = 0; i < _outputNodes.size(); i++) {
     _outputNodes[i] = 0;
   }
+}
+
+bool NeuralNet::setWeights(vector<vector<vector<double>>> * w) {
+  //cout << "Edges: " << _edges.size() << " Setting: " << w->size() << endl;
+  if (_edges.size() != w->size()) return false;
+
+  for (uint i = 0; i < w->size(); i++) {
+    if (w->at(i).size() != _edges[i].size()) return false;
+    for (uint j = 0; j < (*w)[i].size(); j++) {
+      if ((*w)[i][j].size() != _edges[i][j].size()) return false;
+      for (uint k = 0; k < (*w)[i][j].size(); k++) {
+        _edges[i][j][k] = (*w)[i][j][k];
+      }
+    }
+  }
+  return true;
 }
 

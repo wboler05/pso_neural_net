@@ -12,6 +12,7 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-std=c++11" />
 					<Add option="-g" />
 				</Compiler>
 			</Target>
@@ -25,12 +26,21 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add library="C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\lib\x64\OpenCL.lib" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="NeuralNet/NeuralNet.cpp" />
+		<Unit filename="NeuralNet/NeuralNet.h" />
+		<Unit filename="PSO/particles.h" />
+		<Unit filename="PSO/pso.cpp" />
+		<Unit filename="PSO/pso.h" />
+		<Unit filename="main.cpp" />
+		<Unit filename="neuralpso.cpp" />
+		<Unit filename="neuralpso.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />

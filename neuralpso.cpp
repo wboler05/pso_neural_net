@@ -1,8 +1,13 @@
 #include "neuralpso.h"
 
+#include "PSO/pso.cpp"
+//#include "NeuralNet/NeuralNet.cpp"
+
 NeuralPso::NeuralPso(PsoParams pp, NeuralNetParameters np) :
   Pso(pp),
-  _neuralNet(new NeuralNet(np)) {
+  _neuralNet(new NeuralNet(np))
+{
+
 }
 
 NeuralPso::~NeuralPso() {
@@ -13,6 +18,43 @@ void NeuralPso::build(vector<vector<vector<byte> > > &images, vector<byte> &labe
   srand(time(NULL));
   _images = &images;
   _labels = &labels;
+
+  _particles.empty();
+  vector<vector<vector<double>>> &edges = _neuralNet->getWeights();
+
+  // Create N particles
+  _particles.resize(_psoParams.particles);
+  for (uint i = 0; i < _psoParams.particles; i++) {
+    // Create the number of inner columns
+    _particles[i]._fit_pb = numeric_limits<double>::max();
+    _particles[i]._fit_lb = numeric_limits<double>::max();
+
+    _particles[i]._x.resize(edges.size());
+    _particles[i]._v.resize(edges.size());
+    _particles[i]._x_pb.resize(edges.size());
+    _particles[i]._x_lb.resize(edges.size());
+    // Create each inner column edge
+    for (uint j = 0; j < edges.size(); j++) {
+      // Create left edges
+      _particles[i]._x[j].resize(edges[j].size());
+      _particles[i]._v[j].resize(edges[j].size());
+      _particles[i]._x_pb[j].resize(edges[j].size());
+      _particles[i]._x_lb[j].resize(edges[j].size());
+      for (uint k = 0; k < edges[j].size(); k++) {
+        // Create right edges
+        _particles[i]._x[j][k].resize(edges[j][k].size());
+        _particles[i]._v[j][k].resize(edges[j][k].size());
+        _particles[i]._x_pb[j][k].resize(edges[j][k].size());
+        _particles[i]._x_lb[j][k].resize(edges[j][k].size());
+        for (uint m = 0; m < edges[j][k].size(); m++) {
+          _particles[i]._x[j][k][m] = (double) (rand() % 10000) / 10000;
+          _particles[i]._v[j][k][m] = 0;
+          _particles[i]._x_pb[j][k][m] = 0;
+          _particles[i]._x_lb[j][k][m] = 0;
+        }
+      }
+    }
+  }
 
 
 }
@@ -39,7 +81,10 @@ void NeuralPso::fly() {
           double c2 = C2 * ((double) (rand() % 10000)) / 10000.0;
 
           *w_v += inertia * (*w_v) + (c1*(*w_pb - *w_x)) + (c2*(*w_lb - *w_x));
-          *w_x += *w_v;
+          *w_x += *w_v / 6.0;
+
+          if (*w_x > 1.0) *w_x = 1.0;
+          else if (*w_x < 0) *w_x = 0;
         }
       }
     }
@@ -47,11 +92,12 @@ void NeuralPso::fly() {
 }
 
 void NeuralPso::getCost() {
-
   for (uint i = 0; i < _particles.size(); i++) {
     Particle<vector<vector<vector<double>>>> *p = &_particles[i];
 
-    _neuralNet->setWeights(&p->_x);
+    if (!_neuralNet->setWeights(&p->_x)) {
+      std::cout<< "Failure to set weights." << endl;
+    }
     double sqrErr = testRun();
 
     // Minimize error
@@ -73,6 +119,8 @@ void NeuralPso::getCost() {
     // Find global best
     if (fit < _gb._fit_pb) {
       _gb._fit_pb = fit;
+      if (fit > 0.005) _overideTermFlag = false;
+      else _overideTermFlag = true;
 
       for (uint i = 0; i < _gb._x.size(); i++) {
         for (uint j = 0; j < _gb._x[i].size(); j++) {
@@ -88,16 +136,23 @@ void NeuralPso::getCost() {
     if (left_i < 0) left_i += _particles.size();
     for (uint j = 0; j < _psoParams.neighbors; j++) {
       uint it = (uint) left_i + j;
-      if (it < 0) it += _particles.size();
-      else if (it >= _particles.size()) it -= _particles.size();
+      if (it < 0) {
+        it += _particles.size();
+      } else if (it >= _particles.size()) {
+        it -= _particles.size();
+      }
 
       Particle<vector<vector<vector<double>>>> *p_n = &_particles[it];
-      if (fit < (*p_n)._fit_lb) {
-        (*p_n)._fit_lb = fit;
+      if (fit < p_n->_fit_lb) {
+        p_n->_fit_lb = fit;
 
+//        uint size1 = p_n->_x_lb.size();
         for (uint i = 0; i < p_n->_x_lb.size(); i++) {
+          uint size2 = p_n->_x_lb[i].size();
           for (uint j = 0; j < p_n->_x_lb[i].size(); j++) {
+//            uint size3 = p_n->_x_lb[i][j].size();
             for (uint k = 0; k < p_n->_x_lb[i][j].size(); j++) {
+              if (j >= size2) continue;
               p_n->_x_lb[i][j][k] = p->_x[i][j][k];
             }
           }
@@ -105,47 +160,53 @@ void NeuralPso::getCost() {
       }
     } // End local best
 
+    cout << "Particle (" << i << "):: Fit: " << fit << "\tPersonal: " << p->_fit_pb << "\tLocal: " << p->_fit_lb << "\tGlobal: " << gb()->_fit_pb << endl;
+
   } // end for each particle
 
 } // end getCost()
 
 double NeuralPso::testRun() {
-  // Set a random input
-  int I = randomizeTestInputs();
+  double errSqr = 0;
 
-  // Get the result from random input
-  vector<double> output = _neuralNet->process();
-  vector<double> expectedOutput;
+  int runThemSets = 50;
 
-  int outputSize = output.size();
-  int answer = _labels->at(I);
+  for (int someSets = 0; someSets < runThemSets; someSets++) {
+    // Set a random input
+    int I = randomizeTestInputs();
 
-  expectedOutput.resize(outputSize);
+    // Get the result from random input
+    vector<double> output = _neuralNet->process();
+    vector<double> expectedOutput;
 
-  for (int i = 0; i < outputSize; i++) {
-    if (i == answer) {
-      expectedOutput[i] = 1;
-    } else {
-      expectedOutput[i] = 0;
+    int outputSize = output.size();
+    int answer = _labels->at(I);
+
+    expectedOutput.resize(outputSize);
+
+    for (int i = 0; i < outputSize; i++) {
+      if (i == answer) {
+        expectedOutput[i] = 1;
+      } else {
+        expectedOutput[i] = 0;
+      }
+    }
+
+    // Compare the output to expected
+    for (int i = 0; i < outputSize; i++) {
+      errSqr += pow(expectedOutput[i] - output[i], 2);
     }
   }
 
-  // Compare the output to expected
-  double errSqr = 0;
-
-  for (int i = 0; i < outputSize; i++) {
-    errSqr += pow(expectedOutput[i] - output[i], 2);
-  }
-
   // return mean sqr error
-  return sqrt(errSqr);
+  return sqrt(errSqr) / sqrt(runThemSets);
 }
 
 int NeuralPso::randomizeTestInputs() {
   _neuralNet->resetInputs();
 
   int I = rand() % _images->size();
-  int N = _images[I].size();
+  int N = (*_images)[I].size();
 
   for (uint i = 0; i < (*_images)[I].size(); i++) {
     for (uint j = 0; j < (*_images)[I][0].size(); j++) {

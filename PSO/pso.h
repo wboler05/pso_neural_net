@@ -36,6 +36,7 @@ protected:
   Particle<T> _gb;
 
   PsoParams _psoParams;
+  bool _overideTermFlag;
 
 };
 
