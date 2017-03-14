@@ -38,7 +38,7 @@ public:
 
   void loadInput(double in, uint i);
   void setOutputs(vector<double> out);
-  vector<double> process();
+  const vector<double> & process();
 
   double activation(double in);
   bool buildNets();

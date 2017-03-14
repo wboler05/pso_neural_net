@@ -63,10 +63,11 @@ int main() {
   }
 
   PsoParams pParams;
-  pParams.particles = 10;
-  pParams.neighbors = 5;
-  pParams.iterations = 100;
+  pParams.particles = 50;
+  pParams.neighbors = 10;
+  pParams.iterations = 200;
   pParams.delta = 5E-6;
+  pParams.vDelta = 5E-200;
   pParams.termIterationFlag = true;
   pParams.termDeltaFlag = false;
 
@@ -82,6 +83,8 @@ int main() {
   nParams.inputs = 1;
   nParams.innerNets = 1;
   nParams.innerNetNodes.push_back(4);
+  //nParams.innerNetNodes.push_back(4);
+  //nParams.innerNetNodes.push_back(4);
   nParams.outputs = 2;
 
   vector<vector<double>> inputTruth;
@@ -96,9 +99,9 @@ int main() {
     inputTruth[i][0] = (double) x;
     //inputTruth[i][1] = (double) y;
     if (z) {
-      outputResult[i] = 1;
-    } else {
       outputResult[i] = 0;
+    } else {
+      outputResult[i] = 1;
     }
   }
 

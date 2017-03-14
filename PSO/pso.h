@@ -8,10 +8,11 @@
 #include "particles.h"
 
 struct PsoParams {
-  uint32_t particles;
-  uint32_t neighbors;
-  uint32_t iterations;
-  double delta;
+  uint32_t particles=50;
+  uint32_t neighbors=5;
+  uint32_t iterations=100;
+  double delta=5E-3;
+  double vDelta=5E-20;
 
   bool termIterationFlag;
   bool termDeltaFlag;

@@ -90,8 +90,11 @@ void NeuralPso::build(vector<vector<double>> &input, vector<double> &output) {
 }
 
 void NeuralPso::fly() {
-  // For each particle
+
   double velSum = 0;
+  bool term = true;
+
+  // For each particle
   for (uint i = 0; i < _particles.size(); i++) {
     double C1 = 2.495, C2 = 2.495;
     Particle<vector<vector<vector<double>>>> *p = &_particles[i];
@@ -111,19 +114,46 @@ void NeuralPso::fly() {
           double c1 = C1 * ((double) (rand() % 10000)) / 10000.0;
           double c2 = C2 * ((double) (rand() % 10000)) / 10000.0;
 
-          *w_v += inertia * (*w_v) + (c1*(*w_pb - *w_x)) + (c2*(*w_lb - *w_x));
+          *w_v += (inertia * (*w_v) + (c1*(*w_pb - *w_x)) + (c2*(*w_lb - *w_x))) / 100.0;
           velSum += *w_v;
-          *w_x += *w_v / 20.0;
+          term = term && (*w_pb == *w_x) && (*w_lb == *w_x);
+          *w_x += *w_v;
 
-          if (*w_x > 1.0) *w_x = 1.0;
-          else if (*w_x < -1.0) *w_x = -1.0;
+          if (*w_x > 1.0) {
+            *w_x = 1.0;
+            *w_v *= -0.01;
+          } else if (*w_x < -1.0) {
+            *w_x = -1.0;
+            *w_v *= -0.01;
+          }
         }
       }
     }
   }
-  if (velSum < 5E-200)
+
+//  if (velSum < _psoParams.vDelta)
+//    _overideTermFlag = true;
+  if (term)
     _overideTermFlag = true;
-  cout << velSum << endl;
+
+  // If stagnant, mix it up a bit
+  double shit = abs(velSum);
+  if (abs(velSum) < _psoParams.vDelta) {
+    for (int i = 0; i < _particles.size(); i++) {
+    // Reset bests
+    _particles[i]._fit_pb = numeric_limits<double>::max();
+    _particles[i]._fit_lb = numeric_limits<double>::max();
+      for (int j = 0; j < _particles[i]._x.size(); j++) {
+        for (int k = 0; k < _particles[i]._x[j].size(); k++) {
+          for (int m = 0; m < _particles[i]._x[j][k].size(); m++) {
+            _particles[i]._x[j][k][m] = ((double)(rand() % 20000)/10000.0) - 1.0;
+          }
+        }
+      }
+    }
+    cout << endl;
+  }
+  //cout << velSum << endl;
 }
 
 void NeuralPso::getCost() {
@@ -195,12 +225,19 @@ void NeuralPso::getCost() {
       }
     } // End local best
 
-    cout << "Particle (" << i << "):: Fit: " << fit << "\tPersonal: " << p->_fit_pb << "\tLocal: " << p->_fit_lb << "\tGlobal: " << gb()->_fit_pb << endl;
+//    cout << "Particle (" << i << "):: Fit: " << fit << "\tPersonal: " << p->_fit_pb << "\tLocal: " << p->_fit_lb << "\tGlobal: " << gb()->_fit_pb << endl;
 
   } // end for each particle
 
+  static double prevBest = 0;
+  if (prevBest != gb()->_fit_pb) {
+      cout << "Global: " << gb()->_fit_pb << endl;
+      prevBest = gb()->_fit_pb;
+  }
+
+
   // Debugging test prints
-  printGB();
+  //printGB();
 /*
   for (uint i = 0; i < _particles.size(); i++) {
     printParticlePBest(i);
@@ -208,12 +245,14 @@ void NeuralPso::getCost() {
   }
   cout << endl;
   */
+  if (gb()->_fit_pb < -0.95)
+    _overideTermFlag = true;
 } // end getCost()
 
 double NeuralPso::testRun() {
   double errSqr = 0;
 
-  int runThemSets = 1;
+  int runThemSets = 20;
 
   for (int someSets = 0; someSets < runThemSets; someSets++) {
     // Set a random input
@@ -245,8 +284,9 @@ double NeuralPso::testRun() {
     for (int i = 0; i < outputSize; i++) {
       //errSqr += pow(expectedOutput[i] - output[i], 2);
       // Just try Gaussian???
-      double asdf = -exp(-pow(expectedOutput[i] - output[i], 2));
-      errSqr += -exp(-pow(expectedOutput[i] - output[i], 2)) / outputSize;
+      double expected = expectedOutput[i];
+      double got = output[i];
+      errSqr += -exp(-pow((expectedOutput[i] - output[i])/0.2, 2)) / outputSize;
     }
   }
 
