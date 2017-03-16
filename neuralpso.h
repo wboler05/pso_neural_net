@@ -57,4 +57,6 @@ private:
 
 };
 
+extern volatile bool stopProcessing;
+
 #endif // NEURALPSO_H

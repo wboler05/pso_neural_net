@@ -3,6 +3,8 @@
 #include "PSO/pso.cpp"
 //#include "NeuralNet/NeuralNet.cpp"
 
+volatile bool stopProcessing = false;
+
 NeuralPso::NeuralPso(PsoParams pp, NeuralNetParameters np) :
   Pso(pp),
   _neuralNet(new NeuralNet(np)),
@@ -94,6 +96,11 @@ void NeuralPso::fly() {
   double velSum = 0;
   bool term = true;
 
+  if (_particles.size() == 0) return;
+
+  static int innerNetAccessCount = _psoParams.iterationsPerLevel;
+  static int innerNetIt = _particles[0]._v.size()-1;
+
   // For each particle
   for (uint i = 0; i < _particles.size(); i++) {
     double C1 = 2.495, C2 = 2.495;
@@ -101,6 +108,7 @@ void NeuralPso::fly() {
 
     // For each inner net
     for (uint inner_net = 0; inner_net < p->_v.size(); inner_net++) {
+      if (_psoParams.backPropagation && (inner_net != innerNetIt)) continue;
       // For each edge (left side) of that inner net
       for (uint left_edge = 0; left_edge < p->_v[inner_net].size(); left_edge++) {
         // For each edge (right side) of that inner net
@@ -131,6 +139,13 @@ void NeuralPso::fly() {
     }
   }
 
+  if (innerNetAccessCount-- == 0) {
+    innerNetAccessCount = _psoParams.iterationsPerLevel;
+    if (innerNetIt-- == 0) {
+      innerNetIt = _neuralNet->nParams()->innerNetNodes.size()-1;
+    }
+  }
+
 //  if (velSum < _psoParams.vDelta)
 //    _overideTermFlag = true;
   if (term)
@@ -154,6 +169,11 @@ void NeuralPso::fly() {
     cout << endl;
   }
   //cout << velSum << endl;
+
+  /// For termination through user control
+  if (stopProcessing) {
+    _overideTermFlag = true;
+  }
 }
 
 void NeuralPso::getCost() {
@@ -225,7 +245,7 @@ void NeuralPso::getCost() {
       }
     } // End local best
 
-//    cout << "Particle (" << i << "):: Fit: " << fit << "\tPersonal: " << p->_fit_pb << "\tLocal: " << p->_fit_lb << "\tGlobal: " << gb()->_fit_pb << endl;
+    //cout << "Particle (" << i << "):: Fit: " << fit << "\tPersonal: " << p->_fit_pb << "\tLocal: " << p->_fit_lb << "\tGlobal: " << gb()->_fit_pb << endl;
 
   } // end for each particle
 
@@ -253,6 +273,7 @@ double NeuralPso::testRun() {
   double errSqr = 0;
 
   int runThemSets = 20;
+  int correctCount = runThemSets;
 
   for (int someSets = 0; someSets < runThemSets; someSets++) {
     // Set a random input
@@ -280,19 +301,38 @@ double NeuralPso::testRun() {
       }
     }
 
+    double maxVal = -1.0;
+    int maxNode = 0;
     // Compare the output to expected
     for (int i = 0; i < outputSize; i++) {
       //errSqr += pow(expectedOutput[i] - output[i], 2);
       // Just try Gaussian???
       double expected = expectedOutput[i];
       double got = output[i];
+      if (output[i] > maxVal) {
+        maxVal = output[i];
+        maxNode = i;
+      }
       errSqr += -exp(-pow((expectedOutput[i] - output[i])/0.2, 2)) / outputSize;
     }
+
+    // If we have a correct answer, then we're heading in the right direction
+    // Give him a cookie.
+    if (maxNode != answer) {
+      errSqr *= 0.1;
+      correctCount--;
+    }
+  }
+
+  ///TODO: Temporary ending check
+  //   Not necessarily correct if right 20 times in a row
+  if (correctCount == runThemSets) {
+    _overideTermFlag = true;
   }
 
   // return mean sqr error
   //return sqrt(errSqr) / sqrt(runThemSets);
-  return errSqr / runThemSets;
+  return errSqr / (runThemSets);
 }
 
 int NeuralPso::randomizeTestInputs() {

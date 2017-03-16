@@ -17,6 +17,9 @@ struct PsoParams {
   bool termIterationFlag;
   bool termDeltaFlag;
 
+  bool backPropagation=true;
+  int iterationsPerLevel=100;
+
 };
 
 template <class T>

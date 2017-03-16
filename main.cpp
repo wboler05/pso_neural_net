@@ -4,6 +4,8 @@
 #include <vector>
 using namespace std;
 
+#include <boost/thread.hpp>
+
 #include "neuralpso.h"
 
 #define DT_UNSIGNED_TYPE 0X08
@@ -29,6 +31,8 @@ struct ImageInfo {
   uint32_t cols;
 };
 
+void onKeyInput();
+void runNeuralPso();
 void loadTrainingData(string imageFile, string labelFile, vector<vector<vector<uint8_t> > > &trainingImages, vector<uint8_t> &trainingLabels);
 bool readMagicNumber(ifstream &in, uint32_t &dataType, uint32_t &dimensions, uint32_t &numItems);
 bool readLabelHeading(ifstream &in, LabelInfo &lb);
@@ -42,6 +46,29 @@ int main() {
 
   initializeCL();
 
+  boost::thread thread1(onKeyInput);
+  boost::thread thread2(runNeuralPso);
+
+  thread1.join();
+  thread2.join();
+
+
+  return 0;
+
+}
+
+void onKeyInput() {
+  cout << "Threading works!" << endl;
+
+  int in = getchar();
+
+  if ((char)in == 'c') {
+    stopProcessing = true;
+  }
+
+}
+
+void runNeuralPso() {
   /// image.rows.cols
   vector<vector<vector<uint8_t> > > trainingImages;
   vector<uint8_t> trainingLabels;
@@ -59,13 +86,13 @@ int main() {
 
   if (trainingImages.size() == 0) {
     cout << "You messed up. Images are empty." << endl;
-    return 0;
+    return;
   }
 
   PsoParams pParams;
-  pParams.particles = 50;
-  pParams.neighbors = 10;
-  pParams.iterations = 200;
+  pParams.particles = 100; // 50
+  pParams.neighbors = 20; // 10
+  pParams.iterations = 1000;
   pParams.delta = 5E-6;
   pParams.vDelta = 5E-200;
   pParams.termIterationFlag = true;
@@ -81,9 +108,9 @@ int main() {
   */
   NeuralNetParameters nParams;
   nParams.inputs = 1;
-  nParams.innerNets = 1;
+  nParams.innerNets = 2;
+  nParams.innerNetNodes.push_back(8);
   nParams.innerNetNodes.push_back(4);
-  //nParams.innerNetNodes.push_back(4);
   //nParams.innerNetNodes.push_back(4);
   nParams.outputs = 2;
 
@@ -92,6 +119,7 @@ int main() {
   inputTruth.resize(500);
   outputResult.resize(inputTruth.capacity());
   for (uint i = 0; i < inputTruth.capacity(); i++) {
+    if (i >= inputTruth.capacity()) continue;
     inputTruth[i].resize(1);
     int x = rand() % 2;
     //int y = rand() % 2;
@@ -110,6 +138,37 @@ int main() {
   np->build(inputTruth, outputResult);
 
   NeuralNet *net = np->neuralNet();
+
+  /*** Test a result ***/
+/*
+  vector<vector<vector<double>>> edges;
+  edges.resize(2);
+  edges[0].resize(1);
+  edges[0][0].resize(4);
+  edges[1].resize(4);
+  for (int i = 0; i < 4; i++) {
+    edges[1][i].resize(2);
+  }
+  edges[0][0][0] = 0.570669;
+  edges[0][0][1] = 0.408707;
+  edges[0][0][2] = -0.92892;
+  edges[0][0][3] = -0.25857;
+  edges[1][0][0] = -0.9811;
+  edges[1][0][1] = 0.954244;
+  edges[1][1][0] = 0.98358;
+  edges[1][1][1] = 1;
+  edges[1][2][0] = -0.97887;
+  edges[1][2][1] = 0.997905;
+  edges[1][3][0] = 0.974363;
+  edges[1][3][1] = 0.894786;
+
+  net->setWeights(&edges);
+  net->printEdges();
+  net->resetInputs();
+  net->loadInput(1, 0);
+  vector<double> tempOut = net->process();
+*/
+  /*** End test ***/
 
   // Train this shit
   np->runTrainer();
@@ -139,7 +198,7 @@ int main() {
     cout << endl;
   }
 
-  return 0;
+  return;
 
   //net->resetInputs();
   for (uint i = 0; i < trainingImages[0].size(); i++) {
@@ -159,8 +218,6 @@ int main() {
     cout << " (" << i << ") - " << result.at(0) << endl;
   }
   cout << endl;
-
-  return 0;
 
 }
 

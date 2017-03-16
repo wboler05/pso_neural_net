@@ -144,7 +144,7 @@ void NeuralNet::loadInput(double in, uint i) {
 double NeuralNet::activation(double in) {
   //double act = in / (1 + abs(in));  // Softsign
   //double act = 1 / (1 + exp(-in));  // Logistics
-  double mean = 1.0;
+//  double mean = 1.0;
   double sigma = 0.2;
   //double act = exp(-pow((in - mean)/sigma, 2));      // Gaussian
   double act = exp(-pow(in / sigma, 2));
@@ -154,26 +154,23 @@ double NeuralNet::activation(double in) {
 
 const vector<double> & NeuralNet::process() {
 
-  vector<double> remedial;
-  // If the edges aren't built, it's broke
-  if (_edges.capacity() == 0)
-    return remedial;
-
   resetInnerNodes();
 
-  /*
-  cout << _inputNodes.size() << "\t" << _innerNodes.size();
-  */
+  // If the edges aren't built, it's broke
+  if (_edges.capacity() == 0)
+    return _outputNodes;
+
+//  cout << _inputNodes.size() << "\t" << _innerNodes.size();
 
   // Handle the input to the inner
   for (uint i = 0; i < _inputNodes.size(); i++) {
     for (uint j = 0; j < _innerNodes[0].size(); j++) {
-      double shasta = _inputNodes[i] * _edges[0][i][j];
-      _innerNodes[0][j] += shasta / _inputNodes.size();
+      double w = _inputNodes[i] * _edges[0][i][j];
+      _innerNodes[0][j] += w / _inputNodes.size();
     }
   }
 
-  /*
+/*
   cout << "Inputs (" << _inputNodes.size() << "): ";
   for (uint i = 0; i < _inputNodes.size(); i++) {
     cout << _inputNodes[i] << ", ";
@@ -185,7 +182,7 @@ const vector<double> & NeuralNet::process() {
     cout << _innerNodes[0][i] << ", ";
   }
   cout << "\n" << endl;
-  */
+*/
 
   // Handle the rest of the inner nodes
   for (uint i = 0; i < _innerNodes.size()-1; i++) {
@@ -194,34 +191,36 @@ const vector<double> & NeuralNet::process() {
         _innerNodes[i+1][k] += _edges[i+1][j][k] * activation(_innerNodes[i][j]) / _innerNodes[i].size();
       }
     }
+  }
 
-    /*
+/*
     cout << "Stage " << i+1 << " Inner Node (" << _innerNodes[i+1].size() << "): ";
     for (uint f = 0; f < _innerNodes[i+1].size(); f++) {
       cout << _innerNodes[i+1][f] << ", ";
     }
     cout << "\n" << endl;
-    */
+
 
   }
-
+*/
   // Handle the inner nodes to the output
   for (uint i = 0; i < _outputNodes.size(); i++) {
     uint innerIndex = _innerNodes.size() - 1 ;
     uint innerSize = _innerNodes[innerIndex].size();
     for (uint j = 0; j < innerSize; j++) {
-        double wuz = _innerNodes[innerIndex][j];
+//        double wuz = _innerNodes[innerIndex][j];
       _outputNodes[i] += _edges[_edges.size()-1][j][i] * activation(_innerNodes[innerIndex][j]) / innerSize;
     }
+    _outputNodes[i] = abs(_outputNodes[i]);
   }
 
-  /*
+/*
   cout << "Output (" << _outputNodes.size() << "): ";
   for (uint i = 0; i < _outputNodes.size(); i++) {
     cout << _outputNodes[i] << ", ";
   }
   cout << "\n" << endl;
-  */
+*/
 
   return _outputNodes;
 }
