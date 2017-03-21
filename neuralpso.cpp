@@ -13,7 +13,7 @@ NeuralPso::NeuralPso(PsoParams pp, NeuralNetParameters np) :
   _input(nullptr),
   _output(nullptr)
 {
-  _overideTermFlag = false;
+  resetProcess();
 }
 
 NeuralPso::~NeuralPso() {
@@ -97,9 +97,10 @@ void NeuralPso::fly() {
   bool term = true;
 
   if (_particles.size() == 0) return;
+  if (_particles[0]._v.size() == 0) return;
 
   static int innerNetAccessCount = _psoParams.iterationsPerLevel;
-  static int innerNetIt = _particles[0]._v.size()-1;
+  static uint innerNetIt = _particles[0]._v.size()-1;
 
   // For each particle
   for (uint i = 0; i < _particles.size(); i++) {
@@ -149,18 +150,17 @@ void NeuralPso::fly() {
 //  if (velSum < _psoParams.vDelta)
 //    _overideTermFlag = true;
   if (term)
-    _overideTermFlag = true;
+    interruptProcess();
 
   // If stagnant, mix it up a bit
-  double shit = abs(velSum);
-  if (abs(velSum) < _psoParams.vDelta) {
-    for (int i = 0; i < _particles.size(); i++) {
+  if (abs(velSum) < (uint) _psoParams.vDelta) {
+    for (uint i = 0; i < _particles.size(); i++) {
     // Reset bests
     _particles[i]._fit_pb = numeric_limits<double>::max();
     _particles[i]._fit_lb = numeric_limits<double>::max();
-      for (int j = 0; j < _particles[i]._x.size(); j++) {
-        for (int k = 0; k < _particles[i]._x[j].size(); k++) {
-          for (int m = 0; m < _particles[i]._x[j][k].size(); m++) {
+      for (uint j = 0; j < _particles[i]._x.size(); j++) {
+        for (uint k = 0; k < _particles[i]._x[j].size(); k++) {
+          for (uint m = 0; m < _particles[i]._x[j][k].size(); m++) {
             _particles[i]._x[j][k][m] = ((double)(rand() % 20000)/10000.0) - 1.0;
           }
         }
@@ -172,18 +172,22 @@ void NeuralPso::fly() {
 
   /// For termination through user control
   if (stopProcessing) {
-    _overideTermFlag = true;
+    interruptProcess();
   }
 }
 
 void NeuralPso::getCost() {
+  double correctRatio;
+  int totalCount;
   for (uint i = 0; i < _particles.size(); i++) {
     Particle<vector<vector<vector<double>>>> *p = &_particles[i];
 
     if (!_neuralNet->setWeights(&p->_x)) {
       std::cout<< "Failure to set weights." << endl;
     }
-    double sqrErr = testRun();
+    double tempCorrectRatio;
+    uint tempTotalCount;
+    double sqrErr = testRun(tempCorrectRatio, tempTotalCount);
 
     // Minimize error
     double fit = sqrErr;
@@ -214,6 +218,8 @@ void NeuralPso::getCost() {
           }
         }
       }
+      correctRatio = tempCorrectRatio;
+      totalCount = tempTotalCount;
     } // End global best
 
     // Find local best
@@ -251,7 +257,9 @@ void NeuralPso::getCost() {
 
   static double prevBest = 0;
   if (prevBest != gb()->_fit_pb) {
-      cout << "Global: " << gb()->_fit_pb << endl;
+      cout << "Global: " << gb()->_fit_pb;
+      cout << " - Correct: " << correctRatio * 100.0 << "% of " <<
+        totalCount << " tests" << endl;
       prevBest = gb()->_fit_pb;
   }
 
@@ -265,36 +273,104 @@ void NeuralPso::getCost() {
   }
   cout << endl;
   */
-  if (gb()->_fit_pb < -0.95)
-    _overideTermFlag = true;
+
+  if (totalCount > 400 && correctRatio > 0.9995)
+    interruptProcess();
+
+  /**
+  if (1.0-abs(gb()->_fit_pb) < _psoParams.delta)
+    interruptProcess();
+    **/
+
+  if (checkForPrint()) {
+    testGB();
+  }
 } // end getCost()
 
-double NeuralPso::testRun() {
+void NeuralPso::testGB() {
+  _neuralNet->setWeights(&_gb._x);
+  int I = randomizeTestInputs();
+
+  vector<double> res = _neuralNet->process();
+  cout << "X AND Y = ?? " << endl;
+  cout << "Input: " << endl;
+  for (uint i = 0; i < (*_input)[I].size(); i++) {
+    cout << " - " << (*_input)[I][i] << endl;
+  }
+  cout << endl;
+
+  cout << "Expected: " << (*_output)[I] << endl;
+    double maxVal = -1;
+    int answer = -1;
+    for (uint i = 0; i < res.size(); i++) {
+      if (res[i] > maxVal) {
+        maxVal = res[i];
+        answer = (int) i;
+      }
+    }
+    cout << "Got: " << answer << endl;
+    cout << endl;
+
+    cout << "Result: " << endl;
+    for (uint i = 0; i < res.size(); i++) {
+      cout << "- (" << i << "): " << res[i] << endl;
+    }
+    cout << endl;
+}
+
+double NeuralPso::testRun(double &correctRatio, uint &totalCount) {
   double errSqr = 0;
+  double answerFailPenalty = 1.0;
+  uint outputNodes = _neuralNet->nParams()->outputs;
 
-  int runThemSets = 20;
-  int correctCount = runThemSets;
+  uint totalSetsToRun = _neuralNet->nParams()->testIterations;
+  uint correctCount = totalSetsToRun;
 
-  for (int someSets = 0; someSets < runThemSets; someSets++) {
+  vector<bool> *scannedOnce = new vector<bool>();
+  vector<int> *resultCount = new vector<int>();
+  scannedOnce->resize(outputNodes);
+  resultCount->resize(outputNodes);
+  for (uint it = 0; it < outputNodes; it++) {
+    (*scannedOnce)[it] = false;
+    (*resultCount)[it] = 0;
+  }
+
+  vector<double> *err = new vector<double>();
+  vector<int> *answer = new vector<int>();
+  err->resize(totalSetsToRun);
+  answer->resize(totalSetsToRun);
+  for (uint im = 0; im < totalSetsToRun; im++) {
+    (*err)[im] = 0;
+    (*answer)[im] = 0;
+  }
+
+  // First, test each output and store to the vector of results;
+  for (uint someSets = 0; someSets < totalSetsToRun; someSets++) {
     // Set a random input
     int I = randomizeTestInputs();
+    //int I = It[someSets];
+    //loadTestInput(I);
 
     // Get the result from random input
     vector<double> output = _neuralNet->process();
+    if (output.size() != outputNodes) {
+      cout << "Size mismatch on nodes. " << endl;
+      cout << " - Output: " << output.size() << ", Expected: " << outputNodes << endl;
+    }
     vector<double> expectedOutput;
 
     int outputSize = output.size();
-    int answer;
     if (_input == nullptr) {
-      answer = _labels->at(I);
+      answer->at(someSets) = _labels->at(I);
     } else {
-      answer = _output->at(I);
+      answer->at(someSets) = _output->at(I);
     }
 
     expectedOutput.resize(outputSize);
 
+
     for (int i = 0; i < outputSize; i++) {
-      if (i == answer) {
+      if (i == answer->at(someSets)) {
         expectedOutput[i] = 1;
       } else {
         expectedOutput[i] = 0;
@@ -313,26 +389,66 @@ double NeuralPso::testRun() {
         maxVal = output[i];
         maxNode = i;
       }
-      errSqr += -exp(-pow((expectedOutput[i] - output[i])/0.2, 2)) / outputSize;
+      err->at(someSets) = expectedOutput[i] - output[i];
+      //errSqr += ( -exp(-pow((expectedOutput[i] - output[i])/0.2, 2)) / (double) outputSize );
     }
 
     // If we have a correct answer, then we're heading in the right direction
     // Give him a cookie.
-    if (maxNode != answer) {
-      errSqr *= 0.1;
+    if (maxNode != answer->at(someSets)) {
+      //errSqr *= 0.1;
+      answerFailPenalty *= 0.1;
       correctCount--;
+    } else {
+//      (*resultCount)[(*answer)[someSets]]++;
+      scannedOnce->at(answer->at(someSets)) = true;
     }
+    (*resultCount)[(*answer)[someSets]]++;
+
+    if ((totalSetsToRun == correctCount) && (someSets == (totalSetsToRun - 1))) {
+      if (totalSetsToRun < _input->size()) {
+        correctCount = ++totalSetsToRun;
+        err->push_back(0);
+        answer->push_back(0);
+      }
+    }
+
   }
+
+  for (uint i = 0; i < totalSetsToRun; i++) {
+    double divisor = (double) (*resultCount)[(*answer)[i]]+1;
+    //divisor = divisor != 0 ? divisor : 1;
+    errSqr += ( -exp(-pow((abs(err->at(i)))/0.2, 2)) / divisor );
+    //errSqr += ( -exp(-pow((abs(err->at(i)))/0.2, 2)) * ((1 - ((double) (*resultCount)[(*answer)[i]])/(double)totalSetsToRun)));
+  }
+  //errSqr *= answerFailPenalty;
+
 
   ///TODO: Temporary ending check
   //   Not necessarily correct if right 20 times in a row
-  if (correctCount == runThemSets) {
-    _overideTermFlag = true;
+  if (correctCount == totalSetsToRun) {
+    bool scannedAtLeastOnce = true;
+    for (uint i = 0; i < scannedOnce->size(); i++) {
+      scannedAtLeastOnce &= (*scannedOnce)[i];
+    }
+    if (scannedAtLeastOnce) {
+      //interruptProcess();
+    }
   }
 
   // return mean sqr error
-  //return sqrt(errSqr) / sqrt(runThemSets);
-  return errSqr / (runThemSets);
+  //return sqrt(errSqr) / sqrt(totalSetsToRun);
+  delete scannedOnce;
+  delete resultCount;
+  delete err;
+  delete answer;
+
+  correctRatio = (double) correctCount / (double) totalSetsToRun;
+  totalCount = totalSetsToRun;
+
+  return -((double) correctCount);
+
+  return errSqr;// / (totalSetsToRun);
 }
 
 int NeuralPso::randomizeTestInputs() {
@@ -358,6 +474,25 @@ int NeuralPso::randomizeTestInputs() {
   }
 
   return I;
+}
+
+void NeuralPso::loadTestInput(uint I) {
+  _neuralNet->resetInputs();
+
+  if (_input == nullptr) {
+    int N = (*_images)[I].size();
+
+    for (uint i = 0; i < (*_images)[I].size(); i++) {
+      for (uint j = 0; j < (*_images)[I][0].size(); j++) {
+        byte socrates = (*_images)[I][i][j];
+        uint plato = N*i + j;
+        _neuralNet->loadInput(((double) socrates) / 255.0, plato);
+      }
+    }
+  } else {
+    _neuralNet->loadInput((*_input)[I][0], 0);
+    _neuralNet->loadInput((*_input)[I][1], 1);
+  }
 }
 
 void NeuralPso::runTrainer() {

@@ -3,8 +3,6 @@
 NeuralNet::NeuralNet(NeuralNetParameters p) :
   _nParams(p)
 {
-  resetInputs();
-  resetWeights();
   setTotalInputs(_nParams.inputs);
   setTotalInnerNets(_nParams.innerNets);
 
@@ -14,12 +12,16 @@ NeuralNet::NeuralNet(NeuralNetParameters p) :
 
   setTotalOutputs(_nParams.outputs);
   buildNets();
+
+  resetInputs();
+  resetWeights();
 }
 
 NeuralNet::~NeuralNet() {
 }
 
 void NeuralNet::resetInputs() {
+
   for (uint i = 0; i < _inputNodes.size(); i++) {
     _inputNodes[i] = 0;
   }
@@ -132,6 +134,7 @@ bool NeuralNet::buildNets() {
       }
     }
   }
+
   return true;
 }
 
@@ -204,6 +207,7 @@ const vector<double> & NeuralNet::process() {
   }
 */
   // Handle the inner nodes to the output
+  double maxVal = 0;
   for (uint i = 0; i < _outputNodes.size(); i++) {
     uint innerIndex = _innerNodes.size() - 1 ;
     uint innerSize = _innerNodes[innerIndex].size();
@@ -212,6 +216,15 @@ const vector<double> & NeuralNet::process() {
       _outputNodes[i] += _edges[_edges.size()-1][j][i] * activation(_innerNodes[innerIndex][j]) / innerSize;
     }
     _outputNodes[i] = abs(_outputNodes[i]);
+    if (_outputNodes[i] > maxVal) {
+      maxVal = _outputNodes[i];
+    }
+  }
+
+  if (maxVal != 0) {
+    for (uint i = 0; i < _outputNodes.size(); i++) {
+      _outputNodes[i] /= maxVal;
+    }
   }
 
 /*

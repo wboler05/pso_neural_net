@@ -7,7 +7,7 @@
 #include <ctime>
 #include <limits>
 
-#include "CL/opencl.h"
+#include "CL/cl.hpp"
 
 /*
 template <class T>
@@ -34,12 +34,14 @@ public:
   void fly();
   void getCost();
 
-  double testRun();
+  double testRun(double &, uint &);
+  void testGB();
 
   NeuralNet * neuralNet() { return _neuralNet; }
 
   int randomizeTestInputs();
   void runTrainer();
+  void loadTestInput(uint32_t I);
 
   void printGB();
   void printParticle(uint i);
@@ -55,8 +57,8 @@ private:
   vector<vector<double> > *_input;
   vector<double> *_output;
 
-};
+//  vector<pair<bool, int>> _failureQueue;
 
-extern volatile bool stopProcessing;
+};
 
 #endif // NEURALPSO_H

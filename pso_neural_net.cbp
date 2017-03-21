@@ -17,6 +17,8 @@
 					<Add directory="$(#boost.include)" />
 				</Compiler>
 				<Linker>
+					<Add library="boost_thread-mgw53-mt-d-1_61" />
+					<Add library="boost_system-mgw53-mt-d-1_61" />
 					<Add directory="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/lib/Win32" />
 					<Add directory="$(#boost.lib)" />
 				</Linker>
@@ -44,6 +46,7 @@
 		<Unit filename="PSO/particles.h" />
 		<Unit filename="PSO/pso.cpp" />
 		<Unit filename="PSO/pso.h" />
+		<Unit filename="fly_particles.cl" />
 		<Unit filename="main.cpp" />
 		<Unit filename="neuralpso.cpp" />
 		<Unit filename="neuralpso.h" />

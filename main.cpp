@@ -31,6 +31,10 @@ struct ImageInfo {
   uint32_t cols;
 };
 
+std::vector<cl::Device> _cpuDevices;
+std::vector<cl::Device> _gpuDevices;
+std::vector<cl::Device> _allDevices;
+
 void onKeyInput();
 void runNeuralPso();
 void loadTrainingData(string imageFile, string labelFile, vector<vector<vector<uint8_t> > > &trainingImages, vector<uint8_t> &trainingLabels);
@@ -39,18 +43,24 @@ bool readLabelHeading(ifstream &in, LabelInfo &lb);
 bool readImageHeading(ifstream &in, ImageInfo &im);
 uint32_t char2uint(uint8_t *input);
 uint32_t readUnsignedInt(ifstream &input);
-void initializeCL();
+
+void initializeCL(std::vector<cl::Device> &cpuDevices,
+                  std::vector<cl::Device> &gpuDevices,
+                  std::vector<cl::Device> &allDevices);
 
 int main() {
   srand(time(NULL));
 
-  initializeCL();
+  cl::Context _context;
 
-  boost::thread thread1(onKeyInput);
-  boost::thread thread2(runNeuralPso);
+  initializeCL(_cpuDevices, _gpuDevices, _allDevices);
+
+  boost::thread thread1(runNeuralPso);
+  boost::thread thread2(onKeyInput);
 
   thread1.join();
-  thread2.join();
+//  thread2.interrupt();
+//  thread2.join();
 
 
   return 0;
@@ -58,12 +68,22 @@ int main() {
 }
 
 void onKeyInput() {
-  cout << "Threading works!" << endl;
+  try {
+    while(true) {
+      int in = cin.get();//getchar();
 
-  int in = getchar();
-
-  if ((char)in == 'c') {
-    stopProcessing = true;
+      if ((char)in == 'c') {
+        cout << "Ending process.  Please wait. " << endl;
+        NeuralPso::interruptProcess();
+        return;
+      } else
+      if ((char) in == 'p') {
+        NeuralPso::setToPrint();
+      }
+    }
+  } catch (boost::thread_interrupted &) {
+    cout << "Project complete!" << endl;
+    return;
   }
 
 }
@@ -79,6 +99,7 @@ void runNeuralPso() {
   string testImageInputFile("t10k-images.idx3-ubyte");
   string testLabelInputFile("t10k-labels.idx1-ubyte");
 
+  /*
   loadTrainingData(trainImageInputFile,
                         trainLabelInputFile,
                         trainingImages,
@@ -88,6 +109,7 @@ void runNeuralPso() {
     cout << "You messed up. Images are empty." << endl;
     return;
   }
+  */
 
   PsoParams pParams;
   pParams.particles = 100; // 50
@@ -107,12 +129,13 @@ void runNeuralPso() {
   nParams.outputs = 10;
   */
   NeuralNetParameters nParams;
-  nParams.inputs = 1;
-  nParams.innerNets = 2;
-  nParams.innerNetNodes.push_back(8);
-  nParams.innerNetNodes.push_back(4);
+  nParams.inputs = 2;
+  //nParams.innerNetNodes.push_back(8);
+  nParams.innerNetNodes.push_back(2);
   //nParams.innerNetNodes.push_back(4);
+  nParams.innerNets = nParams.innerNetNodes.size();
   nParams.outputs = 2;
+  nParams.testIterations = 10;
 
   vector<vector<double>> inputTruth;
   vector<double> outputResult;
@@ -120,16 +143,20 @@ void runNeuralPso() {
   outputResult.resize(inputTruth.capacity());
   for (uint i = 0; i < inputTruth.capacity(); i++) {
     if (i >= inputTruth.capacity()) continue;
-    inputTruth[i].resize(1);
-    int x = rand() % 2;
+    inputTruth[i].resize(2);
+
+    //int x = rand() % 2;
     //int y = rand() % 2;
-    bool z = (x == 1);// && (y == 1);
+    double x = ((double) (rand() % 10000)) / 10000.0;
+    double y = ((double) (rand() % 10000)) / 10000.0;
+    //bool z = (x == 1) && (y == 1);
+    bool z = ((x >= 0.5) && (y < 0.5)) || ((x < 0.5) && (y >= 0.5));
     inputTruth[i][0] = (double) x;
-    //inputTruth[i][1] = (double) y;
+    inputTruth[i][1] = (double) y;
     if (z) {
-      outputResult[i] = 0;
-    } else {
       outputResult[i] = 1;
+    } else {
+      outputResult[i] = 0;
     }
   }
 
@@ -174,28 +201,7 @@ void runNeuralPso() {
   np->runTrainer();
 
   for (int j = 0; j < 15; j++) { // Test point
-    net->resetInputs();
-    int I = rand() % inputTruth.size();
-    for (uint i = 0; i < inputTruth[I].size(); i++) {
-      net->loadInput(inputTruth[I][i], i);
-    }
-
-    vector<double> res = net->process();
-    cout << "X AND Y = ?? " << endl;
-    cout << "Input: " << endl;
-    for (uint i = 0; i < inputTruth[I].size(); i++) {
-      cout << " - " << inputTruth[I][i] << endl;
-    }
-    cout << endl;
-
-    cout << "Expected: " << outputResult[I] << endl;
-    cout << endl;
-
-    cout << "Result: " << endl;
-    for (uint i = 0; i < res.size(); i++) {
-      cout << "- (" << i << "): " << res[i] << endl;
-    }
-    cout << endl;
+    np->testGB();
   }
 
   return;
@@ -348,69 +354,56 @@ uint32_t char2uint(uint8_t *input) {
   return num;
 }
 
-void initializeCL() {
+void initializeCL(std::vector<cl::Device> &cpuDevices,
+                  std::vector<cl::Device> &gpuDevices,
+                  std::vector<cl::Device> &allDevices)
+{
 
-unsigned int numPlatforms;
-    int getPlatformIDSuccess = clGetPlatformIDs(0, NULL, &numPlatforms);
-    //qDebug() << "Success: " << getPlatformIDSuccess << "\tNum Platforms: " << numPlatforms;
+    std::vector<cl::Platform> platforms;
 
-    cl_platform_id *platforms = new cl_platform_id[numPlatforms];
-    getPlatformIDSuccess = clGetPlatformIDs(numPlatforms, platforms, NULL);
+    cl::Platform::get(&platforms);
 
-    if (getPlatformIDSuccess == CL_SUCCESS) {
-        cout<< "Got "<< numPlatforms << " Platform IDs. " <<endl;
-    } else {
-        cout << "Failed to get Platform IDs." << endl;
-        return;
-    }
-
-    //FIXME: Set these inside the loop at delete them after formation.
-    //       Set up QVector or std::vectors for adding devices[devicetype][device].
-    // Set up device ID arrays
-    cl_device_id *cpuDevices;
-    cl_device_id *gpuDevices;
-
-    for (unsigned int i = 0; i < numPlatforms; i++) {
-        cl_uint numDevicesCPU;
-        cl_uint numDevicesGPU;
-
-        cl_device_type devTypeCPU = CL_DEVICE_TYPE_CPU;
-        cl_device_type devTypeGPU = CL_DEVICE_TYPE_GPU;
-
-        cl_int deviceIDSuccessCPU = clGetDeviceIDs(platforms[i], devTypeCPU, 0, NULL, &numDevicesCPU);
-        cl_int deviceIDSuccessGPU = clGetDeviceIDs(platforms[i], devTypeGPU, 0, NULL, &numDevicesGPU);
-
-        if (deviceIDSuccessCPU == CL_SUCCESS) {
-            cpuDevices = new cl_device_id[numDevicesCPU];
-            deviceIDSuccessCPU = clGetDeviceIDs(platforms[i], devTypeCPU, numDevicesCPU, cpuDevices, NULL);
-            if (deviceIDSuccessCPU == CL_SUCCESS) {
-                cout << "CPU Platform(" << platforms[i] << "): \tDevices: " << numDevicesCPU << endl;
-                for (unsigned int j = 0; j < numDevicesCPU; j++) {
-                    cout << " - " << cpuDevices[j] << endl;
-                }
-            } else {
-                //qDebug() << "Failed to get CPU devices for platform " << i << ", " << platforms[i];
-            }
-        } else {
-            //qDebug() << "Failed to get CPU device count for platform " << i << ", " << platforms[i];
-        }
-
-        if (deviceIDSuccessGPU == CL_SUCCESS) {
-            gpuDevices = new cl_device_id[numDevicesGPU];
-            deviceIDSuccessGPU = clGetDeviceIDs(platforms[i], devTypeGPU, numDevicesGPU, gpuDevices, NULL);
-            if (deviceIDSuccessGPU == CL_SUCCESS) {
-                cout << "GPU Platform(" << platforms[i] << "): \tDevices: " << numDevicesGPU << endl;
-                for (unsigned int j = 0; j < numDevicesGPU; j++) {
-                    cout << " - " << gpuDevices[j] << endl;
-                }
-            } else {
-                //qDebug() << "Failed to get GPU devices for platform " << i << ", " << platforms[i];
-            }
-        } else {
-            //qDebug() << "Failed to get GPU device count for platform " << i << ", " << platforms[i];
+    for (uint i = 0; i < platforms.size(); i++) {
+        std::vector<cl::Device> devices;
+        platforms[i].getDevices(CL_DEVICE_TYPE_CPU, &devices);
+        for (uint j = 0; j < devices.size(); j++) {
+            cpuDevices.push_back(devices.at(j));
+            allDevices.push_back(devices.at(j));
         }
     }
 
+    for (uint i = 0; i < platforms.size(); i++) {
+        std::vector<cl::Device> devices;
+        platforms[i].getDevices(CL_DEVICE_TYPE_GPU, &devices);
+        for (uint j = 0; j < devices.size(); j++) {
+            gpuDevices.push_back(devices.at(j));
+            allDevices.push_back(devices.at(j));
+        }
+    }
+
+    cout << "C++ OpenCL.  Devices found: " << allDevices.size() << endl;
+    cout << " - Total CPU Devices: " << cpuDevices.size() << endl;
+    for (uint i = 0; i < cpuDevices.size(); i++) {
+        cl::Device &dev = cpuDevices[i];
+        std::string deviceName;
+        std::string deviceVendor;
+        std::string deviceVersion;
+        dev.getInfo(CL_DEVICE_NAME, &deviceName);
+        dev.getInfo(CL_DEVICE_VENDOR, &deviceVendor);
+        dev.getInfo(CL_DEVICE_VERSION, &deviceVersion);
+        cout << " -- " << deviceName.c_str() << "\t " << deviceVendor.c_str() << "\t" << deviceVersion.c_str() << endl;
+    }
+    cout << " - Total GPU Devices: " << gpuDevices.size() << endl;
+    for (uint i = 0; i < gpuDevices.size(); i++) {
+        cl::Device &dev = gpuDevices[i];
+        std::string deviceName;
+        std::string deviceVendor;
+        std::string deviceVersion;
+        dev.getInfo(CL_DEVICE_NAME, &deviceName);
+        dev.getInfo(CL_DEVICE_VENDOR, &deviceVendor);
+        dev.getInfo(CL_DEVICE_VERSION, &deviceVersion);
+        cout << " -- " << deviceName.c_str() << "\t " << deviceVendor.c_str() << "\t" << deviceVersion.c_str() << endl;
+    }
 }
 
 

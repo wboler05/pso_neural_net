@@ -13,10 +13,11 @@ using namespace std;
 #define byte uint8_t
 
 struct NeuralNetParameters {
-  int inputs;
-  int innerNets;
-  vector<int> innerNetNodes;
-  int outputs;
+  int inputs;                 // Input nodes
+  int innerNets;              // Total inner layers
+  vector<int> innerNetNodes;  // Number of nodes for each layer
+  int outputs;                // Output nodes
+  int testIterations=20;      // Number of inputs to check per training iteration
 };
 
 class NeuralNet {

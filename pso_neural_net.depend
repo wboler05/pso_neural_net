@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1489645246 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\main.cpp
+1490128673 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\main.cpp
 	<iostream>
 	<fstream>
 	<cinttypes>
@@ -18,7 +18,7 @@
 1489118448 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\nueralnet.cpp
 	"NueralNet.h"
 
-1489474330 c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralnet\neuralnet.h
+1489695354 c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralnet\neuralnet.h
 	<iostream>
 	<cstdlib>
 	<cinttypes>
@@ -26,33 +26,34 @@
 	<cmath>
 	<ctime>
 
-1489645495 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralnet\neuralnet.cpp
+1489864396 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralnet\neuralnet.cpp
 	"NeuralNet.h"
 
-1489645700 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralpso.cpp
+1489911244 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralpso.cpp
 	"neuralpso.h"
 	"PSO/pso.cpp"
 
-1489640410 c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralpso.h
+1490128612 c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralpso.h
 	"PSO/pso.h"
 	"NeuralNet/NeuralNet.h"
 	<ctime>
 	<limits>
-	"CL/opencl.h"
+	"CL/cl.hpp"
 
-1489641315 c:\users\wboler\desktop\testcodehere\pso_neural_net\pso\pso.h
+1489731719 c:\users\wboler\desktop\testcodehere\pso_neural_net\pso\pso.h
 	<iostream>
 	<cinttypes>
 	<cstdlib>
 	<vector>
 	"particles.h"
+	<boost/thread.hpp>
 
 1489129453 c:\users\wboler\desktop\testcodehere\pso_neural_net\pso\particles.h
 
-1489643003 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\pso\pso.cpp
+1489732021 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\pso\pso.cpp
 	"pso.h"
 
-1489643003 c:\users\wboler\desktop\testcodehere\pso_neural_net\pso\pso.cpp
+1489732021 c:\users\wboler\desktop\testcodehere\pso_neural_net\pso\pso.cpp
 	"pso.h"
 
 1489376190 c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralnet\neuralnet.cpp

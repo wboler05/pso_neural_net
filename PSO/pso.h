@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <vector>
 #include "particles.h"
+#include <boost/thread.hpp>
 
 struct PsoParams {
   uint32_t particles=50;
@@ -35,12 +36,24 @@ public:
   std::vector<Particle<T> > * particles() { return &_particles; }
   Particle<T> * gb() { return &_gb; }
 
+  static void interruptProcess();
+  static bool checkProcess();
+  static void resetProcess();
+
+  static void setToPrint();
+  static bool checkForPrint();
+
 protected:
   std::vector<Particle<T> > _particles;
   Particle<T> _gb;
 
   PsoParams _psoParams;
-  bool _overideTermFlag;
+
+private:
+  static bool _overideTermFlag;
+  static boost::mutex stopProcessMtx;
+  static bool _printFlag;
+  static boost::mutex printMtx;
 
 };
 
