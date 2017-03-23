@@ -11,6 +11,8 @@ struct Particle {
 
   double _fit_pb;
   double _fit_lb;
+  bool _worstFlag;
+  int _points;
 };
 
 

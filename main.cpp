@@ -51,6 +51,16 @@ void initializeCL(std::vector<cl::Device> &cpuDevices,
 int main() {
   srand(time(NULL));
 
+  cout << "   ****************************************" << endl;
+  cout << "   * PSO Neural Net (Gaussian Activation) *" << endl;
+  cout << "   *       by William Boler, BSCE         *" << endl;
+  cout << "   *     Research Assistant, IUPUI        *" << endl;
+  cout << "   *                                      *" << endl;
+  cout << "   *  Professor: Dr. Lauren Christopher   *" << endl;
+  cout << "   *     Created: March 13, 2017          *" << endl;
+  cout << "   ****************************************" << endl;
+
+
   cl::Context _context;
 
   initializeCL(_cpuDevices, _gpuDevices, _allDevices);
@@ -136,6 +146,16 @@ void runNeuralPso() {
   nParams.innerNets = nParams.innerNetNodes.size();
   nParams.outputs = 2;
   nParams.testIterations = 10;
+
+  cout << "\n\n" << "Inputs: " << nParams.inputs << "\nInner Nets: " << nParams.innerNets << endl;
+  for (uint i = 0; i < nParams.innerNetNodes.size(); i++) {
+    cout << " - " << nParams.innerNetNodes[i] << endl;
+  }
+  cout << "Tests per train(min): " << nParams.testIterations << endl;
+  cout << "Particles: " << pParams.particles << "\nNeighbors: " << pParams.neighbors << endl;
+  cout << "Minimum Particle Iterations: " << pParams.iterations << endl;
+
+
 
   vector<vector<double>> inputTruth;
   vector<double> outputResult;

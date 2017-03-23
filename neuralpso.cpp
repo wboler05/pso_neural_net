@@ -37,6 +37,8 @@ void NeuralPso::buildPso() {
     _particles[i]._v.resize(edges.size());
     _particles[i]._x_pb.resize(edges.size());
     _particles[i]._x_lb.resize(edges.size());
+    _particles[i]._worstFlag = false;
+    _particles[i]._points = _psoParams.startPoints;
 
     if (i == 0) {
       _gb._x.resize(edges.size());
@@ -102,10 +104,16 @@ void NeuralPso::fly() {
   static int innerNetAccessCount = _psoParams.iterationsPerLevel;
   static uint innerNetIt = _particles[0]._v.size()-1;
 
+  int choice;
+  bool worstFlag;
+
   // For each particle
   for (uint i = 0; i < _particles.size(); i++) {
     double C1 = 2.495, C2 = 2.495;
     Particle<vector<vector<vector<double>>>> *p = &_particles[i];
+    worstFlag = p->_worstFlag;
+    if (worstFlag)
+      choice = rand() % 4;
 
     // For each inner net
     for (uint inner_net = 0; inner_net < p->_v.size(); inner_net++) {
@@ -114,6 +122,31 @@ void NeuralPso::fly() {
       for (uint left_edge = 0; left_edge < p->_v[inner_net].size(); left_edge++) {
         // For each edge (right side) of that inner net
         for (uint right_edge = 0; right_edge < p->_v[inner_net][left_edge].size(); right_edge++) {
+          /// Concept based on Genetic Algorithms, idea based on Alex
+          /// Find the worst of the particles and reset it.
+          if (p->_worstFlag) { // Reset the worst one
+            if (p->_points <= 0) {
+              switch(choice) {
+              case 0:
+                p->_x[inner_net][left_edge][right_edge] = ((double) (rand() % 20000) - 10000) / 10000.0;
+                break;
+              case 1:
+                p->_x[inner_net][left_edge][right_edge] = p->_x_pb[inner_net][left_edge][right_edge];
+                break;
+              case 2:
+                p->_x[inner_net][left_edge][right_edge] = p->_x_pb[inner_net][left_edge][right_edge];
+                break;
+              case 3:
+                p->_x[inner_net][left_edge][right_edge] = _gb._x[inner_net][left_edge][right_edge];
+                break;
+              default:
+                p->_x[inner_net][left_edge][right_edge] = ((double) (rand() % 20000) - 10000) / 10000.0;
+                break;
+              }
+              continue;
+            }
+          }
+
           double *w_v = &p->_v[inner_net][left_edge][right_edge];
           double *w_x = &p->_x[inner_net][left_edge][right_edge];
           double *w_pb = &p->_x_pb[inner_net][left_edge][right_edge];
@@ -136,6 +169,13 @@ void NeuralPso::fly() {
             *w_v *= -0.01;
           }
         }
+      }
+    }
+    if (p->_worstFlag) { // Reset the worst flag
+      if (p->_points <= 0) {
+        p->_worstFlag = false;
+      } else {
+        p->_points -= _psoParams.weakPoints;
       }
     }
   }
@@ -179,6 +219,7 @@ void NeuralPso::fly() {
 void NeuralPso::getCost() {
   double correctRatio;
   int totalCount;
+  double worstFit = numeric_limits<double>::min();
   for (uint i = 0; i < _particles.size(); i++) {
     Particle<vector<vector<vector<double>>>> *p = &_particles[i];
 
@@ -192,9 +233,12 @@ void NeuralPso::getCost() {
     // Minimize error
     double fit = sqrErr;
 
+    worstFit = std::max(worstFit, fit);
+
     // Find personal best
     if (fit < p->_fit_pb) {
       p->_fit_pb = fit;
+      p->_points += _psoParams.pbPoints;
 
       for (uint i = 0; i < p->_x_pb.size(); i++) {
         for (uint j = 0; j < p->_x_pb[i].size(); j++) {
@@ -210,6 +254,7 @@ void NeuralPso::getCost() {
       _gb._fit_pb = fit;
       //if (fit > 0.005) _overideTermFlag = false;
       //else _overideTermFlag = true;
+      p->_points += _psoParams.gbPoints;
 
       for (uint i = 0; i < p->_x.size(); i++) {
         for (uint j = 0; j < p->_x[i].size(); j++) {
@@ -221,6 +266,7 @@ void NeuralPso::getCost() {
       correctRatio = tempCorrectRatio;
       totalCount = tempTotalCount;
     } // End global best
+
 
     // Find local best
     int left_i = i - (_psoParams.neighbors / 2);
@@ -236,6 +282,7 @@ void NeuralPso::getCost() {
       Particle<vector<vector<vector<double>>>> *p_n = &_particles[it];
       if (fit < p_n->_fit_lb) {
         p_n->_fit_lb = fit;
+        p->_points += _psoParams.lbPoints;
 
 //        uint size1 = p_n->_x_lb.size();
         for (uint i = 0; i < p_n->_x_lb.size(); i++) {

@@ -21,6 +21,13 @@ struct PsoParams {
   bool backPropagation=true;
   int iterationsPerLevel=100;
 
+  // Points to assign to prevent disruption
+  int startPoints = 5;
+  int pbPoints = 1;
+  int lbPoints = 3;
+  int gbPoints = 5;
+  int weakPoints = 1; // Points to lose for being the weakest
+
 };
 
 template <class T>
