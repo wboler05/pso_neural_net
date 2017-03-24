@@ -8,6 +8,7 @@
 #include <limits>
 
 #include "CL/cl.hpp"
+#include "util.h"
 
 /*
 template <class T>

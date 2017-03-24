@@ -1,11 +1,13 @@
 # depslib dependency file v1.0
-1490255778 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\main.cpp
+1490307309 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\main.cpp
 	<iostream>
 	<fstream>
 	<cinttypes>
 	<vector>
+	<ctime>
 	<boost/thread.hpp>
 	"neuralpso.h"
+	"util.h"
 
 1488564543 c:\users\wboler\desktop\testcodehere\pso_neural_net\nueralnet.h
 	<iostream>
@@ -18,7 +20,7 @@
 1489118448 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\nueralnet.cpp
 	"NueralNet.h"
 
-1489695354 c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralnet\neuralnet.h
+1490306940 c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralnet\neuralnet.h
 	<iostream>
 	<cstdlib>
 	<cinttypes>
@@ -26,21 +28,22 @@
 	<cmath>
 	<ctime>
 
-1489864396 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralnet\neuralnet.cpp
+1490306932 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralnet\neuralnet.cpp
 	"NeuralNet.h"
 
-1490256180 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralpso.cpp
+1490319270 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralpso.cpp
 	"neuralpso.h"
 	"PSO/pso.cpp"
 
-1490128612 c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralpso.h
+1490300840 c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralpso.h
 	"PSO/pso.h"
 	"NeuralNet/NeuralNet.h"
 	<ctime>
 	<limits>
 	"CL/cl.hpp"
+	"util.h"
 
-1490255753 c:\users\wboler\desktop\testcodehere\pso_neural_net\pso\pso.h
+1490319952 c:\users\wboler\desktop\testcodehere\pso_neural_net\pso\pso.h
 	<iostream>
 	<cinttypes>
 	<cstdlib>
@@ -5520,4 +5523,15 @@
 1489637849 d:\boost_1_61_0\mingw\include\boost-1_61\boost\detail\atomic_undef_macros.hpp
 
 1489637849 d:\boost_1_61_0\mingw\include\boost-1_61\boost\detail\atomic_redef_macros.hpp
+
+1490318536 c:\users\wboler\desktop\testcodehere\pso_neural_net\util.h
+	<iostream>
+	<fstream>
+	<queue>
+	<string>
+	<sstream>
+	<boost/thread.hpp>
+
+1490319158 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\util.cpp
+	"util.h"
 

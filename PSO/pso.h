@@ -22,10 +22,10 @@ struct PsoParams {
   int iterationsPerLevel=100;
 
   // Points to assign to prevent disruption
-  int startPoints = 5;
-  int pbPoints = 1;
-  int lbPoints = 3;
-  int gbPoints = 5;
+  int startPoints = 50;
+  int pbPoints = 10;
+  int lbPoints = 30;
+  int gbPoints = 50;
   int weakPoints = 1; // Points to lose for being the weakest
 
 };

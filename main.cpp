@@ -2,11 +2,13 @@
 #include <fstream>
 #include <cinttypes>
 #include <vector>
+#include <ctime>
 using namespace std;
 
 #include <boost/thread.hpp>
 
 #include "neuralpso.h"
+#include "util.h"
 
 #define DT_UNSIGNED_TYPE 0X08
 #define DT_SIGNED_BYTE 0x09
@@ -51,14 +53,27 @@ void initializeCL(std::vector<cl::Device> &cpuDevices,
 int main() {
   srand(time(NULL));
 
-  cout << "   ****************************************" << endl;
-  cout << "   * PSO Neural Net (Gaussian Activation) *" << endl;
-  cout << "   *       by William Boler, BSCE         *" << endl;
-  cout << "   *     Research Assistant, IUPUI        *" << endl;
-  cout << "   *                                      *" << endl;
-  cout << "   *  Professor: Dr. Lauren Christopher   *" << endl;
-  cout << "   *     Created: March 13, 2017          *" << endl;
-  cout << "   ****************************************" << endl;
+  // Set the logger file
+  Logger::setOutputFile("run.log");
+
+  time_t now = time(0);
+  tm *gmtm = gmtime(&now);
+  string dateTime;
+  dateTime += "\nDate / Time: ";
+  dateTime += asctime(gmtm);
+  dateTime += "\n";
+  Logger::write(dateTime);
+
+  std::string headerString;
+  headerString += "   ****************************************\n";
+  headerString += "   * PSO Neural Net (Gaussian Activation) *\n";
+  headerString += "   *       by William Boler, BSCE         *\n";
+  headerString += "   *     Research Assistant, IUPUI        *\n";
+  headerString += "   *                                      *\n";
+  headerString += "   *  Professor: Dr. Lauren Christopher   *\n";
+  headerString += "   *     Created: March 13, 2017          *\n";
+  headerString += "   ****************************************\n";
+  Logger::write(headerString);
 
 
   cl::Context _context;
@@ -122,8 +137,8 @@ void runNeuralPso() {
   */
 
   PsoParams pParams;
-  pParams.particles = 100; // 50
-  pParams.neighbors = 20; // 10
+  pParams.particles = 200; // 50
+  pParams.neighbors = 40; // 10
   pParams.iterations = 1000;
   pParams.delta = 5E-6;
   pParams.vDelta = 5E-200;
@@ -140,22 +155,41 @@ void runNeuralPso() {
   */
   NeuralNetParameters nParams;
   nParams.inputs = 2;
-  //nParams.innerNetNodes.push_back(8);
-  nParams.innerNetNodes.push_back(2);
-  //nParams.innerNetNodes.push_back(4);
+  nParams.innerNetNodes.push_back(8);
+  nParams.innerNetNodes.push_back(4);
   nParams.innerNets = nParams.innerNetNodes.size();
   nParams.outputs = 2;
   nParams.testIterations = 10;
 
-  cout << "\n\n" << "Inputs: " << nParams.inputs << "\nInner Nets: " << nParams.innerNets << endl;
+  std::string outputString;
+
+  outputString += "\n\nInputs: ";
+  outputString += stringPut(nParams.inputs);
+  outputString += "\nInner Nets: ";
+  outputString += stringPut(nParams.innerNets);
+  outputString += "\n";
   for (uint i = 0; i < nParams.innerNetNodes.size(); i++) {
-    cout << " - " << nParams.innerNetNodes[i] << endl;
+    outputString += " - ";
+    outputString += stringPut(nParams.innerNetNodes[i]);
+    outputString += "\n";
+    //cout << " - " << nParams.innerNetNodes[i] << endl;
   }
-  cout << "Tests per train(min): " << nParams.testIterations << endl;
-  cout << "Particles: " << pParams.particles << "\nNeighbors: " << pParams.neighbors << endl;
-  cout << "Minimum Particle Iterations: " << pParams.iterations << endl;
+  outputString += "Tests per train(min): ";
+    outputString += stringPut(nParams.testIterations);
+    outputString += "\n";
+  outputString += "Particles: ";
+    outputString += stringPut(pParams.particles);
+    outputString += "\nNeighbors: ";
+    outputString += stringPut(pParams.neighbors);
+    outputString += "\n";
+  outputString += "Minimum Particle Iterations: ";
+    outputString += stringPut(pParams.iterations);
+    outputString += "\n";
 
-
+  //cout << "Tests per train(min): " << nParams.testIterations << endl;
+  //cout << "Particles: " << pParams.particles << "\nNeighbors: " << pParams.neighbors << endl;
+  //cout << "Minimum Particle Iterations: " << pParams.iterations << endl;
+  Logger::write(outputString);
 
   vector<vector<double>> inputTruth;
   vector<double> outputResult;

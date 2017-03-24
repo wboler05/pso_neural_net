@@ -54,7 +54,8 @@ private:
   vector<vector<double>> _innerNodes;  /// columns / node
   vector<double> _outputNodes;
 
-  vector<vector<vector<double>>> _edges;
+  vector<vector<vector<double>>> _edges;  ///TODO: Make _edges a pointer and pass edge pointers from PSO.
+  bool _localEdgesFlag;
 
   NeuralNetParameters _nParams;
 

@@ -104,16 +104,39 @@ void NeuralPso::fly() {
   static int innerNetAccessCount = _psoParams.iterationsPerLevel;
   static uint innerNetIt = _particles[0]._v.size()-1;
 
-  int choice;
+  double choice;
   bool worstFlag;
+
+                                // Random, pb, lb, gb
+  static std::vector<double> pdf = {.001, 2, 8, 4};
+  static std::vector<double> cdf = cdfUniform(pdf);
 
   // For each particle
   for (uint i = 0; i < _particles.size(); i++) {
     double C1 = 2.495, C2 = 2.495;
     Particle<vector<vector<vector<double>>>> *p = &_particles[i];
     worstFlag = p->_worstFlag;
-    if (worstFlag)
-      choice = rand() % 4;
+    if (worstFlag) {
+      p->_worstFlag = false;
+      if (p->_points <= 0) {
+        choice = (double) (rand() % 10000) / 10000.0;
+        p->_fit_pb = 0;
+        p->_fit_lb = 0;
+        p->_points = _psoParams.startPoints;
+/*
+        std::string callWeak;
+        callWeak += "Switching particle ";
+        callWeak += stringPut(i);
+        callWeak += " with option ";
+        callWeak += stringPut(choice);
+        callWeak += "\n";
+        Logger::write(callWeak);
+*/
+      } else {
+        worstFlag = false;
+        p->_points -= _psoParams.weakPoints;
+      }
+    }
 
     // For each inner net
     for (uint inner_net = 0; inner_net < p->_v.size(); inner_net++) {
@@ -124,27 +147,17 @@ void NeuralPso::fly() {
         for (uint right_edge = 0; right_edge < p->_v[inner_net][left_edge].size(); right_edge++) {
           /// Concept based on Genetic Algorithms, idea based on Alex
           /// Find the worst of the particles and reset it.
-          if (p->_worstFlag) { // Reset the worst one
-            if (p->_points <= 0) {
-              switch(choice) {
-              case 0:
-                p->_x[inner_net][left_edge][right_edge] = ((double) (rand() % 20000) - 10000) / 10000.0;
-                break;
-              case 1:
-                p->_x[inner_net][left_edge][right_edge] = p->_x_pb[inner_net][left_edge][right_edge];
-                break;
-              case 2:
-                p->_x[inner_net][left_edge][right_edge] = p->_x_pb[inner_net][left_edge][right_edge];
-                break;
-              case 3:
-                p->_x[inner_net][left_edge][right_edge] = _gb._x[inner_net][left_edge][right_edge];
-                break;
-              default:
-                p->_x[inner_net][left_edge][right_edge] = ((double) (rand() % 20000) - 10000) / 10000.0;
-                break;
-              }
-              continue;
+          if (worstFlag) { // Reset the worst one
+            if (choice < cdf[0]) {
+              p->_x[inner_net][left_edge][right_edge] = ((double) (rand() % 20000) - 10000) / 10000.0;
+            } else if (choice < cdf[1]) {
+              p->_x[inner_net][left_edge][right_edge] = p->_x_pb[inner_net][left_edge][right_edge];
+            } else if (choice < cdf[2]) {
+              p->_x[inner_net][left_edge][right_edge] = p->_x_lb[inner_net][left_edge][right_edge];
+            } else {
+              p->_x[inner_net][left_edge][right_edge] = _gb._x[inner_net][left_edge][right_edge];
             }
+            continue;
           }
 
           double *w_v = &p->_v[inner_net][left_edge][right_edge];
@@ -169,13 +182,6 @@ void NeuralPso::fly() {
             *w_v *= -0.01;
           }
         }
-      }
-    }
-    if (p->_worstFlag) { // Reset the worst flag
-      if (p->_points <= 0) {
-        p->_worstFlag = false;
-      } else {
-        p->_points -= _psoParams.weakPoints;
       }
     }
   }
@@ -219,7 +225,9 @@ void NeuralPso::fly() {
 void NeuralPso::getCost() {
   double correctRatio;
   int totalCount;
+  bool printChange = false;
   double worstFit = numeric_limits<double>::min();
+  double worstFitIt = 0;
   for (uint i = 0; i < _particles.size(); i++) {
     Particle<vector<vector<vector<double>>>> *p = &_particles[i];
 
@@ -233,12 +241,16 @@ void NeuralPso::getCost() {
     // Minimize error
     double fit = sqrErr;
 
-    worstFit = std::max(worstFit, fit);
+    if (worstFit >= fit) {
+      worstFit = fit;
+      worstFitIt = i;
+    }
 
     // Find personal best
     if (fit < p->_fit_pb) {
       p->_fit_pb = fit;
       p->_points += _psoParams.pbPoints;
+      printChange = true;
 
       for (uint i = 0; i < p->_x_pb.size(); i++) {
         for (uint j = 0; j < p->_x_pb[i].size(); j++) {
@@ -255,6 +267,7 @@ void NeuralPso::getCost() {
       //if (fit > 0.005) _overideTermFlag = false;
       //else _overideTermFlag = true;
       p->_points += _psoParams.gbPoints;
+      printChange = true;
 
       for (uint i = 0; i < p->_x.size(); i++) {
         for (uint j = 0; j < p->_x[i].size(); j++) {
@@ -283,6 +296,7 @@ void NeuralPso::getCost() {
       if (fit < p_n->_fit_lb) {
         p_n->_fit_lb = fit;
         p->_points += _psoParams.lbPoints;
+        printChange = true;
 
 //        uint size1 = p_n->_x_lb.size();
         for (uint i = 0; i < p_n->_x_lb.size(); i++) {
@@ -298,17 +312,44 @@ void NeuralPso::getCost() {
       }
     } // End local best
 
-    //cout << "Particle (" << i << "):: Fit: " << fit << "\tPersonal: " << p->_fit_pb << "\tLocal: " << p->_fit_lb << "\tGlobal: " << gb()->_fit_pb << endl;
+    if (printChange) {
+      printChange = false;
+      std::string outputString;
+      outputString += "Particle (";
+      outputString += stringPut(i);
+      outputString += "):: Fit: ";
+      outputString += stringPut(fit);
+      outputString += "\tPersonal: ";
+      outputString += stringPut(p->_fit_pb);
+      outputString += "\tLocal: ";
+      outputString += stringPut(p->_fit_lb);
+      outputString += "\tGlobal: ";
+      outputString += stringPut(gb()->_fit_pb);
+      outputString += "\tPoints: ";
+      outputString += stringPut(p->_points);
+      outputString += "\n";
+      Logger::write(outputString);
 
+    }
   } // end for each particle
 
   static double prevBest = 0;
   if (prevBest != gb()->_fit_pb) {
-      cout << "Global: " << gb()->_fit_pb;
-      cout << " - Correct: " << correctRatio * 100.0 << "% of " <<
-        totalCount << " tests" << endl;
       prevBest = gb()->_fit_pb;
+
+      std::string outputString;
+      outputString += "Global: ";
+      outputString += stringPut(gb()->_fit_pb);
+      outputString += " - Correct: ";
+      outputString += stringPut(correctRatio * 100.0);
+      outputString += "% of ";
+      outputString += stringPut(totalCount);
+      outputString += " tests\n";
+      Logger::write(outputString);
   }
+
+  // Set the worst fit flag
+  _particles[worstFitIt]._worstFlag = true;
 
 
   // Debugging test prints
@@ -552,55 +593,101 @@ void NeuralPso::runTrainer() {
 }
 
 void NeuralPso::printGB() {
-  cout << "Global Best: " << endl;
+  std::string printString;
+  printString += "Global Best: \n";
   for (uint i = 0; i < _gb._x.size(); i++) {
-    cout << "  Inner Net " << i+1 << endl;
+    printString += "  Inner Net ";
+    printString += stringPut(i+1);
+    printString += "\n";
     for (uint j = 0; j < gb()->_x[i].size(); j++) {
       for (uint k = 0; k < gb()->_x[i][j].size(); k++) {
-        cout << "  -- " << j+1 << " : " << k+1 << " = " << gb()->_x[i][j][k] << endl;
+        printString += "  -- ";
+        printString += stringPut(j+1);
+        printString += " : ";
+        printString += stringPut(k+1);
+        printString += " = ";
+        printString += stringPut(gb()->_x[i][j][k]);
+        printString += "\n";
       }
     }
   }
+  Logger::write(printString);
 }
 
 void NeuralPso::printParticle(uint I) {
   if (I > _particles.size()) return;
 
-  cout << "Particle (" << I << "): " << endl;
+  std::string printString;
+  printString += "Particle (";
+  printString += stringPut(I);
+  printString += "): \n";
   for (uint i = 0; i < _particles[I]._x.size(); i++) {
-    cout << "  Inner Net " << i+1 << endl;
+    printString += "  Inner Net ";
+    printString += stringPut(i+1);
+    printString += "\n";
     for (uint j = 0; j < _particles[I]._x[i].size(); j++) {
       for (uint k = 0; k < _particles[I]._x[i][j].size(); k++) {
-        cout << "  -- " << j+1 << " : " << k+1 << " = " << _particles[I]._x[i][j][k] << endl;
+        printString += "  -- ";
+        printString += stringPut(j+1);
+        printString += " : ";
+        printString += stringPut(k+1);
+        printString += " = ";
+        printString += stringPut(_particles[I]._x[i][j][k]);
+        printString += "\n";
       }
     }
   }
+  Logger::write(printString);
 }
 
 void NeuralPso::printParticlePBest(uint I) {
   if (I > _particles.size()) return;
 
-  cout << "Particle pBest (" << I << "): " << endl;
+  std::string printString;
+  printString += "Particle pBest (";
+  printString += stringPut(I);
+  printString += "): \n";
   for (uint i = 0; i < _particles[I]._x_pb.size(); i++) {
-    cout << "  Inner Net " << i+1 << endl;
+    printString += "  Inner Net ";
+    printString += stringPut(i+1);
+    printString += "\n";
     for (uint j = 0; j < _particles[I]._x_pb[i].size(); j++) {
       for (uint k = 0; k < _particles[I]._x_pb[i][j].size(); k++) {
-        cout << "  -- " << j+1 << " : " << k+1 << " = " << _particles[I]._x_pb[i][j][k] << endl;
+        printString += "  -- ";
+        printString += stringPut(j+1);
+        printString += " : ";
+        printString += stringPut(k+1);
+        printString += " = ";
+        printString += stringPut(_particles[I]._x_pb[i][j][k]);
+        printString += "\n";
       }
     }
   }
+  Logger::write(printString);
 }
 
 void NeuralPso::printParticleLBest(uint I) {
   if (I > _particles.size()) return;
 
-  cout << "Particle lBest (" << I << "): " << endl;
+  std::string printString;
+  printString += "Particle lBest (";
+  printString += stringPut(I);
+  printString += "): \n";
   for (uint i = 0; i < _particles[I]._x_lb.size(); i++) {
-    cout << "  Inner Net " << i+1 << endl;
+    printString += "  Inner Net ";
+    printString += stringPut(i+1);
+    printString += "\n";
     for (uint j = 0; j < _particles[I]._x_lb[i].size(); j++) {
       for (uint k = 0; k < _particles[I]._x_lb[i][j].size(); k++) {
-        cout << "  -- " << j+1 << " : " << k+1 << " = " << _particles[I]._x_lb[i][j][k] << endl;
+        printString += "  -- ";
+        printString += stringPut(j+1);
+        printString += " : ";
+        printString += stringPut(k+1);
+        printString += " = ";
+        printString += stringPut(_particles[I]._x_lb[i][j][k]);
+        printString += "\n";
       }
     }
   }
+  Logger::write(printString);
 }
