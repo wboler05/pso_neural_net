@@ -23,7 +23,7 @@ NeuralPso::~NeuralPso() {
 }
 
 void NeuralPso::buildPso() {
-  _gb._fit_pb = numeric_limits<double>::max();
+  _gb._fit_pb = numeric_limits<double>::min();
 
   _particles.empty();
   vector<vector<vector<double>>> &edges = _neuralNet->getWeights();
@@ -32,8 +32,8 @@ void NeuralPso::buildPso() {
   _particles.resize(_psoParams.particles);
   for (uint i = 0; i < _psoParams.particles; i++) {
     // Create the number of inner columns
-    _particles[i]._fit_pb = numeric_limits<double>::max();
-    _particles[i]._fit_lb = numeric_limits<double>::max();
+    _particles[i]._fit_pb = numeric_limits<double>::min();
+    _particles[i]._fit_lb = numeric_limits<double>::min();
 
     _particles[i]._x.resize(edges.size());
     _particles[i]._v.resize(edges.size());
@@ -115,7 +115,7 @@ void NeuralPso::fly() {
 
   // For each particle
   for (uint i = 0; i < _particles.size(); i++) {
-    double C1 = 2.495, C2 = 2.495;
+    double C1 = 2.495, C2 = 2.495, C3 = 0.75;
     Particle<vector<vector<vector<double>>>> *p = &_particles[i];
     worstFlag = p->_worstFlag;
     if (worstFlag) {
@@ -159,6 +159,7 @@ void NeuralPso::fly() {
             } else {
               p->_x[inner_net][left_edge][right_edge] = _gb._x[inner_net][left_edge][right_edge];
             }
+            p->_v[inner_net][left_edge][right_edge] = ((double) (rand() % 20000) - 10000) / 10000.0;
             continue;
           }
 
@@ -166,14 +167,23 @@ void NeuralPso::fly() {
           double *w_x = &p->_x[inner_net][left_edge][right_edge];
           double *w_pb = &p->_x_pb[inner_net][left_edge][right_edge];
           double *w_lb = &p->_x_lb[inner_net][left_edge][right_edge];
+          double *w_gb = &_gb._x[inner_net][left_edge][right_edge];
 
           double inertia = ((double) ((rand() % 50000) + 50000)) / 100000.0;
           double c1 = C1 * ((double) (rand() % 10000)) / 10000.0;
           double c2 = C2 * ((double) (rand() % 10000)) / 10000.0;
+          double c3 = C3 * ((double) (rand() % 10000)) / 10000.0;
 
-          *w_v += (inertia * (*w_v) + (c1*(*w_pb - *w_x)) + (c2*(*w_lb - *w_x))) / 100.0;
+          *w_v += (inertia * (*w_v) + (c1*(*w_pb - *w_x)) + (c2*(*w_lb - *w_x)) + (c3*(*w_gb - *w_x))) / 100.0;
           velSum += *w_v;
           term = term && (*w_pb == *w_x) && (*w_lb == *w_x);
+
+          if (*w_v > 0.25) {
+            *w_v = 0.25;
+          } else if (*w_v < -0.25) {
+            *w_v = -0.25;
+          }
+
           *w_x += *w_v;
 
           if (*w_x > 1.0) {
@@ -228,29 +238,33 @@ void NeuralPso::getCost() {
   double correctRatio;
   int totalCount;
   bool printChange = false;
-  double worstFit = numeric_limits<double>::min();
+  double worstFit = numeric_limits<double>::max();
   double worstFitIt = 0;
+  static double prevBest = 0;
+
   for (uint i = 0; i < _particles.size(); i++) {
     Particle<vector<vector<vector<double>>>> *p = &_particles[i];
 
     if (!_neuralNet->setWeights(&p->_x)) {
       std::cout<< "Failure to set weights." << endl;
     }
+
+    // Initialize storage variables
     double tempCorrectRatio;
     uint tempTotalCount;
     double confidence;
-    double sqrErr = testRun(tempCorrectRatio, tempTotalCount, confidence);
 
-    // Minimize error
-    double fit = sqrErr;
+    // Get fitness
+    double fit = testRun(tempCorrectRatio, tempTotalCount, confidence);
 
+    // Track worst fitness
     if (worstFit >= fit) {
       worstFit = fit;
       worstFitIt = i;
     }
 
     // Find personal best
-    if (fit < p->_fit_pb) {
+    if (fit > p->_fit_pb) {
       p->_fit_pb = fit;
       p->_points += _psoParams.pbPoints;
       printChange = true;
@@ -265,10 +279,8 @@ void NeuralPso::getCost() {
     } // end personal best
 
     // Find global best
-    if (fit < _gb._fit_pb) {
+    if (fit > _gb._fit_pb) {
       _gb._fit_pb = fit;
-      //if (fit > 0.005) _overideTermFlag = false;
-      //else _overideTermFlag = true;
       p->_points += _psoParams.gbPoints;
       printChange = true;
 
@@ -296,16 +308,14 @@ void NeuralPso::getCost() {
       }
 
       Particle<vector<vector<vector<double>>>> *p_n = &_particles[it];
-      if (fit < p_n->_fit_lb) {
+      if (fit > p_n->_fit_lb) {
         p_n->_fit_lb = fit;
         p->_points += _psoParams.lbPoints;
         printChange = true;
 
-//        uint size1 = p_n->_x_lb.size();
         for (uint i = 0; i < p_n->_x_lb.size(); i++) {
           uint size2 = p_n->_x_lb[i].size();
           for (uint j = 0; j < p_n->_x_lb[i].size(); j++) {
-//            uint size3 = p_n->_x_lb[i][j].size();
             for (uint k = 0; k < p_n->_x_lb[i][j].size(); j++) {
               if (j >= size2) continue;
               p_n->_x_lb[i][j][k] = p->_x[i][j][k];
@@ -315,6 +325,7 @@ void NeuralPso::getCost() {
       }
     } // End local best
 
+    // Handle logging
     if (printChange) {
       printChange = false;
       std::string outputString;
@@ -338,7 +349,7 @@ void NeuralPso::getCost() {
     }
   } // end for each particle
 
-  static double prevBest = 0;
+  // Print out global change made
   if (prevBest != gb()->_fit_pb) {
       prevBest = gb()->_fit_pb;
 
@@ -353,27 +364,14 @@ void NeuralPso::getCost() {
       Logger::write(outputString);
   }
 
-  // Set the worst fit flag
+  // Set the worst fit flag for particle
   _particles[worstFitIt]._worstFlag = true;
 
-
-  // Debugging test prints
-  //printGB();
-/*
-  for (uint i = 0; i < _particles.size(); i++) {
-    printParticlePBest(i);
-    cout << endl;
-  }
-  cout << endl;
-  */
-
+  // Notify exit condition
+  ///FIXME: Set the correct exit condition.
   if (totalCount > 400 && correctRatio > 0.9995)
     interruptProcess();
 
-  /**
-  if (1.0-abs(gb()->_fit_pb) < _psoParams.delta)
-    interruptProcess();
-    **/
 
   if (checkForPrint()) {
     testGB();
@@ -423,7 +421,7 @@ void NeuralPso::testGB() {
 /// Total Count gives the total runs that were executed.
 /// Confidence returns how confident the net believes its answer is.
 double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confidence) {
-  double errSqr = 0;
+
   double realError = 0;
   double answerFailPenalty = 1.0;
   uint outputNodes = _neuralNet->nParams()->outputs;
@@ -432,21 +430,9 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confid
   uint totalSetsToRun = _neuralNet->nParams()->testIterations;
   uint correctCount = totalSetsToRun;
 
-  vector<bool> *scannedOnce = new vector<bool>();
-  vector<int> *resultCount = new vector<int>();
-  scannedOnce->resize(outputNodes);
-  resultCount->resize(outputNodes);
-  for (uint it = 0; it < outputNodes; it++) {
-    (*scannedOnce)[it] = false;
-    (*resultCount)[it] = 0;
-  }
-
-  vector<double> *err = new vector<double>();
   vector<int> *answer = new vector<int>();
-  err->resize(totalSetsToRun);
   answer->resize(totalSetsToRun);
   for (uint im = 0; im < totalSetsToRun; im++) {
-    (*err)[im] = 0;
     (*answer)[im] = 0;
   }
 
@@ -489,8 +475,6 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confid
     int maxNode = 0;
     // Compare the output to expected
     for (int i = 0; i < outputSize; i++) {
-      //errSqr += pow(expectedOutput[i] - output[i], 2);
-      // Just try Gaussian???
       double expected = expectedOutput[i];
       double got = output[i];
       if (output[i] > maxVal) {
@@ -500,26 +484,19 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confid
        double dif = expectedOutput[i] - output[i];
        tConfidence -= output[i];
        rError += abs(dif);
-       err->at(someSets) = dif;
-      //errSqr += ( -exp(-pow((expectedOutput[i] - output[i])/0.2, 2)) / (double) outputSize );
     }
 
     // If we have a correct answer, then we're heading in the right direction
     // Give him a cookie.
     if (maxNode != answer->at(someSets)) {
-      //errSqr *= 0.1;
-      answerFailPenalty *= 0.1;
       correctCount--;
     } else {
-//      (*resultCount)[(*answer)[someSets]]++;
-      scannedOnce->at(answer->at(someSets)) = true;
+
     }
-    (*resultCount)[(*answer)[someSets]]++;
 
     if ((totalSetsToRun == correctCount) && (someSets == (totalSetsToRun - 1))) {
       if (totalSetsToRun < _input->size()) {
         correctCount = ++totalSetsToRun;
-        err->push_back(0);
         answer->push_back(0);
       }
     }
@@ -531,32 +508,6 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confid
   confidence /= totalSetsToRun;
   realError /= totalSetsToRun;
 
-  for (uint i = 0; i < totalSetsToRun; i++) {
-    double divisor = (double) (*resultCount)[(*answer)[i]]+1;
-    //divisor = divisor != 0 ? divisor : 1;
-    errSqr += ( -exp(-pow((abs(err->at(i)))/0.2, 2)) / divisor );
-    //errSqr += ( -exp(-pow((abs(err->at(i)))/0.2, 2)) * ((1 - ((double) (*resultCount)[(*answer)[i]])/(double)totalSetsToRun)));
-  }
-  //errSqr *= answerFailPenalty;
-
-
-  ///TODO: Temporary ending check
-  //   Not necessarily correct if right 20 times in a row
-  if (correctCount == totalSetsToRun) {
-    bool scannedAtLeastOnce = true;
-    for (uint i = 0; i < scannedOnce->size(); i++) {
-      scannedAtLeastOnce &= (*scannedOnce)[i];
-    }
-    if (scannedAtLeastOnce) {
-      //interruptProcess();
-    }
-  }
-
-  // return mean sqr error
-  //return sqrt(errSqr) / sqrt(totalSetsToRun);
-  delete scannedOnce;
-  delete resultCount;
-  delete err;
   delete answer;
 
   correctRatio = (double) correctCount / (double) totalSetsToRun;
@@ -568,9 +519,7 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confid
     probSum += prob[i];
   }
 
-  return -((double) correctCount + (((prob[0]*confidence)+(prob[1]*(1.0-realError))) / probSum));
-
-  return errSqr;// / (totalSetsToRun);
+  return (double) correctCount + (((prob[0]*confidence)+(prob[1]*(1.0-realError))) / probSum);
 }
 
 int NeuralPso::randomizeTestInputs() {
