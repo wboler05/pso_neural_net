@@ -4,6 +4,8 @@
 //#include "NeuralNet/NeuralNet.cpp"
 
 volatile bool stopProcessing = false;
+bool NeuralPso::printGBFlag = false;
+boost::mutex NeuralPso::printGBMtx;
 
 NeuralPso::NeuralPso(PsoParams pp, NeuralNetParameters np) :
   Pso(pp),
@@ -236,7 +238,8 @@ void NeuralPso::getCost() {
     }
     double tempCorrectRatio;
     uint tempTotalCount;
-    double sqrErr = testRun(tempCorrectRatio, tempTotalCount);
+    double confidence;
+    double sqrErr = testRun(tempCorrectRatio, tempTotalCount, confidence);
 
     // Minimize error
     double fit = sqrErr;
@@ -319,13 +322,15 @@ void NeuralPso::getCost() {
       outputString += stringPut(i);
       outputString += "):: Fit: ";
       outputString += stringPut(fit);
-      outputString += "\tPersonal: ";
+      outputString += "\tPB: ";
       outputString += stringPut(p->_fit_pb);
-      outputString += "\tLocal: ";
+      outputString += "\tLB: ";
       outputString += stringPut(p->_fit_lb);
-      outputString += "\tGlobal: ";
+      outputString += "\tGB: ";
       outputString += stringPut(gb()->_fit_pb);
-      outputString += "\tPoints: ";
+      outputString += "\tConf: ";
+      outputString += stringPut(confidence);
+      outputString += "\tPts: ";
       outputString += stringPut(p->_points);
       outputString += "\n";
       Logger::write(outputString);
@@ -373,6 +378,13 @@ void NeuralPso::getCost() {
   if (checkForPrint()) {
     testGB();
   }
+
+  printGBMtx.lock();
+  if (printGBFlag) {
+    printGBFlag = false;
+    printGB();
+  }
+  printGBMtx.unlock();
 } // end getCost()
 
 void NeuralPso::testGB() {
@@ -380,7 +392,7 @@ void NeuralPso::testGB() {
   int I = randomizeTestInputs();
 
   vector<double> res = _neuralNet->process();
-  cout << "X AND Y = ?? " << endl;
+  cout << _functionMsg << endl;
   cout << "Input: " << endl;
   for (uint i = 0; i < (*_input)[I].size(); i++) {
     cout << " - " << (*_input)[I][i] << endl;
@@ -406,10 +418,16 @@ void NeuralPso::testGB() {
     cout << endl;
 }
 
-double NeuralPso::testRun(double &correctRatio, uint &totalCount) {
+/// Passing null parameters to return stored values.
+/// Correct ratio gives the ratio of correct runs.
+/// Total Count gives the total runs that were executed.
+/// Confidence returns how confident the net believes its answer is.
+double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confidence) {
   double errSqr = 0;
+  double realError = 0;
   double answerFailPenalty = 1.0;
   uint outputNodes = _neuralNet->nParams()->outputs;
+  confidence = 0;
 
   uint totalSetsToRun = _neuralNet->nParams()->testIterations;
   uint correctCount = totalSetsToRun;
@@ -436,6 +454,8 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount) {
   for (uint someSets = 0; someSets < totalSetsToRun; someSets++) {
     // Set a random input
     int I = randomizeTestInputs();
+    double tConfidence = (double) outputNodes;
+    double rError = 0;
     //int I = It[someSets];
     //loadTestInput(I);
 
@@ -477,7 +497,10 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount) {
         maxVal = output[i];
         maxNode = i;
       }
-      err->at(someSets) = expectedOutput[i] - output[i];
+       double dif = expectedOutput[i] - output[i];
+       tConfidence -= output[i];
+       rError += abs(dif);
+       err->at(someSets) = dif;
       //errSqr += ( -exp(-pow((expectedOutput[i] - output[i])/0.2, 2)) / (double) outputSize );
     }
 
@@ -501,7 +524,12 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount) {
       }
     }
 
+    confidence += tConfidence;
+    realError += rError / outputNodes;
+
   }
+  confidence /= totalSetsToRun;
+  realError /= totalSetsToRun;
 
   for (uint i = 0; i < totalSetsToRun; i++) {
     double divisor = (double) (*resultCount)[(*answer)[i]]+1;
@@ -534,7 +562,13 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount) {
   correctRatio = (double) correctCount / (double) totalSetsToRun;
   totalCount = totalSetsToRun;
 
-  return -((double) correctCount);
+  vector<double> prob = {5, 100};
+  double probSum = 0;
+  for (uint i = 0; i < prob.size(); i++) {
+    probSum += prob[i];
+  }
+
+  return -((double) correctCount + (((prob[0]*confidence)+(prob[1]*(1.0-realError))) / probSum));
 
   return errSqr;// / (totalSetsToRun);
 }
@@ -690,4 +724,10 @@ void NeuralPso::printParticleLBest(uint I) {
     }
   }
   Logger::write(printString);
+}
+
+void NeuralPso::setToPrintGBNet() {
+  printGBMtx.lock();
+  printGBFlag = true;
+  printGBMtx.unlock();
 }

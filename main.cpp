@@ -105,6 +105,10 @@ void onKeyInput() {
       if ((char) in == 'p') {
         NeuralPso::setToPrint();
       }
+      if ((char) in == 'g') {
+        NeuralPso::setToPrintGBNet();
+      }
+
     }
   } catch (boost::thread_interrupted &) {
     cout << "Project complete!" << endl;
@@ -217,6 +221,7 @@ void runNeuralPso() {
   NeuralPso *np = new NeuralPso(pParams, nParams);
   //np->build(trainingImages, trainingLabels);
   np->build(inputTruth, outputResult);
+  np->setFunctionMsg("A XOR B = ?");
 
   NeuralNet *net = np->neuralNet();
 

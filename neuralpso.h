@@ -35,7 +35,7 @@ public:
   void fly();
   void getCost();
 
-  double testRun(double &, uint &);
+  double testRun(double &correctRatio, uint &totalCount, double &confidence);
   void testGB();
 
   NeuralNet * neuralNet() { return _neuralNet; }
@@ -49,6 +49,11 @@ public:
   void printParticlePBest(uint i);
   void printParticleLBest(uint i);
 
+  static void setToPrintGBNet();
+
+  void setFunctionMsg(std::string s) { _functionMsg = s; }
+  std::string functionMsg() { return _functionMsg; }
+
 private:
   NeuralNet *_neuralNet;
   vector<vector<vector<byte> > > *_images;
@@ -57,6 +62,11 @@ private:
   // Test input
   vector<vector<double> > *_input;
   vector<double> *_output;
+
+  std::string _functionMsg;
+
+  static bool printGBFlag;
+  static boost::mutex printGBMtx;
 
 //  vector<pair<bool, int>> _failureQueue;
 
