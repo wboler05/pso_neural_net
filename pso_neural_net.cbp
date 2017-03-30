@@ -15,11 +15,12 @@
 					<Add option="-std=c++11" />
 					<Add option="-g" />
 					<Add directory="$(#boost.include)" />
+					<Add directory="$(#opencl.include)" />
 				</Compiler>
 				<Linker>
-					<Add library="boost_thread-mgw53-mt-d-1_61" />
-					<Add library="boost_system-mgw53-mt-d-1_61" />
-					<Add directory="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/lib/Win32" />
+					<Add library="boost_thread-mgw53-mt-d-$(#boost.major_version)_$(#boost.minor_version)" />
+					<Add library="boost_system-mgw53-mt-d-$(#boost.major_version)_$(#boost.minor_version)" />
+					<Add directory="$(#opencl.lib)" />
 					<Add directory="$(#boost.lib)" />
 				</Linker>
 			</Target>
@@ -32,13 +33,14 @@
 					<Add option="-O2" />
 					<Add option="-std=c++11" />
 					<Add directory="$(#boost.include)" />
+					<Add directory="$(#opencl.include)" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="boost_thread-mgw53-mt-1_61" />
-					<Add library="boost_system-mgw53-mt-1_61" />
-					<Add directory="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/lib/Win32" />
+					<Add library="boost_thread-mgw53-mt-$(#boost.major_version)_$(#boost.minor_version)" />
+					<Add library="boost_system-mgw53-mt-$(#boost.major_version)_$(#boost.minor_version)" />
 					<Add directory="$(#boost.lib)" />
+					<Add directory="$(#opencl.lib)" />
 				</Linker>
 			</Target>
 		</Build>
