@@ -29,23 +29,25 @@ void Logger::LoggingConsummer() {
 
     _writeMtx.lock();
 
-    if (!_fileSet)
-      continue;
+    if (_fileSet) {
 
-    if (_queue.size() > 0) {
-      std::string s = _queue.front();
-      _queue.pop();
+      if (_queue.size() > 0) {
 
-      std::ofstream outputFile(_file, std::ios::app);
-      if (!outputFile.is_open()) {
-        std::cout << "Failed to open output file.";
-        continue;
-      } else {
-        outputFile.write(s.c_str(), s.size());
+        std::string s;
+        std::ofstream outputFile(_file, std::ios::app);
+        if (!outputFile.is_open()) {
+          std::cout << "Failed to open output file.";
+          continue;
+        } else {
+          s = _queue.front();
+          _queue.pop();
+          outputFile.write(s.c_str(), s.size());
+        }
+        if (_verboseFlag)
+          std::cout << s;
+
+        outputFile.close();
       }
-      if (_verboseFlag)
-        std::cout << s;
-      outputFile.close();
     }
     _writeMtx.unlock();
 

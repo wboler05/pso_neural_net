@@ -14,6 +14,7 @@ struct PsoParams {
   uint32_t iterations=100;
   double delta=5E-3;
   double vDelta=5E-20;
+  double vLimit = 0.5;
 
   bool termIterationFlag;
   bool termDeltaFlag;
@@ -22,11 +23,12 @@ struct PsoParams {
   int iterationsPerLevel=100;
 
   // Points to assign to prevent disruption
-  int startPoints = 50;
-  int pbPoints = 10;
-  int lbPoints = 30;
-  int gbPoints = 50;
+  int startPoints = 50000;
+  int pbPoints = 100;
+  int lbPoints = 5000;
+  int gbPoints = 10000;
   int weakPoints = 1; // Points to lose for being the weakest
+  int decayPoints = 1;
 
 };
 

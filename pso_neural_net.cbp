@@ -31,10 +31,14 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-std=c++11" />
+					<Add directory="$(#boost.include)" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add library="boost_thread-mgw53-mt-1_61" />
+					<Add library="boost_system-mgw53-mt-1_61" />
 					<Add directory="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/lib/Win32" />
+					<Add directory="$(#boost.lib)" />
 				</Linker>
 			</Target>
 		</Build>
@@ -50,6 +54,8 @@
 		<Unit filename="main.cpp" />
 		<Unit filename="neuralpso.cpp" />
 		<Unit filename="neuralpso.h" />
+		<Unit filename="util.cpp" />
+		<Unit filename="util.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />

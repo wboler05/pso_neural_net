@@ -45,6 +45,7 @@ bool readLabelHeading(ifstream &in, LabelInfo &lb);
 bool readImageHeading(ifstream &in, ImageInfo &im);
 uint32_t char2uint(uint8_t *input);
 uint32_t readUnsignedInt(ifstream &input);
+bool readPEFile(vector<double> &labels, vector<vector<double>> &data);
 
 void initializeCL(std::vector<cl::Device> &cpuDevices,
                   std::vector<cl::Device> &gpuDevices,
@@ -54,10 +55,26 @@ int main() {
   srand(time(NULL));
 
   // Set the logger file
-  Logger::setOutputFile("run.log");
+//  Logger::setOutputFile("log/run.log");
 
   time_t now = time(0);
   tm *gmtm = gmtime(&now);
+
+  std::string logFile("logs\\run_");
+  logFile += stringPut(gmtm->tm_year+1900);
+  logFile += stringPut(gmtm->tm_mon);
+  logFile += stringPut(gmtm->tm_mday);
+  logFile += "_";
+  logFile += stringPut(gmtm->tm_hour);
+  logFile += stringPut(gmtm->tm_min);
+  logFile += stringPut(gmtm->tm_sec);
+  logFile += ".log";
+
+  cout << logFile << endl;
+
+  // Set the logger file
+  Logger::setOutputFile(logFile);
+
   string dateTime;
   dateTime += "\nDate / Time: ";
   dateTime += asctime(gmtm);
@@ -119,30 +136,19 @@ void onKeyInput() {
 
 void runNeuralPso() {
   /// image.rows.cols
-  vector<vector<vector<uint8_t> > > trainingImages;
-  vector<uint8_t> trainingLabels;
+  //vector<vector<vector<uint8_t> > > trainingImages;
+  //vector<uint8_t> trainingLabels;
 
+  vector<double> labels;
+  vector<vector<double>> input;
 
-  string trainImageInputFile("train-images.idx3-ubyte");
-  string trainLabelInputFile("train-labels.idx1-ubyte");
-  string testImageInputFile("t10k-images.idx3-ubyte");
-  string testLabelInputFile("t10k-labels.idx1-ubyte");
-
-  /*
-  loadTrainingData(trainImageInputFile,
-                        trainLabelInputFile,
-                        trainingImages,
-                        trainingLabels);
-
-  if (trainingImages.size() == 0) {
-    cout << "You messed up. Images are empty." << endl;
+  if (!readPEFile(labels, input)) {
     return;
   }
-  */
 
   PsoParams pParams;
-  pParams.particles = 200; // 50
-  pParams.neighbors = 40; // 10
+  pParams.particles = 50; // 50
+  pParams.neighbors = 10; // 10
   pParams.iterations = 1000;
   pParams.delta = 5E-6;
   pParams.vDelta = 5E-200;
@@ -158,9 +164,10 @@ void runNeuralPso() {
   nParams.outputs = 10;
   */
   NeuralNetParameters nParams;
-  nParams.inputs = 2;
-  nParams.innerNetNodes.push_back(8);
-  nParams.innerNetNodes.push_back(4);
+  nParams.inputs = input[0].size();
+  nParams.innerNetNodes.push_back(10);
+  //nParams.innerNetNodes.push_back(10);
+  //nParams.innerNetNodes.push_back(4);
   nParams.innerNets = nParams.innerNetNodes.size();
   nParams.outputs = 2;
   nParams.testIterations = 10;
@@ -195,94 +202,31 @@ void runNeuralPso() {
   //cout << "Minimum Particle Iterations: " << pParams.iterations << endl;
   Logger::write(outputString);
 
-  vector<vector<double>> inputTruth;
-  vector<double> outputResult;
-  inputTruth.resize(500);
-  outputResult.resize(inputTruth.capacity());
-  for (uint i = 0; i < inputTruth.capacity(); i++) {
-    if (i >= inputTruth.capacity()) continue;
-    inputTruth[i].resize(2);
-
-    //int x = rand() % 2;
-    //int y = rand() % 2;
-    double x = ((double) (rand() % 10000)) / 10000.0;
-    double y = ((double) (rand() % 10000)) / 10000.0;
-    //bool z = (x == 1) && (y == 1);
-    bool z = ((x >= 0.5) && (y < 0.5)) || ((x < 0.5) && (y >= 0.5));
-    inputTruth[i][0] = (double) x;
-    inputTruth[i][1] = (double) y;
-    if (z) {
-      outputResult[i] = 1;
-    } else {
-      outputResult[i] = 0;
+  for (uint i = 0; i < labels.size(); i++) {
+    if (labels[i] != 1) {
+      labels[i] = 0;
     }
   }
 
   NeuralPso *np = new NeuralPso(pParams, nParams);
   //np->build(trainingImages, trainingLabels);
-  np->build(inputTruth, outputResult);
-  np->setFunctionMsg("A XOR B = ?");
+  np->build(input, labels);
+  np->setFunctionMsg("PE");
 
   NeuralNet *net = np->neuralNet();
-
-  /*** Test a result ***/
-/*
-  vector<vector<vector<double>>> edges;
-  edges.resize(2);
-  edges[0].resize(1);
-  edges[0][0].resize(4);
-  edges[1].resize(4);
-  for (int i = 0; i < 4; i++) {
-    edges[1][i].resize(2);
-  }
-  edges[0][0][0] = 0.570669;
-  edges[0][0][1] = 0.408707;
-  edges[0][0][2] = -0.92892;
-  edges[0][0][3] = -0.25857;
-  edges[1][0][0] = -0.9811;
-  edges[1][0][1] = 0.954244;
-  edges[1][1][0] = 0.98358;
-  edges[1][1][1] = 1;
-  edges[1][2][0] = -0.97887;
-  edges[1][2][1] = 0.997905;
-  edges[1][3][0] = 0.974363;
-  edges[1][3][1] = 0.894786;
-
-  net->setWeights(&edges);
-  net->printEdges();
-  net->resetInputs();
-  net->loadInput(1, 0);
-  vector<double> tempOut = net->process();
-*/
-  /*** End test ***/
 
   // Train this shit
   np->runTrainer();
 
+  /*
   for (int j = 0; j < 15; j++) { // Test point
     np->testGB();
   }
+  */
+
+  np->classError();
 
   return;
-
-  //net->resetInputs();
-  for (uint i = 0; i < trainingImages[0].size(); i++) {
-    int N = trainingImages[0].size();
-    for (uint j = 0; j < trainingImages[0][0].size(); j++) {
-      byte socrates = trainingImages[0][i][j];
-      uint plato = N*i + j;
-      net->loadInput(((double) socrates) / 255.0, plato);
-    }
-  }
-  vector<double> result = net->process();
-
-  cout << "Label: " << (uint32_t) trainingLabels[0] << endl;
-  cout << "Net output: " << endl;
-
-  for (uint i = 0; i < result.size(); i++) {
-    cout << " (" << i << ") - " << result.at(0) << endl;
-  }
-  cout << endl;
 
 }
 
@@ -345,6 +289,49 @@ void loadTrainingData(string imageFile, string labelFile, vector<vector<vector<u
 
   cout << "Loaded training images." << endl;
 
+}
+
+bool readPEFile(vector<double> &labels, vector<vector<double>> &data) {
+
+  ifstream inputFile("FNNPSOGSAclot/clean.csv");
+
+  if (!inputFile.is_open()) {
+    cout << "File could not be read." << endl;
+    return false;
+  }
+
+  labels.clear();
+  data.clear();
+
+  string temp;
+  getline(inputFile, temp, '\n');
+
+  while (getline(inputFile, temp)) {
+
+    vector<double> inData;
+    string::size_type prevP = 0, pos = 0;
+    while ((pos = temp.find(',', pos)) != std::string::npos) {
+      std::string substring(temp.substr(prevP, pos-prevP));
+
+      double dig;
+      {
+        stringstream ss;
+        ss << substring;
+        ss >> dig;
+      }
+      inData.push_back(dig);
+      prevP = ++pos;
+    }
+    labels.push_back(inData[0]);
+    vector<double> data_;
+    data_.resize(inData.size()-1);
+    for(size_t i = 1; i < inData.size(); i++) {
+      data_[i-1] = inData[i];
+    }
+    data.push_back(data_);
+  }
+  inputFile.close();
+  return true;
 }
 
 

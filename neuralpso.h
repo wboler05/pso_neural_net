@@ -54,6 +54,8 @@ public:
   void setFunctionMsg(std::string s) { _functionMsg = s; }
   std::string functionMsg() { return _functionMsg; }
 
+  void classError();
+
 private:
   NeuralNet *_neuralNet;
   vector<vector<vector<byte> > > *_images;
@@ -62,6 +64,8 @@ private:
   // Test input
   vector<vector<double> > *_input;
   vector<double> *_output;
+  vector<double> *_outputCount;
+  vector<vector<uint>> _outputIterators;
 
   std::string _functionMsg;
 

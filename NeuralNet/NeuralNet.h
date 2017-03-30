@@ -12,6 +12,12 @@ using namespace std;
 #define uint uint32_t
 #define byte uint8_t
 
+#define N_Accuracy(tp, tn, fp, fn) ((tp + tn) / (tp + tn + fp + fn))
+#define N_Precision(tp, fp) (tp / (tp + fp + 1.0f))
+#define N_Sensitivity(tp, fn) (tp / (tp + fn + 1.0))
+#define N_Specificity(tn, fp) (tn / (tn + fp + 1.0))
+#define N_F_Score(tp, fp, fn) (2.0f*tp / (2.0f*tp + fp + fn + 1.0))
+
 struct NeuralNetParameters {
   int inputs;                 // Input nodes
   int innerNets;              // Total inner layers
