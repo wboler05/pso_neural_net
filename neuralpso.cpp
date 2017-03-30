@@ -611,12 +611,13 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confid
  // Weights :       // Best
  double w_err = 10; // 10
  double w_acc = 15; // 15
- double w_pre = 15; // 14
+ double w_pre = 26; // 14
  double w_sen = 30; // 30
  double w_spe = 12; // 10
+ double w_fsc = 100;
 
 
-  return penalty *(w_err*(1.0 - mse) + w_acc*accuracy + w_sen*sensitivity + w_spe*specificity + w_pre*precision);
+  return penalty *(w_err*(1.0 - mse) + w_acc*accuracy + w_sen*sensitivity + w_spe*specificity + w_pre*precision + w_fsc*f_score);
 
   /* Previous tests
 
