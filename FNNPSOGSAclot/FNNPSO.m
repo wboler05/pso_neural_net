@@ -93,7 +93,7 @@ TrainingNO=1050;       %Number of training samples
 %% ////////////////////////////////////////////////////////PSO/////////////////////////////////////////////
 %Initial Parameters for PSO
 noP=50;           %Number of particles
-Max_iteration=1500;%Maximum number of iterations
+Max_iteration=350;%Maximum number of iterations
 neighbors=20;
 w=2.0;              %Inertia weight
 wMax=0.9;         %Max inertia weight

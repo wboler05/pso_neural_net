@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1490900025 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\main.cpp
+1490939608 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\main.cpp
 	<iostream>
 	<fstream>
 	<cinttypes>
@@ -31,7 +31,7 @@
 1490306932 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralnet\neuralnet.cpp
 	"NeuralNet.h"
 
-1490898251 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralpso.cpp
+1490938929 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\neuralpso.cpp
 	"neuralpso.h"
 	"PSO/pso.cpp"
 
@@ -11205,4 +11205,72 @@
 
 1490911987 source:c:\users\wboler\documents\psoneuralnet\util.cpp
 	"util.h"
+
+1439688130 c:\program files\nvidia gpu computing toolkit\cuda\v7.5\include\cl\cl.hpp
+	<malloc.h>
+	<CL/cl_d3d10.h>
+	<CL/cl_dx9_media_sharing.h>
+	<intrin.h>
+	<CL/cl_ext.h>
+	<OpenCL/opencl.h>
+	<CL/opencl.h>
+	<atomic>
+	<utility>
+	<limits>
+	<iterator>
+	<exception>
+	<vector>
+	<string>
+	<alloca.h>
+	<cstring>
+
+1439688130 c:\program files\nvidia gpu computing toolkit\cuda\v7.5\include\cl\cl_d3d10.h
+	<d3d10.h>
+	<CL/cl.h>
+	<CL/cl_platform.h>
+
+1439688130 c:\program files\nvidia gpu computing toolkit\cuda\v7.5\include\cl\cl.h
+	<OpenCL/cl_platform.h>
+	<CL/cl_platform.h>
+
+1439688130 c:\program files\nvidia gpu computing toolkit\cuda\v7.5\include\cl\cl_platform.h
+	<AvailabilityMacros.h>
+	<stdint.h>
+	<stddef.h>
+	<altivec.h>
+	<intrin.h>
+	<xmmintrin.h>
+	<intrin.h>
+	<emmintrin.h>
+	<mmintrin.h>
+	<intrin.h>
+	<immintrin.h>
+
+1439688130 c:\program files\nvidia gpu computing toolkit\cuda\v7.5\include\cl\cl_dx9_media_sharing.h
+	<CL/cl.h>
+	<CL/cl_platform.h>
+	<d3d9.h>
+
+1439688129 c:\program files\nvidia gpu computing toolkit\cuda\v7.5\include\cl\cl_ext.h
+	<OpenCL/cl.h>
+	<AvailabilityMacros.h>
+	<CL/cl.h>
+
+1439688130 c:\program files\nvidia gpu computing toolkit\cuda\v7.5\include\cl\opencl.h
+	<OpenCL/cl.h>
+	<OpenCL/cl_gl.h>
+	<OpenCL/cl_gl_ext.h>
+	<OpenCL/cl_ext.h>
+	<CL/cl.h>
+	<CL/cl_gl.h>
+	<CL/cl_gl_ext.h>
+	<CL/cl_ext.h>
+
+1439688130 c:\program files\nvidia gpu computing toolkit\cuda\v7.5\include\cl\cl_gl.h
+	<OpenCL/cl.h>
+	<CL/cl.h>
+
+1439688129 c:\program files\nvidia gpu computing toolkit\cuda\v7.5\include\cl\cl_gl_ext.h
+	<OpenCL/cl_gl.h>
+	<CL/cl_gl.h>
 

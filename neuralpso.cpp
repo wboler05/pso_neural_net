@@ -361,8 +361,8 @@ void NeuralPso::getCost() {
       outputString += stringPut(p->_fit_lb);
       outputString += "\tGB: ";
       outputString += stringPut(gb()->_fit_pb);
-      outputString += "\tConf: ";
-      outputString += stringPut(confidence);
+      outputString += "\tCor: ";
+      outputString += stringPut(correctRatio);
       outputString += "\tPts: ";
       outputString += stringPut(p->_points);
       outputString += "\n";
@@ -554,7 +554,8 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confid
 
     if ((totalSetsToRun == correctCount) && (someSets == (totalSetsToRun - 1))) {
       if (totalSetsToRun < _input->size()) {
-        correctCount = ++totalSetsToRun;
+        ++totalSetsToRun;
+        ++correctCount;
         answer->push_back(0);
       }
     }
@@ -591,14 +592,14 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confid
   }
 
   double penalty = 1;
-  if (accuracy == 0)
-    penalty *= 0.5;
-  if (precision == 0)
-    penalty *= 0.5;
-  if (sensitivity == 0)
-    penalty *= 0.5;
-  if (specificity == 0)
-    penalty *= 0.5;
+  if (accuracy < 0.7)
+    penalty *= 0.00001;
+  if (precision < .15)
+    penalty *= 0.1;
+  if (sensitivity < 0.6)
+    penalty *= 0.01;
+  if (specificity < 0.5)
+    penalty *= 0.1;
 
   double population = tp + tn + fp + tn;
   fn /= population;
@@ -610,10 +611,10 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confid
 
  // Weights :       // Best
  double w_err = 10; // 10
- double w_acc = 15; // 15
- double w_pre = 30; // 14
- double w_sen = 30; // 30
- double w_spe = 15; // 10
+ double w_acc = 20000; // 15
+ double w_pre = 55; // 14
+ double w_sen = 500; // 30
+ double w_spe = 17; // 10
  double w_fsc = 1;
 
 
@@ -639,7 +640,7 @@ int NeuralPso::randomizeTestInputs() {
   int I = rand() % _outputIterators[uniformOutputIt].size();
   I = _outputIterators[uniformOutputIt][I];
 
-  //int I = rand() % _input->size();
+//  int I = rand() % _input->size();
 
   for (uint i = 0; i < (*_input)[I].size(); i++) {
     _neuralNet->loadInput((*_input)[I][i], i);

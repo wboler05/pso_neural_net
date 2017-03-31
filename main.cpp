@@ -165,12 +165,12 @@ void runNeuralPso() {
   */
   NeuralNetParameters nParams;
   nParams.inputs = input[0].size();
-  nParams.innerNetNodes.push_back(10);
+  nParams.innerNetNodes.push_back(5); // 8
   //nParams.innerNetNodes.push_back(10);
   //nParams.innerNetNodes.push_back(4);
   nParams.innerNets = nParams.innerNetNodes.size();
   nParams.outputs = 2;
-  nParams.testIterations = 10;
+  nParams.testIterations = 500;
 
   std::string outputString;
 
@@ -295,6 +295,9 @@ bool readPEFile(vector<double> &labels, vector<vector<double>> &data) {
 
   ifstream inputFile("FNNPSOGSAclot/clean.csv");
 
+  // Select data columns to skip (never select '0'th column!)
+  vector<int> skips = {3, 5, 6, 8};
+
   if (!inputFile.is_open()) {
     cout << "File could not be read." << endl;
     return false;
@@ -310,16 +313,28 @@ bool readPEFile(vector<double> &labels, vector<vector<double>> &data) {
 
     vector<double> inData;
     string::size_type prevP = 0, pos = 0;
+    int index = 0;
     while ((pos = temp.find(',', pos)) != std::string::npos) {
-      std::string substring(temp.substr(prevP, pos-prevP));
-
-      double dig;
-      {
-        stringstream ss;
-        ss << substring;
-        ss >> dig;
+      bool skipLine = false;
+      for (uint i = 0; i < skips.size(); i++) {
+        if (skips[i] == 0) continue;
+        if (index == skips[i]) {
+          skipLine = true;
+          break;
+        }
       }
-      inData.push_back(dig);
+      index++;
+      if (!skipLine) {
+        std::string substring(temp.substr(prevP, pos-prevP));
+
+        double dig;
+        {
+          stringstream ss;
+          ss << substring;
+          ss >> dig;
+        }
+        inData.push_back(dig);
+      }
       prevP = ++pos;
     }
     labels.push_back(inData[0]);
