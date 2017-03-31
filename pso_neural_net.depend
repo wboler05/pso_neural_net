@@ -5535,7 +5535,7 @@
 1490886936 source:c:\users\wboler\desktop\testcodehere\pso_neural_net\util.cpp
 	"util.h"
 
-1490911987 source:c:\users\wboler\documents\psoneuralnet\main.cpp
+1490979998 source:c:\users\wboler\documents\psoneuralnet\main.cpp
 	<iostream>
 	<fstream>
 	<cinttypes>
@@ -11273,4 +11273,11 @@
 1439688129 c:\program files\nvidia gpu computing toolkit\cuda\v7.5\include\cl\cl_gl_ext.h
 	<OpenCL/cl_gl.h>
 	<CL/cl_gl.h>
+
+1490979998 source:c:\users\wboler\documents\psoneuralnet\neuralpso.cpp
+	"neuralpso.h"
+	"PSO/pso.cpp"
+
+1490381445 c:\users\wboler\documents\psoneuralnet\pso\pso.cpp
+	"pso.h"
 

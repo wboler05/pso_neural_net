@@ -165,7 +165,7 @@ void runNeuralPso() {
   */
   NeuralNetParameters nParams;
   nParams.inputs = input[0].size();
-  nParams.innerNetNodes.push_back(5); // 8
+  nParams.innerNetNodes.push_back(3); // 8
   //nParams.innerNetNodes.push_back(10);
   //nParams.innerNetNodes.push_back(4);
   nParams.innerNets = nParams.innerNetNodes.size();
