@@ -17,6 +17,7 @@ using namespace std;
 #define N_Sensitivity(tp, fn) (tp / (tp + fn + 1.0))
 #define N_Specificity(tn, fp) (tn / (tn + fp + 1.0))
 #define N_F_Score(tp, fp, fn) (2.0f*tp / (2.0f*tp + fp + fn + 1.0))
+#define N_G_Score(tp, fp, fn) (tp / sqrt((tp + fp)*(tp + fn)))
 
 struct NeuralNetParameters {
   int inputs;                 // Input nodes

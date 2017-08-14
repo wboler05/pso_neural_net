@@ -607,15 +607,19 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confid
   tp /= population;
   tn /= population;
 
+  if (fn > 0.05) {
+    penalty *= 0.1;
+  }
+
  // return tp * tn * (1.0 - fp) * (1.0 - fn);
 
  // Weights :       // Best
- double w_err = 10; // 10
- double w_acc = 20000; // 15
- double w_pre = 55; // 14
- double w_sen = 500; // 30
- double w_spe = 17; // 10
- double w_fsc = 1;
+ double w_err = 1; // 10
+ double w_acc = 0;//1000; // 20000
+ double w_pre = 0;//10; // 55
+ double w_sen = 0;//100000; // 500
+ double w_spe = 0;//100; // 17
+ double w_fsc = 0;//1;
 
 
   return penalty *(w_err*(1.0 - mse) + w_acc*accuracy + w_sen*sensitivity + w_spe*specificity + w_pre*precision + w_fsc*f_score);
@@ -815,6 +819,7 @@ void NeuralPso::classError() {
   double sensitivity = N_Sensitivity(tp, fn);
   double specificity = N_Specificity(tn, fp);
   double f_score = N_F_Score(tp, fp, fn);
+  double g_score = N_G_Score(tp, fp, fn);
 
   double inputSize = _input->size();
   tp /= inputSize;
@@ -823,7 +828,7 @@ void NeuralPso::classError() {
   fn /= inputSize;
 
   string outputString;
-  outputString += "Out\\Act\tFalse\t\tTrue\n";
+  outputString += "Act\\Out\tFalse\t\tTrue\n";
   outputString += "False\t";
   outputString += stringPut(tn);
   outputString += "\t";
@@ -855,6 +860,9 @@ void NeuralPso::classError() {
 
   outputString += "\n\tF-Score [ 2tp / (2tp + fp + fn) ]: ";
   outputString += stringPut(f_score);
+
+  outputString += "\n\tG-Score [ tp / sqrt((tp+fp)(tp+fn)]: ";
+  outputString += stringPut(g_score);
 
   outputString += "\n";
   Logger::write(outputString);
