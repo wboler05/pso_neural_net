@@ -36,6 +36,10 @@ INCLUDEPATH += "D:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\include"
 
 INCLUDEPATH += backend frontend
 
+QWT_LOCATION = $$(QWT_ROOT)
+message(Qwt Defined: $$QWT_LOCATION)
+include ( $$QWT_LOCATION/features/qwt.prf )
+
 SOURCES += \
     backend/NeuralNet/NeuralNet.cpp \
     backend/PSO/pso.cpp \
@@ -43,7 +47,8 @@ SOURCES += \
     backend/util.cpp \
     frontend/main.cpp \
     frontend/mainwindow.cpp \
-    frontend/neuralpsoqtwrapper.cpp
+    frontend/neuralpsoqtwrapper.cpp \
+    frontend/neuralnetplot.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -52,7 +57,8 @@ HEADERS += \
     backend/neuralpso.h \
     backend/util.h \
     frontend/mainwindow.h \
-    frontend/neuralpsoqtwrapper.h
+    frontend/neuralpsoqtwrapper.h \
+    frontend/neuralnetplot.h
 
 FORMS += \
     frontend/mainwindow.ui

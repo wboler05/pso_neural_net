@@ -21,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
     srand(time(NULL));
 
     // Set the logger file
-  //  Logger::setOutputFile("log/run.log");
+    Logger::setOutputFile("log/run.log");
 
     time_t now = time(0);
     tm *gmtm = gmtime(&now);
@@ -59,18 +59,18 @@ MainWindow::MainWindow(QWidget *parent) :
     Logger::write(headerString);
 
 
-    cl::Context _context;
+    //cl::Context _context;
 
-    initializeCL(_cpuDevices, _gpuDevices, _allDevices);
+    //initializeCL(_cpuDevices, _gpuDevices, _allDevices);
 
     //! TODO Need to change this functionality
-    //boost::thread thread1(&this->runNeuralPso);
-    //boost::thread thread2(&this->onKeyInput);
-    runNeuralPso();
-    onKeyInput();
+    //boost::thread thread1(this->runNeuralPso);
+    //boost::thread thread2(&(this->onKeyInput());
+    //runNeuralPso();
+    //onKeyInput();
 
     //thread1.join();
-
+    connect(ui->run_btn, SIGNAL(toggled(bool)), this, SLOT(runNeuralPso()));
 }
 
 MainWindow::~MainWindow()
@@ -78,6 +78,20 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::keyPressEvent(QKeyEvent * e) {
+    std::cout << "Key press." << std::endl;
+    if (e->key() == Qt::Key_C) {
+        cout << "Ending process.  Please wait. " << endl;
+        NeuralPso::interruptProcess();
+    } else if (e->key() == Qt::Key_P) {
+        NeuralPso::setToPrint();
+    } else if (e->key() == Qt::Key_G) {
+        NeuralPso::setToPrintGBNet();
+    }
+    QMainWindow::keyPressEvent(e);
+}
+
+/**
 void MainWindow::onKeyInput() {
   try {
     while(true) {
@@ -102,11 +116,23 @@ void MainWindow::onKeyInput() {
   }
 
 }
+**/
+
+void MainWindow::stopPso() {
+    _runPso = false;
+    NeuralPso::interruptProcess();
+}
 
 void MainWindow::runNeuralPso() {
   /// image.rows.cols
   //vector<vector<vector<uint8_t> > > trainingImages;
   //vector<uint8_t> trainingLabels;
+
+  if (_runPso) {
+      return;
+  }
+
+  _runPso = true;
 
   vector<double> labels;
   vector<vector<double>> input;
@@ -195,7 +221,7 @@ void MainWindow::runNeuralPso() {
 
   np->classError();
 
-  return;
+  _runPso = false;
 
 }
 
@@ -260,7 +286,7 @@ void MainWindow::loadTrainingData(string imageFile, string labelFile, vector<vec
 
 }
 
-const QString & MainWindow::loadInputFileDialog() {
+QString MainWindow::loadInputFileDialog() {
     qApp->processEvents();
 
     QFileDialog * fileDialog = new QFileDialog();
@@ -281,7 +307,8 @@ bool MainWindow::readPEFile(vector<double> &labels, vector<vector<double>> &data
         return false;
     }
 
-  ifstream inputFile("FNNPSOGSAclot/clean.csv");
+  //ifstream inputFile("FNNPSOGSAclot/clean.csv");
+    ifstream inputFile(file);
 
   // Select data columns to skip (never select '0'th column!)
   vector<int> skips = {3, 5, 6, 8};

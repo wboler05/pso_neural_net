@@ -19,9 +19,11 @@ void Logger::setOutputFile(std::string file) {
 
 /// Allows user to print to screen and file.
 void Logger::write(std::string s) {
-  _writeMtx.lock();
-  _queue.push(s);
-  _writeMtx.unlock();
+  //_writeMtx.lock();
+  //_queue.push(s);
+  //_writeMtx.unlock();
+
+    std::cout << s;
 }
 
 void Logger::LoggingConsummer() {

@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QThread>
 #include <QFileDialog>
+#include <QKeyEvent>
 
 #include <fstream>
 #include <cinttypes>
@@ -45,8 +46,8 @@ public:
 
 protected:
 
-    void onKeyInput();
-    void runNeuralPso();
+    void keyPressEvent(QKeyEvent * e);
+    //void onKeyInput();
     void loadTrainingData(std::string imageFile,
                           std::string labelFile,
                           std::vector<std::vector<vector<uint8_t> > > &trainingImages,
@@ -68,14 +69,20 @@ protected:
                       std::vector<cl::Device> &gpuDevices,
                       std::vector<cl::Device> &allDevices);
 
+protected slots:
+    void runNeuralPso();
+    void stopPso();
+
 private:
     Ui::MainWindow *ui;
+
+    bool _runPso = false;
 
     std::vector<cl::Device> _cpuDevices;
     std::vector<cl::Device> _gpuDevices;
     std::vector<cl::Device> _allDevices;
 
-    const QString & loadInputFileDialog();
+    QString loadInputFileDialog();
 };
 
 #endif // MAINWINDOW_H
