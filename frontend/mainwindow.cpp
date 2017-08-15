@@ -70,7 +70,8 @@ MainWindow::MainWindow(QWidget *parent) :
     //onKeyInput();
 
     //thread1.join();
-    connect(ui->run_btn, SIGNAL(toggled(bool)), this, SLOT(runNeuralPso()));
+    connect(ui->run_btn, SIGNAL(clicked(bool)), this, SLOT(runNeuralPso()));
+    connect(ui->stop_btn, SIGNAL(clicked(bool)), this, SLOT(stopPso()));
 }
 
 MainWindow::~MainWindow()
@@ -210,6 +211,8 @@ void MainWindow::runNeuralPso() {
 
   NeuralNet *net = np->neuralNet();
 
+  ui->neuralNetPlot->setEdges(&(net->getWeights()));
+
   // Train this shit
   np->runTrainer();
 
@@ -293,7 +296,7 @@ QString MainWindow::loadInputFileDialog() {
     QString fileString = fileDialog->getOpenFileName(
                 this,
                 tr("Open FNNPSOGSA data"),
-                QDir::currentPath(),
+                qApp->applicationDirPath(),
                 tr("Data Files (*.csv)"));
     return fileString;
 }

@@ -2,13 +2,71 @@
 
 #include <qwt_plot_curve.h>
 
-NeuralNetPlot::NeuralNetPlot()
+NeuralNetPlot::NeuralNetPlot(QWidget *parent) :
+    QwtPlot(parent)
 {
     setTitle(QwtText("Neural Net Plot"));
 
-    QwtPlotCurve *curve1 = new QwtPlotCurve("Curve 1");
+    setAxisAutoScale(yLeft, true);
+    setAxisAutoScale(xBottom, true);
 }
 
-void NeuralNetPlot::replot() {
+void NeuralNetPlot::updateNodes() {
+    if (_edges==nullptr) return;
 
+    this->detachItems();
+
+    float minX = 0, maxX = 0;
+    float minY = 0, maxY = 0;
+
+    // Plot Nodes
+    maxX = _edges->size();
+    for (size_t i = 0; i < _edges->size(); i++) {
+
+        double y_offset = 1.0f / (double) _edges->at(i).size();
+        maxY = std::max(maxY, (float)_edges->at(i).size());
+
+        for (size_t j = 0; j < _edges->at(i).size(); j++) {
+
+            QwtPlotMarker * mark = getNodeMarker(QPointF(i, y_offset * (double)j));
+            mark->attach(this);
+        }
+
+        if (i == _edges->size() - 1) {
+
+            y_offset = 1.0f / (double) _edges->at(i).at(0).size();
+            maxY = std::max(maxY, (float)_edges->at(i).size());
+
+            for (size_t j = 0; j < _edges->at(i).at(0).size(); j++) {
+                QwtPlotMarker * mark = getNodeMarker(QPointF(i+1, y_offset*(double)j));
+                mark->attach(this);
+            }
+        }
+    }
+    setAxisScale(xBottom, minX-1, maxX+1);
+    setAxisScale(yLeft, minY-1, maxY+1);
+}
+
+QColor NeuralNetPlot::edgeColor(double val) {
+    if (val > 0) {
+        return QColor(Qt::blue);
+    } else if (val < 0) {
+        return QColor(Qt::red);
+    } else {
+        return QColor(Qt::black);
+    }
+}
+
+QwtPlotMarker * NeuralNetPlot::getNodeMarker(const QPointF & pos) {
+    QwtSymbol *symbol = new QwtSymbol(QwtSymbol::Ellipse, QBrush(Qt::red), QPen(Qt::red), QSize(5,5));
+    QwtPlotMarker *mark = new QwtPlotMarker();
+    mark->setSymbol(symbol);
+    mark->setValue(pos);
+    return mark;
+}
+
+void NeuralNetPlot::setEdges(std::vector<std::vector<std::vector<double>>> * edges) {
+    _edges = edges;
+    updateNodes();
+    replot();
 }

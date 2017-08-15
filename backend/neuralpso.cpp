@@ -338,7 +338,7 @@ void NeuralPso::getCost() {
         for (uint i = 0; i < p_n->_x_lb.size(); i++) {
           uint size2 = p_n->_x_lb[i].size();
           for (uint j = 0; j < p_n->_x_lb[i].size(); j++) {
-            for (uint k = 0; k < p_n->_x_lb[i][j].size(); j++) {
+            for (uint k = 0; k < p_n->_x_lb[i][j].size(); k++) {
               if (j >= size2) continue;
               p_n->_x_lb[i][j][k] = p->_x[i][j][k];
             }
