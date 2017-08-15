@@ -37,9 +37,10 @@ void Pso<T>::run() {
     getCost();
     processEvents();
 
-  } while ((_psoParams.termIterationFlag && (++iterations < _psoParams.iterations)) ||
-           (!checkProcess()));
+  } while ((_psoParams.termIterationFlag && (++iterations < _psoParams.iterations)) &&
+           (!checkTermProcess()));
   interruptProcess();
+  cout << "Ending PSO Run.";
 }
 
 template <class T>
@@ -56,25 +57,25 @@ void Pso<T>::processEvents() {
 
 template <class T>
 void Pso<T>::interruptProcess() {
-  boost::lock_guard<boost::mutex> guard(stopProcessMtx);
+//  boost::lock_guard<boost::mutex> guard(stopProcessMtx);
   _overideTermFlag = true;
 }
 
 template <class T>
-bool Pso<T>::checkProcess() {
-  boost::lock_guard<boost::mutex> guard(stopProcessMtx);
+bool Pso<T>::checkTermProcess() const {
+//  boost::lock_guard<boost::mutex> guard(stopProcessMtx);
   return _overideTermFlag;
 }
 
 template <class T>
 void Pso<T>::resetProcess() {
-  boost::lock_guard<boost::mutex> guard(stopProcessMtx);
+//  boost::lock_guard<boost::mutex> guard(stopProcessMtx);
   _overideTermFlag = false;
 }
 
 template <class T>
 bool Pso<T>::checkForPrint() {
-  boost::lock_guard<boost::mutex> guard(printMtx);
+//  boost::lock_guard<boost::mutex> guard(printMtx);
   if (_printFlag) {
     _printFlag = false;
     return true;
@@ -85,6 +86,6 @@ bool Pso<T>::checkForPrint() {
 
 template <class T>
 void Pso<T>::setToPrint() {
-  boost::lock_guard<boost::mutex> guard(printMtx);
+//  boost::lock_guard<boost::mutex> guard(printMtx);
   _printFlag = true;
 }

@@ -124,7 +124,8 @@ SOURCES += \
     frontend/main.cpp \
     frontend/mainwindow.cpp \
     frontend/neuralpsoqtwrapper.cpp \
-    frontend/neuralnetplot.cpp
+    frontend/neuralnetplot.cpp \
+    frontend/innernetnodesinput.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -134,7 +135,9 @@ HEADERS += \
     backend/util.h \
     frontend/mainwindow.h \
     frontend/neuralpsoqtwrapper.h \
-    frontend/neuralnetplot.h
+    frontend/neuralnetplot.h \
+    frontend/innernetnodesinput.h
 
 FORMS += \
-    frontend/mainwindow.ui
+    frontend/mainwindow.ui \
+    frontend/innernetnodesinput.ui

@@ -47,7 +47,7 @@ public:
   Particle<T> * gb() { return &_gb; }
 
   static void interruptProcess();
-  static bool checkProcess();
+  static bool checkTermProcess();
   static void resetProcess();
 
   static void setToPrint();

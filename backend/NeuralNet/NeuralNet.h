@@ -18,6 +18,8 @@ using namespace std;
 #define N_Specificity(tn, fp) (tn / (tn + fp + 1.0))
 #define N_F_Score(tp, fp, fn) (2.0f*tp / (2.0f*tp + fp + fn + 1.0))
 
+#define EdgeType std::vector<std::vector<std::vector<double>>>
+
 struct NeuralNetParameters {
   int inputs;                 // Input nodes
   int innerNets;              // Total inner layers
@@ -60,7 +62,7 @@ private:
   vector<vector<double>> _innerNodes;  /// columns / node
   vector<double> _outputNodes;
 
-  vector<vector<vector<double>>> _edges;  ///TODO: Make _edges a pointer and pass edge pointers from PSO.
+  EdgeType _edges;  ///TODO: Make _edges a pointer and pass edge pointers from PSO.
   bool _localEdgesFlag;
 
   NeuralNetParameters _nParams;

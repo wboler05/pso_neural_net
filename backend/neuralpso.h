@@ -16,17 +16,17 @@
 template <class T>
 class Pso;
 */
-template class Pso<std::vector<std::vector<std::vector<double>>>>;
+template class Pso<EdgeType>;
 
 /*
 template <class T>
 struct Particle;
 */
-template struct Particle<std::vector<std::vector<std::vector<double>>>>;
+template struct Particle<EdgeType>;
 
 class NeuralNet;
 
-class NeuralPso : public Pso<std::vector<std::vector<std::vector<double>>>> {
+class NeuralPso : public Pso<EdgeType> {
 public:
   NeuralPso(PsoParams pp, NeuralNetParameters np);
   ~NeuralPso();
@@ -76,6 +76,8 @@ private:
 
   static bool printGBFlag;
   static boost::mutex printGBMtx;
+
+  void flyIteration(size_t particle, size_t inner_net, size_t left_edge, size_t right_edge);
 
 //  vector<pair<bool, int>> _failureQueue;
 

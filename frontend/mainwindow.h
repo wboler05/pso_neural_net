@@ -5,6 +5,7 @@
 #include <QThread>
 #include <QFileDialog>
 #include <QKeyEvent>
+#include <QTimer>
 
 #include <fstream>
 #include <cinttypes>
@@ -15,6 +16,7 @@
 #include "backend/neuralpso.h"
 #include "backend/util.h"
 #include "CL/cl.hpp"
+#include "frontend/innernetnodesinput.h"
 
 namespace Ui {
 class MainWindow;
@@ -69,20 +71,37 @@ protected:
                       std::vector<cl::Device> &gpuDevices,
                       std::vector<cl::Device> &allDevices);
 
+    void setOutputLabel(const QString & s);
+
 protected slots:
     void runNeuralPso();
     void stopPso();
+    void updatePlot();
+    void loadFile_btn();
+    void applyParameterChanges();
+    void setParameterDefaults();
+    void updateParameterGui();
+    void setInnerNetNodesFromGui();
 
 private:
     Ui::MainWindow *ui;
+    NeuralPso *_neuralPso = nullptr;
+    PsoParams _pParams;
+    NeuralNetParameters _nParams;
 
     bool _runPso = false;
+    bool _fileLoaded = false;
+
+    vector<double> _labelsData;
+    vector<vector<double>> _inputData;
 
     std::vector<cl::Device> _cpuDevices;
     std::vector<cl::Device> _gpuDevices;
     std::vector<cl::Device> _allDevices;
 
+    void initializeData();
     QString loadInputFileDialog();
+    void enableParameterInput(bool b);
 };
 
 #endif // MAINWINDOW_H

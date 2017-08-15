@@ -133,7 +133,7 @@ void NeuralPso::fly() {
   for (uint i = 0; i < _particles.size(); i++) {
     double C1 = 2.495, C2 = 2.495, C3 = 0.5;
     double dt = 1;
-    Particle<vector<vector<vector<double>>>> *p = &_particles[i];
+    Particle<EdgeType> *p = &_particles[i];
 //p->_worstFlag = false;
     worstFlag = p->_worstFlag;
 
@@ -162,6 +162,9 @@ void NeuralPso::fly() {
 
     // For each inner net
     for (uint inner_net = 0; inner_net < p->_v.size(); inner_net++) {
+        if (checkTermProcess())
+            return;
+
       if (_psoParams.backPropagation && (inner_net != innerNetIt)) continue;
       // For each edge (left side) of that inner net
       for (uint left_edge = 0; left_edge < p->_v[inner_net].size(); left_edge++) {
@@ -183,6 +186,7 @@ void NeuralPso::fly() {
             continue;
           }
 
+          //flyIteration(i, inner_net, left_edge, right_edge);
           double *w_v = &p->_v[inner_net][left_edge][right_edge];
           double *w_x = &p->_x[inner_net][left_edge][right_edge];
           double *w_pb = &p->_x_pb[inner_net][left_edge][right_edge];
@@ -194,7 +198,13 @@ void NeuralPso::fly() {
           double c2 = C2 * ((double) (rand() % 10000)) / 10000.0;
           double c3 = C3 * ((double) (rand() % 10000)) / 10000.0;
 
-          *w_v = (inertia * (*w_v) + (c1*(*w_pb - *w_x)) + (c2*(*w_lb - *w_x)) + (c3*(*w_gb - *w_x))) * dt;
+          *w_v = (
+                      inertia * (*w_v)
+                  + (c1*(*w_pb - *w_x))
+                  + (c2*(*w_lb - *w_x))
+                  + (c3*(*w_gb - *w_x))
+                  ) * dt;
+
           velSum += *w_v;
           term = term && (*w_pb == *w_x) && (*w_lb == *w_x);
 
@@ -254,6 +264,46 @@ void NeuralPso::fly() {
   }
 }
 
+void NeuralPso::flyIteration(size_t particle, size_t inner_net, size_t left_edge, size_t right_edge) {
+/*    Particle<EdgeType> *p = &_particles[particle];
+    double *w_v = &p->_v[inner_net][left_edge][right_edge];
+    double *w_x = &p->_x[inner_net][left_edge][right_edge];
+    double *w_pb = &p->_x_pb[inner_net][left_edge][right_edge];
+    double *w_lb = &p->_x_lb[inner_net][left_edge][right_edge];
+    double *w_gb = &_gb._x[inner_net][left_edge][right_edge];
+
+    double inertia = ((double) ((rand() % 50000) + 50000)) / 100000.0;
+    double c1 = C1 * ((double) (rand() % 10000)) / 10000.0;
+    double c2 = C2 * ((double) (rand() % 10000)) / 10000.0;
+    double c3 = C3 * ((double) (rand() % 10000)) / 10000.0;
+
+    *w_v = (
+                inertia * (*w_v)
+            + (c1*(*w_pb - *w_x))
+            + (c2*(*w_lb - *w_x))
+            + (c3*(*w_gb - *w_x))
+            ) * dt;
+
+    velSum += *w_v;
+    term = term && (*w_pb == *w_x) && (*w_lb == *w_x);
+
+    if (*w_v > vLimit) {
+      *w_v = vLimit;
+    } else if (*w_v < -vLimit) {
+      *w_v = -vLimit;
+    }
+
+    *w_x += *w_v;
+
+    if (*w_x > 1.0) {
+      *w_x = -1.0;
+      //*w_v *= -0.01;
+    } else if (*w_x < -1.0) {
+      *w_x = 1.0;
+      //*w_v *= -0.01;
+    }*/
+}
+
 void NeuralPso::getCost() {
   double correctRatio=0;
   int totalCount=0;
@@ -263,6 +313,10 @@ void NeuralPso::getCost() {
   static double prevBest = 0;
 
   for (uint i = 0; i < _particles.size(); i++) {
+    if (checkTermProcess()) {
+        return;
+    }
+
     Particle<vector<vector<vector<double>>>> *p = &_particles[i];
 
     if (!_neuralNet->setWeights(&p->_x)) {

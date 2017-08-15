@@ -72,6 +72,15 @@ MainWindow::MainWindow(QWidget *parent) :
     //thread1.join();
     connect(ui->run_btn, SIGNAL(clicked(bool)), this, SLOT(runNeuralPso()));
     connect(ui->stop_btn, SIGNAL(clicked(bool)), this, SLOT(stopPso()));
+    connect(ui->actionLoad_File, SIGNAL(clicked(bool)), this, SLOT(loadFile_btn()));
+    connect(ui->applyParams_btn, SIGNAL(clicked(bool)), this, SLOT(applyParameterChanges()));
+    connect(ui->innerNet_btn, SIGNAL(clicked(bool)), this, SLOT(setInnerNetNodesFromGui()));
+
+    QTimer * updateTimer = new QTimer();
+    connect(updateTimer, SIGNAL(timeout()), this, SLOT(updatePlot()));
+    updateTimer->start(500);
+
+    initializeData();
 }
 
 MainWindow::~MainWindow()
@@ -79,8 +88,12 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::initializeData() {
+    loadFile_btn();
+    setParameterDefaults();
+}
+
 void MainWindow::keyPressEvent(QKeyEvent * e) {
-    std::cout << "Key press." << std::endl;
     if (e->key() == Qt::Key_C) {
         cout << "Ending process.  Please wait. " << endl;
         NeuralPso::interruptProcess();
@@ -92,36 +105,66 @@ void MainWindow::keyPressEvent(QKeyEvent * e) {
     QMainWindow::keyPressEvent(e);
 }
 
-/**
-void MainWindow::onKeyInput() {
-  try {
-    while(true) {
-      int in = cin.get();//getchar();
+void MainWindow::applyParameterChanges() {
+    _pParams.particles = ui->totalParticles_sb->value();
+    _pParams.neighbors = ui->totalNeighbors_sb->value();
+    _pParams.iterations = ui->totalIterations_sb->value();
 
-      if ((char)in == 'c') {
-        cout << "Ending process.  Please wait. " << endl;
-        NeuralPso::interruptProcess();
-        return;
-      } else
-      if ((char) in == 'p') {
-        NeuralPso::setToPrint();
-      }
-      if ((char) in == 'g') {
-        NeuralPso::setToPrintGBNet();
-      }
-
-    }
-  } catch (boost::thread_interrupted &) {
-    cout << "Project complete!" << endl;
-    return;
-  }
-
+    _nParams.testIterations = ui->testIt_sb->value();
 }
-**/
+
+void MainWindow::updateParameterGui() {
+    ui->totalParticles_sb->setValue(_pParams.particles);
+    ui->totalNeighbors_sb->setValue(_pParams.neighbors);
+    ui->totalIterations_sb->setValue(_pParams.iterations);
+    ui->testIt_sb->setValue(_nParams.testIterations);
+    ui->innerNet_sb->setValue(_nParams.innerNetNodes.size());
+}
+
+void MainWindow::setInnerNetNodesFromGui() {
+    InnerNetNodesInput * dialog = new InnerNetNodesInput(_nParams);
+}
+
+void MainWindow::setParameterDefaults() {
+    _pParams.particles = 50; // 50
+    _pParams.neighbors = 10; // 10
+    _pParams.iterations = 1000;
+    _pParams.delta = 5E-6;
+    _pParams.vDelta = 5E-200;
+    _pParams.termIterationFlag = true;
+    _pParams.termDeltaFlag = false;
+
+    /*
+    NeuralNetParameters nParams;
+    nParams.inputs = trainingImages[0].size() * trainingImages[0][0].size();
+    nParams.innerNets = 1;
+    nParams.innerNetNodes.push_back(100);
+    //nParams.innerNetNodes.push_back(50);
+    nParams.outputs = 10;
+    */
+    _nParams.inputs = _inputData[0].size();
+    _nParams.innerNetNodes.clear();
+    _nParams.innerNetNodes.push_back(20); // 8
+    _nParams.innerNetNodes.push_back(10);
+    _nParams.innerNetNodes.push_back(4);
+    //nParams.innerNetNodes.push_back(10);
+    //nParams.innerNetNodes.push_back(4);
+    _nParams.innerNets = _nParams.innerNetNodes.size();
+    _nParams.outputs = 2;
+    _nParams.testIterations = 200; //500
+
+    updateParameterGui();
+}
 
 void MainWindow::stopPso() {
     _runPso = false;
+    cout << "Ending process.  Please wait. " << endl;
+    enableParameterInput(true);
     NeuralPso::interruptProcess();
+}
+
+void MainWindow::setOutputLabel(const QString & s) {
+    ui->output_lbl->setText(s);
 }
 
 void MainWindow::runNeuralPso() {
@@ -134,63 +177,38 @@ void MainWindow::runNeuralPso() {
   }
 
   _runPso = true;
+  setOutputLabel("Training running.");
+  enableParameterInput(false);
 
-  vector<double> labels;
-  vector<vector<double>> input;
-
-  if (!readPEFile(labels, input)) {
+  if (!_fileLoaded) {
     return;
   }
 
-  PsoParams pParams;
-  pParams.particles = 50; // 50
-  pParams.neighbors = 10; // 10
-  pParams.iterations = 1000;
-  pParams.delta = 5E-6;
-  pParams.vDelta = 5E-200;
-  pParams.termIterationFlag = true;
-  pParams.termDeltaFlag = false;
-
-  /*
-  NeuralNetParameters nParams;
-  nParams.inputs = trainingImages[0].size() * trainingImages[0][0].size();
-  nParams.innerNets = 1;
-  nParams.innerNetNodes.push_back(100);
-  //nParams.innerNetNodes.push_back(50);
-  nParams.outputs = 10;
-  */
-  NeuralNetParameters nParams;
-  nParams.inputs = input[0].size();
-  nParams.innerNetNodes.push_back(3); // 8
-  //nParams.innerNetNodes.push_back(10);
-  //nParams.innerNetNodes.push_back(4);
-  nParams.innerNets = nParams.innerNetNodes.size();
-  nParams.outputs = 2;
-  nParams.testIterations = 500;
+    // Make sure that parameters are ready
 
   std::string outputString;
 
   outputString += "\n\nInputs: ";
-  outputString += stringPut(nParams.inputs);
+  outputString += stringPut(_nParams.inputs);
   outputString += "\nInner Nets: ";
-  outputString += stringPut(nParams.innerNets);
+  outputString += stringPut(_nParams.innerNets);
   outputString += "\n";
-  for (uint i = 0; i < nParams.innerNetNodes.size(); i++) {
+  for (uint i = 0; i < _nParams.innerNetNodes.size(); i++) {
     outputString += " - ";
-    outputString += stringPut(nParams.innerNetNodes[i]);
+    outputString += stringPut(_nParams.innerNetNodes[i]);
     outputString += "\n";
     //cout << " - " << nParams.innerNetNodes[i] << endl;
   }
   outputString += "Tests per train(min): ";
-    outputString += stringPut(nParams.testIterations);
+    outputString += stringPut(_nParams.testIterations);
     outputString += "\n";
   outputString += "Particles: ";
-    outputString += stringPut(pParams.particles);
+    outputString += stringPut(_pParams.particles);
     outputString += "\nNeighbors: ";
-    outputString += stringPut(pParams.neighbors);
+    outputString += stringPut(_pParams.neighbors);
     outputString += "\n";
   outputString += "Minimum Particle Iterations: ";
-    outputString += stringPut(pParams.iterations);
+    outputString += stringPut(_pParams.iterations);
     outputString += "\n";
 
   //cout << "Tests per train(min): " << nParams.testIterations << endl;
@@ -198,20 +216,25 @@ void MainWindow::runNeuralPso() {
   //cout << "Minimum Particle Iterations: " << pParams.iterations << endl;
   Logger::write(outputString);
 
-  for (uint i = 0; i < labels.size(); i++) {
-    if (labels[i] != 1) {
-      labels[i] = 0;
+  for (uint i = 0; i < _labelsData.size(); i++) {
+    if (_labelsData[i] != 1) {
+      _labelsData[i] = 0;
     }
   }
 
-  NeuralPso *np = new NeuralPso(pParams, nParams);
+  if (_neuralPso != nullptr) {
+      delete _neuralPso;
+  }
+
+  NeuralPso *np = new NeuralPso(_pParams, _nParams);
+  _neuralPso = np;
   //np->build(trainingImages, trainingLabels);
-  np->build(input, labels);
+  np->build(_inputData, _labelsData);
   np->setFunctionMsg("PE");
 
   NeuralNet *net = np->neuralNet();
 
-  ui->neuralNetPlot->setEdges(&(net->getWeights()));
+  //ui->neuralNetPlot->setEdges(&(net->getWeights()));
 
   // Train this shit
   np->runTrainer();
@@ -228,7 +251,20 @@ void MainWindow::runNeuralPso() {
 
 }
 
+void MainWindow::loadFile_btn() {
+    _fileLoaded = readPEFile(_labelsData, _inputData);
+}
 
+void MainWindow::updatePlot() {
+    if (_neuralPso != nullptr) {
+        EdgeType * edge = &(_neuralPso->gb()->_x);
+        ui->neuralNetPlot->setEdges(edge);
+    }
+}
+
+void MainWindow::enableParameterInput(bool b) {
+    ui->param_gb->setEnabled(b);
+}
 
 void MainWindow::loadTrainingData(string imageFile, string labelFile, vector<vector<vector<uint8_t> > > &trainingImages, vector<uint8_t> &trainingLabels) {
   ifstream trainLabelFile(labelFile, ios::binary);
@@ -366,10 +402,6 @@ bool MainWindow::readPEFile(vector<double> &labels, vector<vector<double>> &data
   inputFile.close();
   return true;
 }
-
-
-
-
 
 
 

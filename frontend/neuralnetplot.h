@@ -9,18 +9,20 @@
 
 #include <vector>
 
+#include "backend/NeuralNet/NeuralNet.h"
+
 class NeuralNetPlot : public QwtPlot
 {
 public:
     NeuralNetPlot(QWidget *parent=nullptr);
 
-    void setEdges(std::vector<std::vector<std::vector<double>>> * edges);
+    void setEdges(EdgeType *edges);
 
 public slots:
     void updateNodes();
 
 private:
-    std::vector<std::vector<std::vector<double>>> *_edges=nullptr;
+    EdgeType * _edges=nullptr;
 
     QColor edgeColor(double val);
     QwtPlotMarker * getNodeMarker(const QPointF & pos);
