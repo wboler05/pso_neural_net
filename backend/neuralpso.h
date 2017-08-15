@@ -63,14 +63,14 @@ protected:
     NeuralNet *_neuralNet;
 
 private:
-  vector<vector<vector<byte> > > *_images;
-  vector<byte> *_labels;
+  std::vector<std::vector<std::vector<byte> > > *_images;
+  std::vector<byte> *_labels;
 
   // Test input
-  vector<vector<double> > *_input;
-  vector<double> *_output;
-  vector<double> *_outputCount;
-  vector<vector<uint>> _outputIterators;
+  std::vector<std::vector<double> > *_input;
+  std::vector<double> *_output;
+  std::vector<double> *_outputCount;
+  std::vector<std::vector<uint>> _outputIterators;
 
   std::string _functionMsg;
 

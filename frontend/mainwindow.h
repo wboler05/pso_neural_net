@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QThread>
+#include <QFileDialog>
 
 #include <fstream>
 #include <cinttypes>
@@ -73,6 +74,8 @@ private:
     std::vector<cl::Device> _cpuDevices;
     std::vector<cl::Device> _gpuDevices;
     std::vector<cl::Device> _allDevices;
+
+    const QString & loadInputFileDialog();
 };
 
 #endif // MAINWINDOW_H

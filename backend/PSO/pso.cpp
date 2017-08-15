@@ -35,7 +35,7 @@ void Pso<T>::run() {
 
     fly();
     getCost();
-    //processEvents();
+    processEvents();
 
   } while ((_psoParams.termIterationFlag && (++iterations < _psoParams.iterations)) ||
            (!checkProcess()));
@@ -48,6 +48,10 @@ void Pso<T>::fly() {
 
 template <class T>
 void Pso<T>::getCost() {
+}
+
+template <class T>
+void Pso<T>::processEvents() {
 }
 
 template <class T>

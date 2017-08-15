@@ -260,7 +260,26 @@ void MainWindow::loadTrainingData(string imageFile, string labelFile, vector<vec
 
 }
 
+const QString & MainWindow::loadInputFileDialog() {
+    qApp->processEvents();
+
+    QFileDialog * fileDialog = new QFileDialog();
+    QString fileString = fileDialog->getOpenFileName(
+                this,
+                tr("Open FNNPSOGSA data"),
+                QDir::currentPath(),
+                tr("Data Files (*.csv)"));
+    return fileString;
+}
+
 bool MainWindow::readPEFile(vector<double> &labels, vector<vector<double>> &data) {
+
+    std::string file = loadInputFileDialog().toStdString();
+
+    if (file.empty()) {
+        cout << "File could not be read." << endl;
+        return false;
+    }
 
   ifstream inputFile("FNNPSOGSAclot/clean.csv");
 
