@@ -72,7 +72,6 @@ protected:
                       std::vector<cl::Device> &allDevices);
 
     void setOutputLabel(const QString & s);
-    void printGB();
 
 protected slots:
     void runNeuralPso();
@@ -83,6 +82,8 @@ protected slots:
     void setParameterDefaults();
     void updateParameterGui();
     void setInnerNetNodesFromGui();
+    void printGB();
+    void printClassError();
 
 private:
     Ui::MainWindow *ui;

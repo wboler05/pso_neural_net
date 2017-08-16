@@ -133,7 +133,7 @@ void NeuralPso::fly() {
   for (uint i = 0; i < _particles.size(); i++) {
     double C1 = 2.495, C2 = 2.495, C3 = 0.5;
     double dt = 1;
-    Particle<EdgeType> *p = &_particles[i];
+    Particle<NeuralNet::EdgeType> *p = &_particles[i];
 //p->_worstFlag = false;
     worstFlag = p->_worstFlag;
 
@@ -265,7 +265,7 @@ void NeuralPso::fly() {
 }
 
 void NeuralPso::flyIteration(size_t particle, size_t inner_net, size_t left_edge, size_t right_edge) {
-/*    Particle<EdgeType> *p = &_particles[particle];
+/*    Particle<NeuralNet::EdgeType> *p = &_particles[particle];
     double *w_v = &p->_v[inner_net][left_edge][right_edge];
     double *w_x = &p->_x[inner_net][left_edge][right_edge];
     double *w_pb = &p->_x_pb[inner_net][left_edge][right_edge];
@@ -317,7 +317,7 @@ double NeuralPso::getCost() {
         return 0;
     }
 
-    Particle<vector<vector<vector<double>>>> *p = &_particles[i];
+    Particle<NeuralNet::EdgeType> *p = &_particles[i];
 
     if (!_neuralNet->setWeights(&p->_x)) {
       std::cout<< "Failure to set weights." << endl;
@@ -383,7 +383,7 @@ double NeuralPso::getCost() {
         it -= _particles.size();
       }
 
-      Particle<vector<vector<vector<double>>>> *p_n = &_particles[it];
+      Particle<NeuralNet::EdgeType> *p_n = &_particles[it];
       if (fit > p_n->_fit_lb) {
         p_n->_fit_lb = fit;
         p->_points += _psoParams.lbPoints;
@@ -448,8 +448,8 @@ double NeuralPso::getCost() {
 
   // Notify exit condition
   ///FIXME: Set the correct exit condition.
-  if (totalCount > 400 && correctRatio > 0.9995)
-    interruptProcess();
+//  if (totalCount > 400 && correctRatio > 0.9995)
+//    interruptProcess();
 
 
   if (checkForPrint()) {

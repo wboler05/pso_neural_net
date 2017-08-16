@@ -215,7 +215,8 @@ const vector<double> & NeuralNet::process() {
 //        double wuz = _innerNodes[innerIndex][j];
       _outputNodes[i] += _edges[_edges.size()-1][j][i] * activation(_innerNodes[innerIndex][j]) / innerSize;
     }
-    _outputNodes[i] = abs(_outputNodes[i]);
+    //_outputNodes[i] = abs(_outputNodes[i]);
+    _outputNodes[i] = (_outputNodes[i] / 2.0) + 0.5;
     if (_outputNodes[i] > maxVal) {
       maxVal = _outputNodes[i];
     }

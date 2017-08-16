@@ -55,6 +55,8 @@ public:
   static void setToPrint();
   static bool checkForPrint();
 
+  const uint32_t & iterations() const { return _iterations; }
+
 protected:
   std::vector<Particle<T> > _particles;
   Particle<T> _gb;
@@ -62,6 +64,8 @@ protected:
   PsoParams _psoParams;
 
 private:
+  uint32_t _iterations=0;
+
   static bool _overideTermFlag;
   static boost::mutex stopProcessMtx;
   static bool _printFlag;

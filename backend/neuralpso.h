@@ -16,17 +16,17 @@
 template <class T>
 class Pso;
 */
-template class Pso<EdgeType>;
+template class Pso<NeuralNet::EdgeType>;
 
 /*
 template <class T>
 struct Particle;
 */
-template struct Particle<EdgeType>;
+template struct Particle<NeuralNet::EdgeType>;
 
 class NeuralNet;
 
-class NeuralPso : public Pso<EdgeType> {
+class NeuralPso : public Pso<NeuralNet::EdgeType> {
 public:
   NeuralPso(PsoParams pp, NeuralNetParameters np);
   ~NeuralPso();

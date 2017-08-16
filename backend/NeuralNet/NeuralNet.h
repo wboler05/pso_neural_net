@@ -18,7 +18,7 @@ using namespace std;
 #define N_Specificity(tn, fp) (tn / (tn + fp + 1.0))
 #define N_F_Score(tp, fp, fn) (2.0f*tp / (2.0f*tp + fp + fn + 1.0))
 
-#define EdgeType std::vector<std::vector<std::vector<double>>>
+//#define EdgeType std::vector<std::vector<std::vector<double>>>
 
 struct NeuralNetParameters {
   int inputs;                 // Input nodes
@@ -32,6 +32,8 @@ class NeuralNet {
 public:
   NeuralNet(NeuralNetParameters params);
   ~NeuralNet();
+
+  typedef std::vector<std::vector<std::vector<double>>> EdgeType;
 
   void resetInputs();
   void resetInnerNodes();

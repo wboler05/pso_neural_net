@@ -83,14 +83,14 @@ QColor NeuralNetPlot::edgeColor(double val) {
 }
 
 QwtPlotMarker * NeuralNetPlot::getNodeMarker(const QPointF & pos) {
-    QwtSymbol *symbol = new QwtSymbol(QwtSymbol::Ellipse, QBrush(Qt::red), QPen(Qt::red), QSize(5,5));
+    QwtSymbol *symbol = new QwtSymbol(QwtSymbol::Ellipse, QBrush(Qt::green), QPen(Qt::green), QSize(5,5));
     QwtPlotMarker *mark = new QwtPlotMarker();
     mark->setSymbol(symbol);
     mark->setValue(pos);
     return mark;
 }
 
-void NeuralNetPlot::setEdges(EdgeType * edges) {
+void NeuralNetPlot::setEdges(NeuralNet::EdgeType * edges) {
     _edges = edges;
     updateNodes();
     replot();

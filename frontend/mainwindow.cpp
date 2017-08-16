@@ -72,10 +72,11 @@ MainWindow::MainWindow(QWidget *parent) :
     //thread1.join();
     connect(ui->run_btn, SIGNAL(clicked(bool)), this, SLOT(runNeuralPso()));
     connect(ui->stop_btn, SIGNAL(clicked(bool)), this, SLOT(stopPso()));
-    connect(ui->actionLoad_File, SIGNAL(clicked(bool)), this, SLOT(loadFile_btn()));
+    connect(ui->actionLoad_File, SIGNAL(toggled(bool)), this, SLOT(loadFile_btn()));
     connect(ui->applyParams_btn, SIGNAL(clicked(bool)), this, SLOT(applyParameterChanges()));
     connect(ui->innerNet_btn, SIGNAL(clicked(bool)), this, SLOT(setInnerNetNodesFromGui()));
     connect(ui->printGB_btn, SIGNAL(clicked(bool)), this, SLOT(printGB()));
+    connect(ui->classError_btn, SIGNAL(clicked(bool)), this, SLOT(printClassError()));
 
     QTimer * updateTimer = new QTimer();
     connect(updateTimer, SIGNAL(timeout()), this, SLOT(updatePlot()));
@@ -90,7 +91,15 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::printGB() {
-    _neuralPso->printGB();
+    if (_neuralPso != nullptr) {
+        _neuralPso->printGB();
+    }
+}
+
+void MainWindow::printClassError() {
+    if (_neuralPso != nullptr) {
+        _neuralPso->classError();
+    }
 }
 
 void MainWindow::initializeData() {
@@ -116,6 +125,9 @@ void MainWindow::applyParameterChanges() {
     _pParams.iterations = ui->totalIterations_sb->value();
     _pParams.delta = ui->delta_dsb->value();
     _pParams.window = ui->window_sb->value();
+    _pParams.termIterationFlag = ui->enableIteration_cb->isChecked();
+    _pParams.termDeltaFlag = ui->enableDelta_cb->isChecked();
+
     _nParams.testIterations = ui->testIt_sb->value();
 }
 
@@ -125,6 +137,9 @@ void MainWindow::updateParameterGui() {
     ui->totalIterations_sb->setValue(_pParams.iterations);
     ui->window_sb->setValue(_pParams.window);
     ui->delta_dsb->setValue(_pParams.delta);
+    ui->enableIteration_cb->setChecked(_pParams.termIterationFlag);
+    ui->enableDelta_cb->setChecked(_pParams.termDeltaFlag);
+
     ui->testIt_sb->setValue(_nParams.testIterations);
 }
 
@@ -140,6 +155,7 @@ void MainWindow::setParameterDefaults() {
     _pParams.vDelta = 5E-200;
     _pParams.termIterationFlag = true;
     _pParams.termDeltaFlag = false;
+    _pParams.window = 5000;
 
     /*
     NeuralNetParameters nParams;
@@ -151,8 +167,9 @@ void MainWindow::setParameterDefaults() {
     */
     _nParams.inputs = _inputData[0].size();
     _nParams.innerNetNodes.clear();
-    _nParams.innerNetNodes.push_back(8); // 8
-    _nParams.innerNetNodes.push_back(4);
+    _nParams.innerNetNodes.push_back(5); // 8
+    _nParams.innerNetNodes.push_back(5);
+    _nParams.innerNetNodes.push_back(3);
     _nParams.innerNets = _nParams.innerNetNodes.size();
     _nParams.outputs = 2;
     _nParams.testIterations = 200; //500
@@ -164,6 +181,13 @@ void MainWindow::stopPso() {
     _runPso = false;
     cout << "Ending process.  Please wait. " << endl;
     enableParameterInput(true);
+
+    QString completionMsg;
+    completionMsg.append("Complete. ");
+    completionMsg.append(QString::number(_neuralPso->iterations(), 10));
+    completionMsg.append(" iterations");
+    setOutputLabel(completionMsg);
+
     NeuralPso::interruptProcess();
 }
 
@@ -251,7 +275,7 @@ void MainWindow::runNeuralPso() {
 
   np->classError();
 
-  _runPso = false;
+  stopPso();
 
 }
 
@@ -261,8 +285,12 @@ void MainWindow::loadFile_btn() {
 
 void MainWindow::updatePlot() {
     if (_neuralPso != nullptr) {
-        EdgeType * edge = &(_neuralPso->gb()->_x);
+        NeuralNet::EdgeType * edge = &(_neuralPso->gb()->_x);
         ui->neuralNetPlot->setEdges(edge);
+
+        if (this->_runPso && _neuralPso->checkTermProcess()) {
+            stopPso();
+        }
     }
 }
 
@@ -331,12 +359,14 @@ void MainWindow::loadTrainingData(string imageFile, string labelFile, vector<vec
 
 QString MainWindow::loadInputFileDialog() {
     qApp->processEvents();
+    QDir curDir(qApp->applicationDirPath());
+    curDir.cdUp();
 
     QFileDialog * fileDialog = new QFileDialog();
     QString fileString = fileDialog->getOpenFileName(
                 this,
                 tr("Open FNNPSOGSA data"),
-                qApp->applicationDirPath(),
+                curDir.absolutePath(),
                 tr("Data Files (*.csv)"));
     return fileString;
 }

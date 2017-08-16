@@ -35,6 +35,8 @@ void Pso<T>::run() {
 
   do {
 
+    _iterations = ++iterations; // On purpose.
+
     processEvents();
     fly();
     double cost = getCost();
@@ -47,12 +49,14 @@ void Pso<T>::run() {
         history.erase(history.begin());
     }
 
-    if (((cost - prevCost) < _psoParams.delta)
+    if (((cost - prevCost) < _psoParams.delta && _psoParams.termDeltaFlag)
             && (history.size() == _psoParams.window))
         break;
 
-  } while ((_psoParams.termIterationFlag && (++iterations < _psoParams.iterations)) &&
-           (!checkTermProcess()));
+    if ((_psoParams.termIterationFlag) && (iterations > _psoParams.iterations))
+        break;
+
+  } while (!checkTermProcess());
   interruptProcess();
   cout << "Ending PSO Run.";
 }
