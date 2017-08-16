@@ -72,6 +72,7 @@ protected:
                       std::vector<cl::Device> &allDevices);
 
     void setOutputLabel(const QString & s);
+    void printGB();
 
 protected slots:
     void runNeuralPso();

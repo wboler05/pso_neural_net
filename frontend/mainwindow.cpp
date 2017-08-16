@@ -75,6 +75,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionLoad_File, SIGNAL(clicked(bool)), this, SLOT(loadFile_btn()));
     connect(ui->applyParams_btn, SIGNAL(clicked(bool)), this, SLOT(applyParameterChanges()));
     connect(ui->innerNet_btn, SIGNAL(clicked(bool)), this, SLOT(setInnerNetNodesFromGui()));
+    connect(ui->printGB_btn, SIGNAL(clicked(bool)), this, SLOT(printGB()));
 
     QTimer * updateTimer = new QTimer();
     connect(updateTimer, SIGNAL(timeout()), this, SLOT(updatePlot()));
@@ -86,6 +87,10 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::printGB() {
+    _neuralPso->printGB();
 }
 
 void MainWindow::initializeData() {
@@ -109,7 +114,8 @@ void MainWindow::applyParameterChanges() {
     _pParams.particles = ui->totalParticles_sb->value();
     _pParams.neighbors = ui->totalNeighbors_sb->value();
     _pParams.iterations = ui->totalIterations_sb->value();
-
+    _pParams.delta = ui->delta_dsb->value();
+    _pParams.window = ui->window_sb->value();
     _nParams.testIterations = ui->testIt_sb->value();
 }
 
@@ -117,8 +123,9 @@ void MainWindow::updateParameterGui() {
     ui->totalParticles_sb->setValue(_pParams.particles);
     ui->totalNeighbors_sb->setValue(_pParams.neighbors);
     ui->totalIterations_sb->setValue(_pParams.iterations);
+    ui->window_sb->setValue(_pParams.window);
+    ui->delta_dsb->setValue(_pParams.delta);
     ui->testIt_sb->setValue(_nParams.testIterations);
-    ui->innerNet_sb->setValue(_nParams.innerNetNodes.size());
 }
 
 void MainWindow::setInnerNetNodesFromGui() {
@@ -144,11 +151,8 @@ void MainWindow::setParameterDefaults() {
     */
     _nParams.inputs = _inputData[0].size();
     _nParams.innerNetNodes.clear();
-    _nParams.innerNetNodes.push_back(20); // 8
-    _nParams.innerNetNodes.push_back(10);
+    _nParams.innerNetNodes.push_back(8); // 8
     _nParams.innerNetNodes.push_back(4);
-    //nParams.innerNetNodes.push_back(10);
-    //nParams.innerNetNodes.push_back(4);
     _nParams.innerNets = _nParams.innerNetNodes.size();
     _nParams.outputs = 2;
     _nParams.testIterations = 200; //500

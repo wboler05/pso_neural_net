@@ -31,11 +31,25 @@ template <class T>
 void Pso<T>::run() {
   uint32_t iterations = 0;
 
+  std::vector<double> history;
+
   do {
 
-    fly();
-    getCost();
     processEvents();
+    fly();
+    double cost = getCost();
+    double prevCost = 0;
+    for (int i = 0; i < history.size(); i++) {
+        prevCost = std::max(prevCost, history[i]);
+    }
+    history.push_back(cost);
+    if (history.size() > _psoParams.window) {
+        history.erase(history.begin());
+    }
+
+    if (((cost - prevCost) < _psoParams.delta)
+            && (history.size() == _psoParams.window))
+        break;
 
   } while ((_psoParams.termIterationFlag && (++iterations < _psoParams.iterations)) &&
            (!checkTermProcess()));
@@ -48,7 +62,8 @@ void Pso<T>::fly() {
 }
 
 template <class T>
-void Pso<T>::getCost() {
+double Pso<T>::getCost() {
+    return 0;
 }
 
 template <class T>
@@ -62,7 +77,7 @@ void Pso<T>::interruptProcess() {
 }
 
 template <class T>
-bool Pso<T>::checkTermProcess() const {
+bool Pso<T>::checkTermProcess() {
 //  boost::lock_guard<boost::mutex> guard(stopProcessMtx);
   return _overideTermFlag;
 }

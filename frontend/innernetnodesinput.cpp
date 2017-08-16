@@ -60,6 +60,7 @@ void InnerNetNodesInput::apply() {
     QTableWidget * table = ui->table;
 
     _nParams.innerNetNodes.resize(_innerNodesCount);
+    _nParams.innerNets = _innerNodesCount;
 
     for (int i = 0; i < _innerNodesCount; i++) {
         int val = qobject_cast<QSpinBox *>(table->cellWidget(i, 0))->value();

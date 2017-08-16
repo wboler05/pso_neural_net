@@ -5,6 +5,7 @@
 #include <cinttypes>
 #include <cstdlib>
 #include <vector>
+#include <queue>
 #include "particles.h"
 #include <boost/thread.hpp>
 
@@ -15,6 +16,7 @@ struct PsoParams {
   double delta=5E-3;
   double vDelta=5E-20;
   double vLimit = 0.5;
+  uint32_t window = 50;
 
   bool termIterationFlag;
   bool termDeltaFlag;
@@ -40,7 +42,7 @@ public:
 
   void run();
   virtual void fly();           // Fly particles
-  virtual void getCost();       // Calculate fitness
+  virtual double getCost();       // Calculate fitness
   virtual void processEvents(); // Process events
 
   std::vector<Particle<T> > * particles() { return &_particles; }

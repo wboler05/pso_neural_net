@@ -304,7 +304,7 @@ void NeuralPso::flyIteration(size_t particle, size_t inner_net, size_t left_edge
     }*/
 }
 
-void NeuralPso::getCost() {
+double NeuralPso::getCost() {
   double correctRatio=0;
   int totalCount=0;
   bool printChange = false;
@@ -314,7 +314,7 @@ void NeuralPso::getCost() {
 
   for (uint i = 0; i < _particles.size(); i++) {
     if (checkTermProcess()) {
-        return;
+        return 0;
     }
 
     Particle<vector<vector<vector<double>>>> *p = &_particles[i];
@@ -462,6 +462,8 @@ void NeuralPso::getCost() {
     printGB();
   }
   printGBMtx.unlock();
+
+  return gb()->_fit_pb;
 } // end getCost()
 
 void NeuralPso::testGB() {

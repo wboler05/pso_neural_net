@@ -35,7 +35,7 @@ public:
   void build(std::vector<std::vector<std::vector<byte> > > &images, std::vector<byte> &labels);
   void build(std::vector<std::vector<double>> &input, std::vector<double> &output);
   void fly();
-  void getCost();
+  double getCost();
   void processEvents();
 
   double testRun(double &correctRatio, uint &totalCount, double &confidence);
