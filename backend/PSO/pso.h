@@ -8,6 +8,7 @@
 #include <queue>
 #include "particles.h"
 #include <boost/thread.hpp>
+#include <limits>
 
 struct PsoParams {
   uint32_t particles=50;

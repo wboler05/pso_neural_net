@@ -288,8 +288,17 @@ void MainWindow::updatePlot() {
         NeuralNet::EdgeType * edge = &(_neuralPso->gb()->_x);
         ui->neuralNetPlot->setEdges(edge);
 
-        if (this->_runPso && _neuralPso->checkTermProcess()) {
-            stopPso();
+        if (_runPso) {
+            if (_neuralPso->checkTermProcess()) {
+                stopPso();
+            } else {
+
+                QString completionMsg;
+                completionMsg.append("Training running. ");
+                completionMsg.append(QString::number(_neuralPso->iterations(), 10));
+                completionMsg.append(" iterations");
+                setOutputLabel(completionMsg);
+            }
         }
     }
 }
