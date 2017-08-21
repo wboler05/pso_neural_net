@@ -5,9 +5,11 @@
 
 #include "PSO/pso.h"
 #include "NeuralNet/NeuralNet.h"
+#include "backend/teststatistics.h"
 
 #include <ctime>
 #include <limits>
+#include <memory>
 
 #include "CL/cl.hpp"
 #include "util.h"
@@ -26,9 +28,16 @@ template struct Particle<NeuralNet::EdgeType>;
 
 class NeuralNet;
 
+struct FitnessParameters {
+    double mse_weight;
+    double mse_floor;
+    TestStatistics::ClassificationError weights;
+    TestStatistics::ClassificationError floors;
+};
+
 class NeuralPso : public Pso<NeuralNet::EdgeType> {
 public:
-  NeuralPso(PsoParams pp, NeuralNetParameters np);
+  NeuralPso(PsoParams pp, NeuralNetParameters np, FitnessParameters fp);
   ~NeuralPso();
 
   void buildPso();
@@ -42,6 +51,7 @@ public:
   void testGB();
 
   NeuralNet * neuralNet() { return _neuralNet; }
+  std::unique_ptr<NeuralNet> buildNeuralNetFromGb();
 
   int randomizeTestInputs();
   void runTrainer();
@@ -57,7 +67,14 @@ public:
   void setFunctionMsg(std::string s) { _functionMsg = s; }
   std::string functionMsg() { return _functionMsg; }
 
-  void classError();
+  void classError(TestStatistics::ClassificationError * ce);
+
+  FitnessParameters * fitnessParams() { return &_fParams; }
+
+  NeuralNet::EdgeType & getGbEdges();
+
+  //!TODO  convert to const, please
+  TestStatistics & testStats() { return _testStats; }
 
 protected:
     NeuralNet *_neuralNet;
@@ -65,6 +82,8 @@ protected:
 private:
   std::vector<std::vector<std::vector<byte> > > *_images;
   std::vector<byte> *_labels;
+  FitnessParameters _fParams;
+  TestStatistics _testStats;
 
   // Test input
   std::vector<std::vector<double> > *_input;

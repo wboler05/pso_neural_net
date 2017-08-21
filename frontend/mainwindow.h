@@ -14,9 +14,13 @@
 
 #include <boost/thread.hpp>
 #include "backend/neuralpso.h"
+#include "backend/NeuralNet/NeuralNet.h"
+#include "backend/PSO/pso.h"
 #include "backend/util.h"
 #include "CL/cl.hpp"
 #include "frontend/innernetnodesinput.h"
+
+#include "fnnpsogsa.h"
 
 namespace Ui {
 class MainWindow;
@@ -84,12 +88,22 @@ protected slots:
     void setInnerNetNodesFromGui();
     void printGB();
     void printClassError();
+    void setCurrentNet();
+    void setInputsForTrainedNetFromGui();
+    void testTrainedNetWithInput();
+    void updateConfusionMatrix();
 
 private:
     Ui::MainWindow *ui;
     NeuralPso *_neuralPso = nullptr;
+    std::unique_ptr<NeuralNet> _trainedNeuralNet;
     PsoParams _pParams;
     NeuralNetParameters _nParams;
+    FitnessParameters _fParams;
+
+    // Input Data
+    FNNPSOGSA _inputCache;
+    std::vector<int> _inputskips;
 
     bool _runPso = false;
     bool _fileLoaded = false;

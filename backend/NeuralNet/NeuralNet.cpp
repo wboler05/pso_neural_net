@@ -1,23 +1,76 @@
 #include "NeuralNet.h"
 
-NeuralNet::NeuralNet(NeuralNetParameters p) :
+NeuralNet::NeuralNet(const NeuralNetParameters & p) :
   _nParams(p)
 {
-  setTotalInputs(_nParams.inputs);
-  setTotalInnerNets(_nParams.innerNets);
+    initialize(p);
+}
 
-  for (int i = 0; i < _nParams.innerNets; i++) {
-    setInnerNetNodes(_nParams.innerNetNodes[i], i);
-  }
+NeuralNet::NeuralNet(const NeuralNetParameters &p, const EdgeType & n) :
+    _nParams(p)
+{
+    initialize(p);
+    setWeights(n);
+}
 
-  setTotalOutputs(_nParams.outputs);
-  buildNets();
+NeuralNet::NeuralNet(const NeuralNet &n) {
+    _inputNodes = n._inputNodes;
+    _innerNodes = n._innerNodes;
+    _outputNodes = n._outputNodes;
+    _edges = n._edges;
+    _localEdgesFlag = n._localEdgesFlag;
+    _nParams = n._nParams;
+}
 
-  resetInputs();
-  resetWeights();
+NeuralNet::NeuralNet(NeuralNet && n) :
+    _inputNodes(n._inputNodes),
+    _innerNodes(n._innerNodes),
+    _outputNodes(n._outputNodes),
+    _edges(n._edges),
+    _localEdgesFlag(n._localEdgesFlag),
+    _nParams(n._nParams)
+{
+}
+
+NeuralNet & NeuralNet::operator=(const NeuralNet & n) {
+    _inputNodes = n._inputNodes;
+    _innerNodes = n._innerNodes;
+    _outputNodes = n._outputNodes;
+    _edges = n._edges;
+    _localEdgesFlag = n._localEdgesFlag;
+    _nParams = n._nParams;
+    return *this;
+}
+
+NeuralNet & NeuralNet::operator=(NeuralNet && n) {
+    if (this != &n) {
+        _inputNodes = n._inputNodes;
+        _innerNodes = n._innerNodes;
+        _outputNodes = n._outputNodes;
+        _edges = n._edges;
+        _localEdgesFlag = n._localEdgesFlag;
+        _nParams = n._nParams;
+    }
+    return *this;
 }
 
 NeuralNet::~NeuralNet() {
+}
+
+void NeuralNet::initialize(const NeuralNetParameters & p) {
+    _nParams = p;
+    setTotalInputs(_nParams.inputs);
+    setTotalInnerNets(_nParams.innerNets);
+
+    for (int i = 0; i < _nParams.innerNets; i++) {
+      setInnerNetNodes(_nParams.innerNetNodes[i], i);
+    }
+
+    setTotalOutputs(_nParams.outputs);
+    buildNets();
+
+    resetInputs();
+    resetWeights();
 }
 
 void NeuralNet::resetInputs() {
@@ -251,15 +304,15 @@ void NeuralNet::resetInnerNodes() {
   }
 }
 
-bool NeuralNet::setWeights(vector<vector<vector<double>>> * w) {
+bool NeuralNet::setWeights(const EdgeType & w) {
   //cout << "Edges: " << _edges.size() << " Setting: " << w->size() << endl;
-  if (_edges.size() != w->size()) return false;
-  for (uint i = 0; i < w->size(); i++) {
-    if (w->at(i).size() != _edges[i].size()) return false;
-    for (uint j = 0; j < (*w)[i].size(); j++) {
-      if ((*w)[i][j].size() != _edges[i][j].size()) return false;
-      for (uint k = 0; k < (*w)[i][j].size(); k++) {
-        _edges[i][j][k] = (*w)[i][j][k];
+  if (_edges.size() != w.size()) return false;
+  for (uint i = 0; i < w.size(); i++) {
+    if (w[i].size() != _edges[i].size()) return false;
+    for (uint j = 0; j < w[i].size(); j++) {
+      if (w[i][j].size() != _edges[i][j].size()) return false;
+      for (uint k = 0; k < w[i][j].size(); k++) {
+        _edges[i][j][k] = w[i][j][k];
  //       cout << i << ": " << j << ", " << k << ": " << _edges[i][j][k];
  //       cout << endl;
       }

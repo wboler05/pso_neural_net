@@ -7,9 +7,10 @@ volatile bool stopProcessing = false;
 bool NeuralPso::printGBFlag = false;
 boost::mutex NeuralPso::printGBMtx;
 
-NeuralPso::NeuralPso(PsoParams pp, NeuralNetParameters np) :
+NeuralPso::NeuralPso(PsoParams pp, NeuralNetParameters np, FitnessParameters fp) :
   Pso(pp),
   _neuralNet(new NeuralNet(np)),
+  _fParams(fp),
   _images(nullptr),
   _labels(nullptr),
   _input(nullptr),
@@ -319,7 +320,7 @@ double NeuralPso::getCost() {
 
     Particle<NeuralNet::EdgeType> *p = &_particles[i];
 
-    if (!_neuralNet->setWeights(&p->_x)) {
+    if (!_neuralNet->setWeights(p->_x)) {
       std::cout<< "Failure to set weights." << endl;
     }
 
@@ -467,7 +468,7 @@ double NeuralPso::getCost() {
 } // end getCost()
 
 void NeuralPso::testGB() {
-  _neuralNet->setWeights(&_gb._x);
+  _neuralNet->setWeights(_gb._x);
   int I = randomizeTestInputs();
 
   vector<double> res = _neuralNet->process();
@@ -496,7 +497,8 @@ void NeuralPso::testGB() {
     }
     cout << endl;
 
-    classError();
+    TestStatistics::ClassificationError ce;
+    classError(&ce);
 }
 
 /// Passing null parameters to return stored values.
@@ -524,7 +526,7 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confid
   uint totalSetsToRun = _neuralNet->nParams()->testIterations;
   uint correctCount = totalSetsToRun;
 
-  double tp = 0, tn = 0, fp = 0, fn = 0;
+  TestStatistics testStats;
 
   vector<int> *answer = new vector<int>();
   answer->resize(totalSetsToRun);
@@ -594,15 +596,15 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confid
 
     if (output[0] == 1) {
       if (expectedOutput[0] == 1) {
-        tn++;
+        testStats.addTn();
       } else {
-        fp++;
+        testStats.addFp();
       }
     } else {
       if (expectedOutput[0] == 1) {
-        fn++;
+        testStats.addFn();
       } else {
-        tp++;
+        testStats.addTp();
       }
     }
 
@@ -621,12 +623,8 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confid
   confidence /= totalSetsToRun;
   bias /= totalSetsToRun;
 
-  double accuracy = N_Accuracy(tp, tn, fp, fn);
-  double precision = N_Precision(tp, fp);
-  double sensitivity = N_Sensitivity(tp, fn);
-  double specificity = N_Specificity(tn, fp);
-  double f_score = N_F_Score(tp, fp, fn);
-
+  TestStatistics::ClassificationError ce;
+  testStats.getClassError(&ce);
 
 
   ///TEMP: Use mean square of output errors instead.
@@ -648,33 +646,44 @@ double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confid
   }
 
   double penalty = 1;
-  if (accuracy < 0.7)
+  if ((1-mse) < _fParams.mse_floor)
     penalty *= 0.00001;
-  if (precision < .15)
-    penalty *= 0.1;
-  if (sensitivity < 0.6)
-    penalty *= 0.01;
-  if (specificity < 0.5)
-    penalty *= 0.1;
+  if (ce.accuracy < _fParams.floors.accuracy)
+    penalty *= 0.00001;
+  if (ce.precision < _fParams.floors.precision)
+    penalty *= 0.00001;
+  if (ce.sensitivity < _fParams.floors.sensitivity)
+    penalty *= 0.00001;
+  if (ce.specificity < _fParams.floors.specificity)
+    penalty *= 0.00001;
+  if (ce.f_score < _fParams.floors.f_score)
+    penalty *= 0.00001;
 
-  double population = tp + tn + fp + tn;
-  fn /= population;
-  fp /= population;
-  tp /= population;
-  tn /= population;
+//  double population = tp + tn + fp + tn;
+//  fn /= population;
+//  fp /= population;
+//  tp /= population;
+//  tn /= population;
 
  // return tp * tn * (1.0 - fp) * (1.0 - fn);
 
  // Weights :       // Best
- double w_err = 10; // 10
- double w_acc = 20000; // 15
- double w_pre = 55; // 14
- double w_sen = 500; // 30
- double w_spe = 17; // 10
- double w_fsc = 1;
+// double w_err = 10; // 10
+// double w_acc = 20000; // 15
+// double w_pre = 55; // 14
+// double w_sen = 500; // 30
+// double w_spe = 17; // 10
+// double w_fsc = 1;
 
 
-  return penalty *(w_err*(1.0 - mse) + w_acc*accuracy + w_sen*sensitivity + w_spe*specificity + w_pre*precision + w_fsc*f_score);
+  double cost =  penalty *
+          (_fParams.mse_weight*(1.0 - mse)
+           + (_fParams.weights.accuracy*ce.accuracy)
+           + (_fParams.weights.sensitivity*ce.sensitivity)
+           + (_fParams.weights.specificity*ce.specificity)
+           + (_fParams.weights.precision*ce.precision)
+           + (_fParams.weights.f_score*ce.f_score));
+  return cost;
 
   /* Previous tests
 
@@ -721,7 +730,7 @@ void NeuralPso::runTrainer() {
 
   printGB();
 
-  _neuralNet->setWeights(&gb()->_x);
+  _neuralNet->setWeights(gb()->_x);
 }
 
 void NeuralPso::processEvents() {
@@ -834,9 +843,8 @@ void NeuralPso::setToPrintGBNet() {
   printGBMtx.unlock();
 }
 
-void NeuralPso::classError() {
-  double tp = 0, tn = 0,
-         fp = 0, fn = 0;
+void NeuralPso::classError(TestStatistics::ClassificationError *ce) {
+  _testStats.clear();
 
   for (uint i = 0; i < _input->size(); i++) {
     _neuralNet->resetInputs();
@@ -857,66 +865,32 @@ void NeuralPso::classError() {
 
     if (expectedAnswer == 1) {
       if (answer == 1) {
-        tp++;
+        _testStats.addTp();
       } else {
-        fn++;
+        _testStats.addFn();
       }
     } else {
       if (answer == 1) {
-        fp++;
+        _testStats.addFp();
       } else {
-        tn++;
+        _testStats.addTn();
       }
     }
   }
 
-  double accuracy = N_Accuracy(tp, tn, fp, fn);
-  double precision = N_Precision(tp, fp);
-  double sensitivity = N_Sensitivity(tp, fn);
-  double specificity = N_Specificity(tn, fp);
-  double f_score = N_F_Score(tp, fp, fn);
+  _testStats.getClassError(ce);
 
-  double inputSize = _input->size();
-  tp /= inputSize;
-  tn /= inputSize;
-  fp /= inputSize;
-  fn /= inputSize;
-
-  string outputString;
-  outputString += "Out\\Act\tFalse\t\tTrue\n";
-  outputString += "False\t";
-  outputString += stringPut(tn);
-  outputString += "\t";
-  outputString += stringPut(fp);
-  outputString += "\t";
-  outputString += stringPut(tn + fp);
-  outputString += "\nTrue\t";
-  outputString += stringPut(fn);
-  outputString += "\t";
-  outputString += stringPut(tp);
-  outputString += "\t";
-  outputString += stringPut(fn + tp);
-  outputString += "\n\t";
-  outputString += stringPut(tn + fn);
-  outputString += "\t";
-  outputString += stringPut(fp + tp);
-
-  outputString += "\n\tAccuracy [ (tp + tn) / testSize ]: ";
-  outputString += stringPut(accuracy);
-
-  outputString += "\n\tPrecision [ tp / (tp + fp) ]:      ";
-  outputString += stringPut(precision);
-
-  outputString += "\n\tSensitivity [ tp / (tp + fn) ]:    ";
-  outputString += stringPut(sensitivity);
-
-  outputString += "\n\tSpecificity [ tn / (tn + fp) ]:    ";
-  outputString += stringPut(specificity);
-
-  outputString += "\n\tF-Score [ 2tp / (2tp + fp + fn) ]: ";
-  outputString += stringPut(f_score);
-
-  outputString += "\n";
+  string outputString = _testStats.outputString(ce);
   Logger::write(outputString);
 
+}
+
+std::unique_ptr<NeuralNet> NeuralPso::buildNeuralNetFromGb() {
+    NeuralNet::EdgeType & gbEdges = getGbEdges();
+    std::unique_ptr<NeuralNet> n = std::make_unique<NeuralNet>(*neuralNet()->nParams(), gbEdges);
+    return n;
+}
+
+NeuralNet::EdgeType & NeuralPso::getGbEdges() {
+    return gb()->_x;
 }

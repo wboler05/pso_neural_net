@@ -55,7 +55,7 @@ void Pso<T>::run() {
             && (history.size() == _psoParams.window))
         break;
 
-    if ((_psoParams.termIterationFlag) && (iterations > _psoParams.iterations))
+    if ((_psoParams.termIterationFlag) && (iterations >= _psoParams.iterations))
         break;
 
   } while (!checkTermProcess());

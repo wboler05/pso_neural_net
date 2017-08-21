@@ -72,11 +72,24 @@ MainWindow::MainWindow(QWidget *parent) :
     //thread1.join();
     connect(ui->run_btn, SIGNAL(clicked(bool)), this, SLOT(runNeuralPso()));
     connect(ui->stop_btn, SIGNAL(clicked(bool)), this, SLOT(stopPso()));
-    connect(ui->actionLoad_File, SIGNAL(toggled(bool)), this, SLOT(loadFile_btn()));
+    connect(ui->actionLoad_File, SIGNAL(triggered(bool)), this, SLOT(loadFile_btn()));
     connect(ui->applyParams_btn, SIGNAL(clicked(bool)), this, SLOT(applyParameterChanges()));
     connect(ui->innerNet_btn, SIGNAL(clicked(bool)), this, SLOT(setInnerNetNodesFromGui()));
     connect(ui->printGB_btn, SIGNAL(clicked(bool)), this, SLOT(printGB()));
     connect(ui->classError_btn, SIGNAL(clicked(bool)), this, SLOT(printClassError()));
+    connect(ui->setNet_btn, SIGNAL(clicked(bool)), this, SLOT(setCurrentNet()));
+    connect(ui->testInput_btn, SIGNAL(clicked(bool)), this, SLOT(testTrainedNetWithInput()));
+
+    connect(ui->etco2_dsb, SIGNAL(editingFinished()), this, SLOT(setInputsForTrainedNetFromGui()));
+    connect(ui->age_dsb, SIGNAL(editingFinished()), this, SLOT(setInputsForTrainedNetFromGui()));
+    connect(ui->sysbloodpres_dsb, SIGNAL(editingFinished()), this, SLOT(setInputsForTrainedNetFromGui()));
+    connect(ui->sao2_dsb, SIGNAL(editingFinished()), this, SLOT(setInputsForTrainedNetFromGui()));
+    connect(ui->hemoptysis_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
+    connect(ui->tobacco_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
+    connect(ui->surgery_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
+    connect(ui->cardiac_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
+    connect(ui->dvtpe_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
+    connect(ui->uls_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
 
     QTimer * updateTimer = new QTimer();
     connect(updateTimer, SIGNAL(timeout()), this, SLOT(updatePlot()));
@@ -98,13 +111,22 @@ void MainWindow::printGB() {
 
 void MainWindow::printClassError() {
     if (_neuralPso != nullptr) {
-        _neuralPso->classError();
+        TestStatistics::ClassificationError ce;
+//        _neuralPso->classError(&ce);
+    }
+}
+
+void MainWindow::setCurrentNet() {
+    if (_neuralPso != nullptr) {
+        _trainedNeuralNet = _neuralPso->buildNeuralNetFromGb();
+        qDebug() << "Test me baby: " << _trainedNeuralNet->getWeights().size();
     }
 }
 
 void MainWindow::initializeData() {
     loadFile_btn();
     setParameterDefaults();
+    setInputsForTrainedNetFromGui();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent * e) {
@@ -129,6 +151,20 @@ void MainWindow::applyParameterChanges() {
     _pParams.termDeltaFlag = ui->enableDelta_cb->isChecked();
 
     _nParams.testIterations = ui->testIt_sb->value();
+
+    _fParams.mse_floor = ui->mse_floor_dsb->value();
+    _fParams.floors.accuracy = ui->acc_floor_dsb->value();
+    _fParams.floors.precision = ui->pre_floor_dsb->value();
+    _fParams.floors.sensitivity = ui->sen_floor_dsb->value();
+    _fParams.floors.specificity = ui->spe_floor_dsb->value();
+    _fParams.floors.f_score = ui->fscore_floor_dsb->value();
+
+    _fParams.mse_weight = ui->mse_weight_dsb->value();
+    _fParams.weights.accuracy = ui->acc_weight_dsb->value();
+    _fParams.weights.precision = ui->pre_weight_dsb->value();
+    _fParams.weights.sensitivity = ui->sen_weight_dsb->value();
+    _fParams.weights.specificity = ui->spe_weight_dsb->value();
+    _fParams.weights.f_score = ui->fscore_weight_dsb->value();
 }
 
 void MainWindow::updateParameterGui() {
@@ -141,6 +177,20 @@ void MainWindow::updateParameterGui() {
     ui->enableDelta_cb->setChecked(_pParams.termDeltaFlag);
 
     ui->testIt_sb->setValue(_nParams.testIterations);
+
+    ui->mse_floor_dsb->setValue(_fParams.mse_floor);
+    ui->acc_floor_dsb->setValue(_fParams.floors.accuracy);
+    ui->pre_floor_dsb->setValue(_fParams.floors.precision);
+    ui->sen_floor_dsb->setValue(_fParams.floors.sensitivity);
+    ui->spe_floor_dsb->setValue(_fParams.floors.specificity);
+    ui->fscore_floor_dsb->setValue(_fParams.floors.f_score);
+
+    ui->mse_weight_dsb->setValue(_fParams.mse_weight);
+    ui->acc_weight_dsb->setValue(_fParams.weights.accuracy);
+    ui->pre_weight_dsb->setValue(_fParams.weights.precision);
+    ui->sen_weight_dsb->setValue(_fParams.weights.sensitivity);
+    ui->spe_weight_dsb->setValue(_fParams.weights.specificity);
+    ui->fscore_weight_dsb->setValue(_fParams.weights.f_score);
 }
 
 void MainWindow::setInnerNetNodesFromGui() {
@@ -155,7 +205,7 @@ void MainWindow::setParameterDefaults() {
     _pParams.vDelta = 5E-200;
     _pParams.termIterationFlag = true;
     _pParams.termDeltaFlag = false;
-    _pParams.window = 5000;
+    _pParams.window = 500;
 
     /*
     NeuralNetParameters nParams;
@@ -174,7 +224,118 @@ void MainWindow::setParameterDefaults() {
     _nParams.outputs = 2;
     _nParams.testIterations = 200; //500
 
+    _fParams.floors.accuracy = 0.7;
+    _fParams.floors.precision = 0.15;
+    _fParams.floors.sensitivity = 0.6;
+    _fParams.floors.specificity = 0.5;
+    _fParams.floors.f_score = 0.25;
+    _fParams.mse_floor = 0;
+
+    _fParams.weights.accuracy = 20000;
+    _fParams.weights.precision = 55;
+    _fParams.weights.sensitivity = 500;
+    _fParams.weights.specificity = 17;
+    _fParams.weights.f_score = 1;
+    _fParams.mse_weight = 10;
+
     updateParameterGui();
+}
+
+void MainWindow::setInputsForTrainedNetFromGui() {
+    _inputCache.etco2 = ui->etco2_dsb->value();
+    _inputCache.age = ui->age_dsb->value();
+    _inputCache.sysBloodPres = ui->sysbloodpres_dsb->value();
+    _inputCache.sao2 = ui->sao2_dsb->value();
+    _inputCache.hemoptysis = ui->hemoptysis_cb->isChecked();
+    _inputCache.tobacco = ui->tobacco_cb->isChecked();
+    _inputCache.surgery = ui->surgery_cb->isChecked();
+    _inputCache.cardiac = ui->cardiac_cb->isChecked();
+    _inputCache.dvtpe = ui->dvtpe_cb->isChecked();
+    _inputCache.uls = ui->uls_cb->isChecked();
+}
+
+void MainWindow::updateConfusionMatrix() {
+    TestStatistics & ts = _neuralPso->testStats();
+    TestStatistics::ClassificationError ce;
+    ts.getClassError(&ce);
+
+    double actPos = ts.tp() + ts.fn();
+    double actNeg = ts.fp() + ts.tn();
+    double prePos = ts.tp() + ts.fp();
+    double preNeg = ts.tn() + ts.fn();
+    double pop = ts.population();
+
+    ui->acc_lbl->setText(QString::number(ce.accuracy));
+    ui->prec_lbl->setText(QString::number(ce.precision));
+    ui->sens_lbl->setText(QString::number(ce.sensitivity));
+    ui->spec_lbl->setText(QString::number(ce.specificity));
+    ui->fscore_lbl->setText(QString::number(ce.f_score));
+
+    ui->actPosNum_lbl->setText(QString::number(actPos));
+    ui->actPosPerc_lbl->setText(QString::number(actPos / pop));
+    ui->actNegNum_lbl->setText(QString::number(actNeg));
+    ui->actNegPerc_lbl->setText(QString::number(actNeg / pop));
+    ui->predPosNum_lbl->setText(QString::number(prePos));
+    ui->predPosPerc_lbl->setText(QString::number(prePos / pop));
+    ui->predNegNum_lbl->setText(QString::number(preNeg));
+    ui->predNegPerc_lbl->setText(QString::number(preNeg / pop));
+
+    ui->truePosNum_lbl->setText(QString::number(ts.tp()));
+    ui->truePosPerc_lbl->setText(QString::number(ts.tp_norm()));
+    ui->trueNegNum_lbl->setText(QString::number(ts.tn()));
+    ui->trueNegPerc_lbl->setText(QString::number(ts.tn_norm()));
+    ui->falsePosNum_lbl->setText(QString::number(ts.fp()));
+    ui->falsePosPerc_lbl->setText(QString::number(ts.fp_norm()));
+    ui->falseNegNum_lbl->setText(QString::number(ts.fn()));
+    ui->falseNegPerc_lbl->setText(QString::number(ts.fn_norm()));
+}
+
+void MainWindow::testTrainedNetWithInput() {
+    if (_trainedNeuralNet != nullptr) {
+        std::vector<double> newInput;
+        std::vector<double> curInput = _inputCache.inputize();
+        for (int i = 0; i < curInput.size(); i++) {
+            // Remember, skips include PE as the first index, so subtract 1
+            bool skipPos=false;
+            for (int j = 0; j < _inputskips.size(); j++) {
+                if (_inputskips[j] == i+1) {
+                    skipPos = true;
+                    break;
+                }
+            }
+            if (skipPos) {
+                continue;
+            } else {
+                newInput.push_back(curInput[i]);
+            }
+        }
+
+        if (_trainedNeuralNet->totalInputs() != newInput.size()) {
+            qDebug() << "Something broke";
+            ui->testInput_output->setText("Failed to process.");
+            return;
+        }
+
+        _trainedNeuralNet->resetInputs();
+        for (int i = 0; i < newInput.size(); i++) {
+            _trainedNeuralNet->loadInput(newInput[i], i);
+        }
+        std::vector<double> output = _trainedNeuralNet->process();
+
+        if (output.size() != 2) {
+            qDebug() << "What is this output?";
+            ui->testInput_output->setText("UNK Output");
+            return;
+        } else {
+            if (output[0] > output[1]) {
+                ui->testInput_output->setText("No PE");
+            } else if (output[0] < output[1]) {
+                ui->testInput_output->setText("Det PE");
+            } else {
+                ui->testInput_output->setText("Confused");
+            }
+        }
+    }
 }
 
 void MainWindow::stopPso() {
@@ -254,7 +415,7 @@ void MainWindow::runNeuralPso() {
       delete _neuralPso;
   }
 
-  NeuralPso *np = new NeuralPso(_pParams, _nParams);
+  NeuralPso *np = new NeuralPso(_pParams, _nParams, _fParams);
   _neuralPso = np;
   //np->build(trainingImages, trainingLabels);
   np->build(_inputData, _labelsData);
@@ -273,7 +434,8 @@ void MainWindow::runNeuralPso() {
   }
   */
 
-  np->classError();
+  TestStatistics::ClassificationError ce;
+  np->classError(&ce);
 
   stopPso();
 
@@ -287,6 +449,7 @@ void MainWindow::updatePlot() {
     if (_neuralPso != nullptr) {
         NeuralNet::EdgeType * edge = &(_neuralPso->gb()->_x);
         ui->neuralNetPlot->setEdges(edge);
+        updateConfusionMatrix();
 
         if (_runPso) {
             if (_neuralPso->checkTermProcess()) {
@@ -393,7 +556,9 @@ bool MainWindow::readPEFile(vector<double> &labels, vector<vector<double>> &data
     ifstream inputFile(file);
 
   // Select data columns to skip (never select '0'th column!)
-  vector<int> skips = {3, 5, 6, 8};
+  //vector<int> skips = {3, 5, 6, 8};
+    vector<int> skips;
+  _inputskips = skips;
 
   if (!inputFile.is_open()) {
     cout << "File could not be read." << endl;
