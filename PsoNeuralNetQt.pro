@@ -110,7 +110,8 @@ win32 {
 
 INCLUDEPATH += \
     backend \
-    frontend
+    frontend \
+    Utils
 
 QWT_LOCATION = $$(QWT_ROOT)
 message(Qwt Defined: $$QWT_LOCATION)
@@ -126,7 +127,8 @@ SOURCES += \
     frontend/neuralnetplot.cpp \
     frontend/innernetnodesinput.cpp \
     backend/teststatistics.cpp \
-    fnnpsogsa.cpp
+    fnnpsogsa.cpp \
+    Utils/custommath.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -138,7 +140,8 @@ HEADERS += \
     frontend/neuralnetplot.h \
     frontend/innernetnodesinput.h \
     backend/teststatistics.h \
-    fnnpsogsa.h
+    fnnpsogsa.h \
+    Utils/custommath.h
 
 FORMS += \
     frontend/mainwindow.ui \

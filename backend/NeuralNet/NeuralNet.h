@@ -9,6 +9,15 @@
 #include <ctime>
 using namespace std;
 
+#include "custommath.h"
+
+#ifndef M_PI
+// Qt redifines M_PI, so it disables <cmath>
+// But we need it here and not <QtMath>
+// to maintain portability.
+#define M_PI 3.1415926535897
+#endif
+
 #define uint uint32_t
 #define byte uint8_t
 

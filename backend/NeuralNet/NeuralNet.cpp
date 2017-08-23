@@ -201,10 +201,31 @@ double NeuralNet::activation(double in) {
   //double act = in / (1 + abs(in));  // Softsign
   //double act = 1 / (1 + exp(-in));  // Logistics
 //  double mean = 1.0;
-  double sigma = 0.35;
   //double act = exp(-pow((in - mean)/sigma, 2));      // Gaussian
-  double act = getSign(in) * exp(-pow(in / sigma, 2));
   //double act = 4 * in * in - 4 * in + 1;
+
+//    double sigma = 0.35;
+//    double act = getSign(in) * (1 - exp(-pow(in / sigma, 2)));
+
+    // 9th order approximation to tanh
+    static double coeffs[10] = {
+        4.42727699125780,
+        -2.78592124641418e-14,
+        -12.3878821958288,
+        4.49018884445568e-14,
+        13.4092500380177,
+        -2.26603901811258e-14,
+        -7.48382418797760,
+        3.72216702500625e-15,
+        3.04221199452273,
+        -5.55537460355953e-17
+    };
+
+    //double act = tanh(in * M_PI);
+    double act = CustomMath::poly(in * M_PI, coeffs, 9);
+    act = max(min(act, (double)1.0), (double)-1);
+
+
   return act;
 }
 
