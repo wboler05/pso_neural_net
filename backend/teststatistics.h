@@ -40,10 +40,10 @@ public:
     const double & fn() { return _test.falseNegative; }
     const double & fp() { return _test.falsePositive; }
 
-    double && tn_norm() { return _test.trueNegative / (double) _population; }
-    double && tp_norm() { return _test.truePositive / (double) _population; }
-    double && fn_norm() { return _test.falseNegative / (double) _population; }
-    double && fp_norm() { return _test.falsePositive / (double) _population; }
+    double tn_norm() { return _test.trueNegative / (double) _population; }
+    double tp_norm() { return _test.truePositive / (double) _population; }
+    double fn_norm() { return _test.falseNegative / (double) _population; }
+    double fp_norm() { return _test.falsePositive / (double) _population; }
 
     void addTn() { _test.trueNegative++; _population++; }
     void addTp() { _test.truePositive++; _population++; }

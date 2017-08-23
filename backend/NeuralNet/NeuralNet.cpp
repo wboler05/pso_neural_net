@@ -201,11 +201,19 @@ double NeuralNet::activation(double in) {
   //double act = in / (1 + abs(in));  // Softsign
   //double act = 1 / (1 + exp(-in));  // Logistics
 //  double mean = 1.0;
-  double sigma = 0.2;
+  double sigma = 0.35;
   //double act = exp(-pow((in - mean)/sigma, 2));      // Gaussian
-  double act = exp(-pow(in / sigma, 2));
+  double act = getSign(in) * exp(-pow(in / sigma, 2));
   //double act = 4 * in * in - 4 * in + 1;
   return act;
+}
+
+double NeuralNet::getSign(const double &in) {
+    if (in < 0) {
+        return -1;
+    } else {
+        return 1;
+    }
 }
 
 const vector<double> & NeuralNet::process() {

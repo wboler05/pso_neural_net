@@ -19,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     srand(time(NULL));
+    _runTimer.start();
 
     // Set the logger file
     Logger::setOutputFile("log/run.log");
@@ -199,12 +200,12 @@ void MainWindow::setInnerNetNodesFromGui() {
 
 void MainWindow::setParameterDefaults() {
     _pParams.particles = 50; // 50
-    _pParams.neighbors = 10; // 10
+    _pParams.neighbors = 13; // 10
     _pParams.iterations = 1000;
-    _pParams.delta = 5E-6;
+    _pParams.delta = 5E-7;
     _pParams.vDelta = 5E-200;
     _pParams.termIterationFlag = true;
-    _pParams.termDeltaFlag = false;
+    _pParams.termDeltaFlag = true;
     _pParams.window = 500;
 
     /*
@@ -217,26 +218,25 @@ void MainWindow::setParameterDefaults() {
     */
     _nParams.inputs = _inputData[0].size();
     _nParams.innerNetNodes.clear();
-    _nParams.innerNetNodes.push_back(5); // 8
     _nParams.innerNetNodes.push_back(5);
-    _nParams.innerNetNodes.push_back(3);
+    _nParams.innerNetNodes.push_back(4);
     _nParams.innerNets = _nParams.innerNetNodes.size();
     _nParams.outputs = 2;
-    _nParams.testIterations = 200; //500
+    _nParams.testIterations = 300; //500
 
-    _fParams.floors.accuracy = 0.7;
-    _fParams.floors.precision = 0.15;
-    _fParams.floors.sensitivity = 0.6;
-    _fParams.floors.specificity = 0.5;
-    _fParams.floors.f_score = 0.25;
+    _fParams.floors.accuracy = .4;
+    _fParams.floors.precision = 0;
+    _fParams.floors.sensitivity = 0;
+    _fParams.floors.specificity = .6;
+    _fParams.floors.f_score = 0;
     _fParams.mse_floor = 0;
 
-    _fParams.weights.accuracy = 20000;
-    _fParams.weights.precision = 55;
-    _fParams.weights.sensitivity = 500;
-    _fParams.weights.specificity = 17;
-    _fParams.weights.f_score = 1;
-    _fParams.mse_weight = 10;
+    _fParams.weights.accuracy = 0;
+    _fParams.weights.precision = 0;
+    _fParams.weights.sensitivity = 0;
+    _fParams.weights.specificity = 1;
+    _fParams.weights.f_score = 0;
+    _fParams.mse_weight = 100;
 
     updateParameterGui();
 }
@@ -346,7 +346,9 @@ void MainWindow::stopPso() {
     QString completionMsg;
     completionMsg.append("Complete. ");
     completionMsg.append(QString::number(_neuralPso->iterations(), 10));
-    completionMsg.append(" iterations");
+    completionMsg.append(" iterations\t");
+    completionMsg.append(QString::number((double)_runTimer.elapsed() / 1000.0));
+    completionMsg.append(" seconds");
     setOutputLabel(completionMsg);
 
     NeuralPso::interruptProcess();
@@ -365,6 +367,8 @@ void MainWindow::runNeuralPso() {
       return;
   }
 
+  _runTimer.restart();
+
   _runPso = true;
   setOutputLabel("Training running.");
   enableParameterInput(false);
@@ -374,6 +378,7 @@ void MainWindow::runNeuralPso() {
   }
 
     // Make sure that parameters are ready
+  applyParameterChanges();
 
   std::string outputString;
 

@@ -6,6 +6,7 @@
 #include <QFileDialog>
 #include <QKeyEvent>
 #include <QTimer>
+#include <QTime>
 
 #include <fstream>
 #include <cinttypes>
@@ -100,6 +101,8 @@ private:
     PsoParams _pParams;
     NeuralNetParameters _nParams;
     FitnessParameters _fParams;
+
+    QTime _runTimer;
 
     // Input Data
     FNNPSOGSA _inputCache;

@@ -53,8 +53,10 @@ public:
     void setOutputs(vector<double> out);
     const vector<double> & process();
 
-    double activation(double in);
     bool buildNets();
+
+    static double activation(double in);
+    static double getSign(const double & in);
 
     NeuralNetParameters * nParams() { return &_nParams; }
 
