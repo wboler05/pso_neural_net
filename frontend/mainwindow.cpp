@@ -221,17 +221,17 @@ void MainWindow::setParameterDefaults() {
     _nParams.innerNetNodes.push_back(5);
     _nParams.innerNetNodes.push_back(4);
     _nParams.innerNets = _nParams.innerNetNodes.size();
-    _nParams.outputs = 2;
-    _nParams.testIterations = 300; //500
+    _nParams.outputs = 1;
+    _nParams.testIterations = 200; //500
 
     _fParams.floors.accuracy = .4;
-    _fParams.floors.precision = 0;
-    _fParams.floors.sensitivity = 0;
+    _fParams.floors.precision = 0.01;
+    _fParams.floors.sensitivity = 0.01;
     _fParams.floors.specificity = .6;
-    _fParams.floors.f_score = 0;
+    _fParams.floors.f_score = 0.01;
     _fParams.mse_floor = 0;
 
-    _fParams.weights.accuracy = 0;
+    _fParams.weights.accuracy = 0.01;
     _fParams.weights.precision = 0;
     _fParams.weights.sensitivity = 0;
     _fParams.weights.specificity = 1;
@@ -322,14 +322,14 @@ void MainWindow::testTrainedNetWithInput() {
         }
         std::vector<double> output = _trainedNeuralNet->process();
 
-        if (output.size() != 2) {
+        if (output.size() != 1) {
             qDebug() << "What is this output?";
             ui->testInput_output->setText("UNK Output");
             return;
         } else {
-            if (output[0] > output[1]) {
+            if (output[0] < 0.5) {
                 ui->testInput_output->setText("No PE");
-            } else if (output[0] < output[1]) {
+            } else if (output[0] >= 0.5) {
                 ui->testInput_output->setText("Det PE");
             } else {
                 ui->testInput_output->setText("Confused");

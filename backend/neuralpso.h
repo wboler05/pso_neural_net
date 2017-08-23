@@ -76,6 +76,8 @@ public:
   //!TODO  convert to const, please
   TestStatistics & testStats() { return _testStats; }
 
+  int convertOutput(const double & output);
+
 protected:
     NeuralNet *_neuralNet;
 
@@ -97,6 +99,12 @@ private:
   static boost::mutex printGBMtx;
 
   void flyIteration(size_t particle, size_t inner_net, size_t left_edge, size_t right_edge);
+  virtual bool validateOutput(
+          std::vector<double> & outputs,
+          std::vector<double> & expectedOutputs,
+          std::vector<double> & outputError,
+          TestStatistics & testStats,
+          bool & correctOutput);
 
 //  vector<pair<bool, int>> _failureQueue;
 

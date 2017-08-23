@@ -222,6 +222,7 @@ double NeuralNet::activation(double in) {
     };
 
     //double act = tanh(in * M_PI);
+    // Faster than tanh function
     double act = CustomMath::poly(in * M_PI, coeffs, 9);
     act = max(min(act, (double)1.0), (double)-1);
 
@@ -298,17 +299,17 @@ const vector<double> & NeuralNet::process() {
       _outputNodes[i] += _edges[_edges.size()-1][j][i] * activation(_innerNodes[innerIndex][j]) / innerSize;
     }
     //_outputNodes[i] = abs(_outputNodes[i]);
-    _outputNodes[i] = (_outputNodes[i] / 2.0) + 0.5;
-    if (_outputNodes[i] > maxVal) {
-      maxVal = _outputNodes[i];
-    }
+//    _outputNodes[i] = (_outputNodes[i] / 2.0) + 0.5;
+//    if (_outputNodes[i] > maxVal) {
+//      maxVal = _outputNodes[i];
+//    }
   }
 
-  if (maxVal != 0) {
-    for (uint i = 0; i < _outputNodes.size(); i++) {
-      _outputNodes[i] /= maxVal;
-    }
-  }
+//  if (maxVal != 0) {
+//    for (uint i = 0; i < _outputNodes.size(); i++) {
+//      _outputNodes[i] /= maxVal;
+//    }
+//  }
 
 /*
   cout << "Output (" << _outputNodes.size() << "): ";

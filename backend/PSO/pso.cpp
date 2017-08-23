@@ -41,7 +41,7 @@ void Pso<T>::run() {
     fly();
     double cost = getCost();
     double prevCost = std::numeric_limits<double>::max();
-    for (int i = 0; i < history.size(); i++) {
+    for (size_t i = 0; i < history.size(); i++) {
         prevCost = std::min(prevCost, history[i]);
     }
     history.push_back(cost);
