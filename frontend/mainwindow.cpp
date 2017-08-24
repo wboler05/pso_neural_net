@@ -219,24 +219,25 @@ void MainWindow::setParameterDefaults() {
     _nParams.inputs = _inputData[0].size();
     _nParams.innerNetNodes.clear();
     _nParams.innerNetNodes.push_back(5);
-    _nParams.innerNetNodes.push_back(4);
+    _nParams.innerNetNodes.push_back(3);
+    _nParams.innerNetNodes.push_back(2);
     _nParams.innerNets = _nParams.innerNetNodes.size();
     _nParams.outputs = 1;
     _nParams.testIterations = 200; //500
 
-    _fParams.floors.accuracy = .4;
-    _fParams.floors.precision = 0.01;
-    _fParams.floors.sensitivity = 0.01;
-    _fParams.floors.specificity = .6;
-    _fParams.floors.f_score = 0.01;
+    _fParams.floors.accuracy = .05;
+    _fParams.floors.precision = 0.05;
+    _fParams.floors.sensitivity = 0.05;
+    _fParams.floors.specificity = .05;
+    _fParams.floors.f_score = 0.05;
     _fParams.mse_floor = 0;
 
     _fParams.weights.accuracy = 0.01;
-    _fParams.weights.precision = 0;
-    _fParams.weights.sensitivity = 0;
-    _fParams.weights.specificity = 1;
-    _fParams.weights.f_score = 0;
-    _fParams.mse_weight = 100;
+    _fParams.weights.precision = .1;
+    _fParams.weights.sensitivity = 100.0;
+    _fParams.weights.specificity = 0.001;
+    _fParams.weights.f_score = .01;
+    _fParams.mse_weight = 1;
 
     updateParameterGui();
 }
@@ -430,7 +431,7 @@ void MainWindow::runNeuralPso() {
 
   //ui->neuralNetPlot->setEdges(&(net->getWeights()));
 
-  // Train this shit
+  // Train the net
   np->runTrainer();
 
   /*

@@ -514,134 +514,133 @@ void NeuralPso::testGB() {
 /// Confidence returns how confident the net believes its answer is.
 double NeuralPso::testRun(double &correctRatio, uint &totalCount, double &confidence) {
 
-  double mse = 0;
-  uint outputNodes = _neuralNet->nParams()->outputs;
-  //!TODO Reconsider confidence calculation
-  confidence = 0;
-  vector<double> outputError;
+    double mse = 0;
+    uint outputNodes = _neuralNet->nParams()->outputs;
+    //!TODO Reconsider confidence calculation
+    confidence = 0;
+    vector<double> outputError;
 
-  uint totalSetsToRun = _neuralNet->nParams()->testIterations;
-  uint correctCount = totalSetsToRun;
+    uint totalSetsToRun = _neuralNet->nParams()->testIterations;
+    uint correctCount = totalSetsToRun;
 
-  TestStatistics testStats;
+    TestStatistics testStats;
 
-  vector<int> *answer = new vector<int>();
-  answer->resize(totalSetsToRun);
-  for (uint im = 0; im < totalSetsToRun; im++) {
-    (*answer)[im] = 0;
-  }
-
-  // First, test each output and store to the vector of results;
-  for (uint someSets = 0; someSets < totalSetsToRun; someSets++) {
-    // Set a random input
-    int I = randomizeTestInputs();
-//    double tConfidence = (double) outputNodes;
-    //int I = It[someSets];
-    //loadTestInput(I);
-
-    // Get the result from random input
-    vector<double> output = _neuralNet->process();
-    if (output.size() != outputNodes) {
-      cout << "Size mismatch on nodes. " << endl;
-      cout << " - Output: " << output.size() << ", Expected: " << outputNodes << endl;
-    }
-    vector<double> expectedOutput;
-
-    // Check if we have labels loaded or not
-    int outputSize = output.size();
-    if (_input == nullptr) {
-      answer->at(someSets) = _labels->at(I);
-    } else {
-      answer->at(someSets) = _output->at(I);
+    vector<int> *answer = new vector<int>();
+    answer->resize(totalSetsToRun);
+    for (uint im = 0; im < totalSetsToRun; im++) {
+        (*answer)[im] = 0;
     }
 
-    // Initialize the expected output buffer
-    expectedOutput.resize(outputSize);
-    for (int i = 0; i < outputSize; i++) {
-      if (i == answer->at(someSets)) {
-        expectedOutput[i] = 1;
-      } else {
-        expectedOutput[i] = 0;
-      }
+    // First, test each output and store to the vector of results;
+    for (uint someSets = 0; someSets < totalSetsToRun; someSets++) {
+        // Set a random input
+        int I = randomizeTestInputs();
+        //    double tConfidence = (double) outputNodes;
+        //int I = It[someSets];
+        //loadTestInput(I);
+
+        // Get the result from random input
+        vector<double> output = _neuralNet->process();
+        if (output.size() != outputNodes) {
+            cout << "Size mismatch on nodes. " << endl;
+            cout << " - Output: " << output.size() << ", Expected: " << outputNodes << endl;
+        }
+        vector<double> expectedOutput;
+
+        // Check if we have labels loaded or not
+        int outputSize = output.size();
+        if (_input == nullptr) {
+            answer->at(someSets) = _labels->at(I);
+        } else {
+            answer->at(someSets) = _output->at(I);
+        }
+
+        // Initialize the expected output buffer
+        expectedOutput.resize(outputSize);
+        for (int i = 0; i < outputSize; i++) {
+            if (i == answer->at(someSets)) {
+                expectedOutput[i] = 1;
+            } else {
+                expectedOutput[i] = 0;
+            }
+        }
+
+        //    double maxVal = -1.0;
+        //    int maxNode = 0;
+        //    // Compare the output to expected
+        //    for (int i = 0; i < outputSize; i++) {
+        //      double expected = expectedOutput[i];
+        //      double got = output[i];
+        //      if (output[i] > maxVal) {
+        //        maxVal = output[i];
+        //        maxNode = i;
+        //      }
+        //       double dif = expectedOutput[i] - output[i];
+        //       tConfidence -= output[i];
+        //       outputError[i] += pow(dif,2);
+        //    }
+
+        bool correctOutput;
+        if (!validateOutput(output, expectedOutput, outputError, testStats, correctOutput)) {
+            cout << "Validation failed to complete.";
+            return 0;
+        }
+
+        // If we have a correct answer, then we're heading in the right direction
+        if (!correctOutput) {
+            correctCount--;
+        }
+
+        // Expand the search if we get 100% correct
+        if ((totalSetsToRun == correctCount) && (someSets == (totalSetsToRun - 1))) {
+            if (totalSetsToRun < _input->size()) {
+                ++totalSetsToRun;
+                ++correctCount;
+                answer->push_back(0);
+            }
+        }
+
+        //confidence += tConfidence;
     }
+    //confidence /= totalSetsToRun;
 
-//    double maxVal = -1.0;
-//    int maxNode = 0;
-//    // Compare the output to expected
-//    for (int i = 0; i < outputSize; i++) {
-//      double expected = expectedOutput[i];
-//      double got = output[i];
-//      if (output[i] > maxVal) {
-//        maxVal = output[i];
-//        maxNode = i;
-//      }
-//       double dif = expectedOutput[i] - output[i];
-//       tConfidence -= output[i];
-//       outputError[i] += pow(dif,2);
-//    }
+    TestStatistics::ClassificationError ce;
+    testStats.getClassError(&ce);
 
-    bool correctOutput;
-    if (!validateOutput(output, expectedOutput, outputError, testStats, correctOutput)) {
-        cout << "Validation failed to complete.";
-        return 0;
+    // Get the MSE
+    mse = 0;
+    for (uint i = 0; i < outputError.size(); i++) {
+        mse += pow(outputError[i]/totalSetsToRun, 2);
     }
+    mse = sqrt(mse)/outputError.size();
 
-    // If we have a correct answer, then we're heading in the right direction
-    if (!correctOutput) {
-        correctCount--;
-    }
+    delete answer;
 
-    // Expand the search if we get 100% correct
-    if ((totalSetsToRun == correctCount) && (someSets == (totalSetsToRun - 1))) {
-      if (totalSetsToRun < _input->size()) {
-        ++totalSetsToRun;
-        ++correctCount;
-        answer->push_back(0);
-      }
-    }
+    correctRatio = (double) correctCount / (double) totalSetsToRun;
+    totalCount = totalSetsToRun;
 
-    //confidence += tConfidence;
-  }
-  //confidence /= totalSetsToRun;
+    double penalty = 1;
+    if ((1-mse) < _fParams.mse_floor)
+        penalty *= 0.00001;
+    if (ce.accuracy < _fParams.floors.accuracy)
+        penalty *= 0.00001;
+    if (ce.precision < _fParams.floors.precision)
+        penalty *= 0.00001;
+    if (ce.sensitivity < _fParams.floors.sensitivity)
+        penalty *= 0.00001;
+    if (ce.specificity < _fParams.floors.specificity)
+        penalty *= 0.00001;
+    if (ce.f_score < _fParams.floors.f_score)
+        penalty *= 0.00001;
 
-  TestStatistics::ClassificationError ce;
-  testStats.getClassError(&ce);
-
-
-  ///TEMP: Use mean square of output errors instead.
-  mse = 0;
-  for (uint i = 0; i < outputError.size(); i++) {
-    mse += pow(outputError[i]/totalSetsToRun, 2);
-  }
-  mse = sqrt(mse)/outputError.size();
-
-  delete answer;
-
-  correctRatio = (double) correctCount / (double) totalSetsToRun;
-  totalCount = totalSetsToRun;
-
-  double penalty = 1;
-  if ((1-mse) < _fParams.mse_floor)
-    penalty *= 0.00001;
-  if (ce.accuracy < _fParams.floors.accuracy)
-    penalty *= 0.00001;
-  if (ce.precision < _fParams.floors.precision)
-    penalty *= 0.00001;
-  if (ce.sensitivity < _fParams.floors.sensitivity)
-    penalty *= 0.00001;
-  if (ce.specificity < _fParams.floors.specificity)
-    penalty *= 0.00001;
-  if (ce.f_score < _fParams.floors.f_score)
-    penalty *= 0.00001;
-
-  double cost =  penalty *
-          (_fParams.mse_weight*(1.0 - mse)
-           + (_fParams.weights.accuracy*ce.accuracy)
-           + (_fParams.weights.sensitivity*ce.sensitivity)
-           + (_fParams.weights.specificity*ce.specificity)
-           + (_fParams.weights.precision*ce.precision)
-           + (_fParams.weights.f_score*ce.f_score));
-  return cost;
+    double cost =  penalty *
+            (_fParams.mse_weight*(1.0 - mse)
+             + (_fParams.weights.accuracy*ce.accuracy)
+             + (_fParams.weights.sensitivity*ce.sensitivity)
+             + (_fParams.weights.specificity*ce.specificity)
+             + (_fParams.weights.precision*ce.precision)
+             + (_fParams.weights.f_score*ce.f_score));
+    return cost;
 
   /* Previous tests
 

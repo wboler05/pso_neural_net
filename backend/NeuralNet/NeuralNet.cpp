@@ -324,7 +324,7 @@ const vector<double> & NeuralNet::process() {
 
 void NeuralNet::resetInnerNodes() {
   for (uint i = 0; i < _innerNodes.size(); i++) {
-    for (uint j = 0; j < _innerNodes.size(); j++) {
+    for (uint j = 0; j < _innerNodes[i].size(); j++) {
       _innerNodes[i][j] = 0;
     }
   }
