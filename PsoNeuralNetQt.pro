@@ -128,7 +128,8 @@ SOURCES += \
     frontend/innernetnodesinput.cpp \
     backend/teststatistics.cpp \
     fnnpsogsa.cpp \
-    Utils/custommath.cpp
+    Utils/custommath.cpp \
+    frontend/aboutconfusionmatrixdialog.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -141,8 +142,10 @@ HEADERS += \
     frontend/innernetnodesinput.h \
     backend/teststatistics.h \
     fnnpsogsa.h \
-    Utils/custommath.h
+    Utils/custommath.h \
+    frontend/aboutconfusionmatrixdialog.h
 
 FORMS += \
     frontend/mainwindow.ui \
-    frontend/innernetnodesinput.ui
+    frontend/innernetnodesinput.ui \
+    frontend/aboutconfusionmatrixdialog.ui

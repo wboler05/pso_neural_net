@@ -4,13 +4,14 @@ clear;
 len = 200;
 x = linspace(-1, 1, len);
 mean = .95;
-sigma = 0.35;
+sigma = 5;
 %y = exp(-((x-mean)./sigma).^2);
 %y = (4*x.^2) - (4*x) + 1;
 
 
 %y = 0.5*(1-exp(-((x./sigma).^2)));
-y = tanh(x*pi);
+%y = tanh(x*pi);
+y = 1 ./ (1 + exp(-sigma.*x));
 
 p1 = polyfit(x, y, 1);
 p2 = polyfit(x, y, 2);

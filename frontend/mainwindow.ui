@@ -722,6 +722,9 @@
              <property name="maximum">
               <double>100000.000000000000000</double>
              </property>
+             <property name="singleStep">
+              <double>0.050000000000000</double>
+             </property>
             </widget>
            </item>
            <item row="2" column="0">
@@ -786,6 +789,9 @@
              <property name="maximum">
               <double>100000.000000000000000</double>
              </property>
+             <property name="singleStep">
+              <double>0.050000000000000</double>
+             </property>
             </widget>
            </item>
            <item row="2" column="1">
@@ -795,6 +801,9 @@
              </property>
              <property name="maximum">
               <double>100000.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.050000000000000</double>
              </property>
             </widget>
            </item>
@@ -812,6 +821,9 @@
              </property>
              <property name="maximum">
               <double>100000.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.050000000000000</double>
              </property>
             </widget>
            </item>
@@ -863,6 +875,9 @@
              <property name="maximum">
               <double>10000.000000000000000</double>
              </property>
+             <property name="singleStep">
+              <double>0.050000000000000</double>
+             </property>
             </widget>
            </item>
            <item row="5" column="2">
@@ -898,6 +913,9 @@
              </property>
              <property name="maximum">
               <double>100000.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.050000000000000</double>
              </property>
             </widget>
            </item>
@@ -1255,8 +1273,15 @@
     </property>
     <addaction name="actionClear_Global_Best"/>
    </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>About</string>
+    </property>
+    <addaction name="actionConfusion_Matrix"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSettings"/>
+   <addaction name="menuAbout"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -1283,6 +1308,11 @@
    </property>
    <property name="text">
     <string>Clear Global Best</string>
+   </property>
+  </action>
+  <action name="actionConfusion_Matrix">
+   <property name="text">
+    <string>Confusion Matrix?</string>
    </property>
   </action>
  </widget>

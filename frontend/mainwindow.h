@@ -23,6 +23,8 @@
 
 #include "fnnpsogsa.h"
 
+#include "aboutconfusionmatrixdialog.h"
+
 namespace Ui {
 class MainWindow;
 }
@@ -93,6 +95,7 @@ protected slots:
     void setInputsForTrainedNetFromGui();
     void testTrainedNetWithInput();
     void updateConfusionMatrix();
+    void showConfusionMatrixHelpBox();
 
 private:
     Ui::MainWindow *ui;

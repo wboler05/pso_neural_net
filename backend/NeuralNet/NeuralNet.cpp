@@ -207,6 +207,8 @@ double NeuralNet::activation(double in) {
 //    double sigma = 0.35;
 //    double act = getSign(in) * (1 - exp(-pow(in / sigma, 2)));
 
+
+    /**
     // 9th order approximation to tanh
     static double coeffs[10] = {
         4.42727699125780,
@@ -225,6 +227,24 @@ double NeuralNet::activation(double in) {
     // Faster than tanh function
     double act = CustomMath::poly(in * M_PI, coeffs, 9);
     act = max(min(act, (double)1.0), (double)-1);
+    **/
+
+
+    // 9th order approximation of logistic sigmoid
+    static double coeffs[10] = {
+        0.938400463413615,
+        -1.32105382144212e-14,
+        -2.77909962352499,
+        2.29080010982935e-14,
+        3.32023231311074,
+        -1.29358310591960e-14,
+        -2.21971364932927,
+        2.63988723756627e-15,
+        1.23541839801387,
+        0.500000000000000
+    };
+    double act = CustomMath::poly(in, coeffs, 9);
+    act = max(min(act, (double)1.0), (double) 0);
 
 
   return act;

@@ -92,6 +92,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->dvtpe_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
     connect(ui->uls_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
 
+    connect(ui->actionConfusion_Matrix, SIGNAL(toggled(bool)), this, SLOT(showConfusionMatrixHelpBox()));
+
     QTimer * updateTimer = new QTimer();
     connect(updateTimer, SIGNAL(timeout()), this, SLOT(updatePlot()));
     updateTimer->start(500);
@@ -547,6 +549,12 @@ QString MainWindow::loadInputFileDialog() {
                 curDir.absolutePath(),
                 tr("Data Files (*.csv)"));
     return fileString;
+}
+
+void MainWindow::showConfusionMatrixHelpBox() {
+    AboutConfusionMatrixDialog *db = new AboutConfusionMatrixDialog();
+
+
 }
 
 bool MainWindow::readPEFile(vector<double> &labels, vector<vector<double>> &data) {
