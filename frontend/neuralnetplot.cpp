@@ -68,8 +68,8 @@ void NeuralNetPlot::updateNodes() {
             }
         }
     }
-    setAxisScale(xBottom, minX-0.5, maxX+0.5);
-    setAxisScale(yLeft, minY-0.5, maxY+0.5);
+    setAxisScale(xBottom, minX-0.25, maxX+0.25);
+    setAxisScale(yLeft, minY-0.05, maxY+0.05);
 }
 
 QColor NeuralNetPlot::edgeColor(double val) {

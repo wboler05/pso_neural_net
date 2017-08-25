@@ -220,7 +220,6 @@ void MainWindow::setParameterDefaults() {
     */
     _nParams.inputs = _inputData[0].size();
     _nParams.innerNetNodes.clear();
-    _nParams.innerNetNodes.push_back(5);
     _nParams.innerNetNodes.push_back(3);
     _nParams.innerNetNodes.push_back(2);
     _nParams.innerNets = _nParams.innerNetNodes.size();
@@ -234,12 +233,12 @@ void MainWindow::setParameterDefaults() {
     _fParams.floors.f_score = 0.05;
     _fParams.mse_floor = 0;
 
+    _fParams.mse_weight = 1;
     _fParams.weights.accuracy = 0.01;
-    _fParams.weights.precision = .1;
+    _fParams.weights.precision = .4;
     _fParams.weights.sensitivity = 100.0;
     _fParams.weights.specificity = 0.001;
     _fParams.weights.f_score = .01;
-    _fParams.mse_weight = 1;
 
     updateParameterGui();
 }
