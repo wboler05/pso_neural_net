@@ -107,21 +107,21 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::printGB() {
-    if (_neuralPso != nullptr) {
-        _neuralPso->printGB();
+    if (_neuralPsoTrainer != nullptr) {
+        _neuralPsoTrainer->printGB();
     }
 }
 
 void MainWindow::printClassError() {
-    if (_neuralPso != nullptr) {
+    if (_neuralPsoTrainer != nullptr) {
         TestStatistics::ClassificationError ce;
-//        _neuralPso->classError(&ce);
+//        _neuralPsoTrainer->classError(&ce);
     }
 }
 
 void MainWindow::setCurrentNet() {
-    if (_neuralPso != nullptr) {
-        _trainedNeuralNet = _neuralPso->buildNeuralNetFromGb();
+    if (_neuralPsoTrainer != nullptr) {
+        _trainedNeuralNet = _neuralPsoTrainer->buildNeuralNetFromGb();
         qDebug() << "Test me baby: " << _trainedNeuralNet->getWeights().size();
     }
 }
@@ -145,70 +145,70 @@ void MainWindow::keyPressEvent(QKeyEvent * e) {
 }
 
 void MainWindow::applyParameterChanges() {
-    _pParams.particles = ui->totalParticles_sb->value();
-    _pParams.neighbors = ui->totalNeighbors_sb->value();
-    _pParams.iterations = ui->totalIterations_sb->value();
-    _pParams.delta = ui->delta_dsb->value();
-    _pParams.window = ui->window_sb->value();
-    _pParams.termIterationFlag = ui->enableIteration_cb->isChecked();
-    _pParams.termDeltaFlag = ui->enableDelta_cb->isChecked();
+    _params.pp.particles = ui->totalParticles_sb->value();
+    _params.pp.neighbors = ui->totalNeighbors_sb->value();
+    _params.pp.iterations = ui->totalIterations_sb->value();
+    _params.pp.delta = ui->delta_dsb->value();
+    _params.pp.window = ui->window_sb->value();
+    _params.pp.termIterationFlag = ui->enableIteration_cb->isChecked();
+    _params.pp.termDeltaFlag = ui->enableDelta_cb->isChecked();
 
-    _nParams.testIterations = ui->testIt_sb->value();
+    _params.np.testIterations = ui->testIt_sb->value();
 
-    _fParams.mse_floor = ui->mse_floor_dsb->value();
-    _fParams.floors.accuracy = ui->acc_floor_dsb->value();
-    _fParams.floors.precision = ui->pre_floor_dsb->value();
-    _fParams.floors.sensitivity = ui->sen_floor_dsb->value();
-    _fParams.floors.specificity = ui->spe_floor_dsb->value();
-    _fParams.floors.f_score = ui->fscore_floor_dsb->value();
+    _params.fp.mse_floor = ui->mse_floor_dsb->value();
+    _params.fp.floors.accuracy = ui->acc_floor_dsb->value();
+    _params.fp.floors.precision = ui->pre_floor_dsb->value();
+    _params.fp.floors.sensitivity = ui->sen_floor_dsb->value();
+    _params.fp.floors.specificity = ui->spe_floor_dsb->value();
+    _params.fp.floors.f_score = ui->fscore_floor_dsb->value();
 
-    _fParams.mse_weight = ui->mse_weight_dsb->value();
-    _fParams.weights.accuracy = ui->acc_weight_dsb->value();
-    _fParams.weights.precision = ui->pre_weight_dsb->value();
-    _fParams.weights.sensitivity = ui->sen_weight_dsb->value();
-    _fParams.weights.specificity = ui->spe_weight_dsb->value();
-    _fParams.weights.f_score = ui->fscore_weight_dsb->value();
+    _params.fp.mse_weight = ui->mse_weight_dsb->value();
+    _params.fp.weights.accuracy = ui->acc_weight_dsb->value();
+    _params.fp.weights.precision = ui->pre_weight_dsb->value();
+    _params.fp.weights.sensitivity = ui->sen_weight_dsb->value();
+    _params.fp.weights.specificity = ui->spe_weight_dsb->value();
+    _params.fp.weights.f_score = ui->fscore_weight_dsb->value();
 }
 
 void MainWindow::updateParameterGui() {
-    ui->totalParticles_sb->setValue(_pParams.particles);
-    ui->totalNeighbors_sb->setValue(_pParams.neighbors);
-    ui->totalIterations_sb->setValue(_pParams.iterations);
-    ui->window_sb->setValue(_pParams.window);
-    ui->delta_dsb->setValue(_pParams.delta);
-    ui->enableIteration_cb->setChecked(_pParams.termIterationFlag);
-    ui->enableDelta_cb->setChecked(_pParams.termDeltaFlag);
+    ui->totalParticles_sb->setValue(_params.pp.particles);
+    ui->totalNeighbors_sb->setValue(_params.pp.neighbors);
+    ui->totalIterations_sb->setValue(_params.pp.iterations);
+    ui->window_sb->setValue(_params.pp.window);
+    ui->delta_dsb->setValue(_params.pp.delta);
+    ui->enableIteration_cb->setChecked(_params.pp.termIterationFlag);
+    ui->enableDelta_cb->setChecked(_params.pp.termDeltaFlag);
 
-    ui->testIt_sb->setValue(_nParams.testIterations);
+    ui->testIt_sb->setValue(_params.np.testIterations);
 
-    ui->mse_floor_dsb->setValue(_fParams.mse_floor);
-    ui->acc_floor_dsb->setValue(_fParams.floors.accuracy);
-    ui->pre_floor_dsb->setValue(_fParams.floors.precision);
-    ui->sen_floor_dsb->setValue(_fParams.floors.sensitivity);
-    ui->spe_floor_dsb->setValue(_fParams.floors.specificity);
-    ui->fscore_floor_dsb->setValue(_fParams.floors.f_score);
+    ui->mse_floor_dsb->setValue(_params.fp.mse_floor);
+    ui->acc_floor_dsb->setValue(_params.fp.floors.accuracy);
+    ui->pre_floor_dsb->setValue(_params.fp.floors.precision);
+    ui->sen_floor_dsb->setValue(_params.fp.floors.sensitivity);
+    ui->spe_floor_dsb->setValue(_params.fp.floors.specificity);
+    ui->fscore_floor_dsb->setValue(_params.fp.floors.f_score);
 
-    ui->mse_weight_dsb->setValue(_fParams.mse_weight);
-    ui->acc_weight_dsb->setValue(_fParams.weights.accuracy);
-    ui->pre_weight_dsb->setValue(_fParams.weights.precision);
-    ui->sen_weight_dsb->setValue(_fParams.weights.sensitivity);
-    ui->spe_weight_dsb->setValue(_fParams.weights.specificity);
-    ui->fscore_weight_dsb->setValue(_fParams.weights.f_score);
+    ui->mse_weight_dsb->setValue(_params.fp.mse_weight);
+    ui->acc_weight_dsb->setValue(_params.fp.weights.accuracy);
+    ui->pre_weight_dsb->setValue(_params.fp.weights.precision);
+    ui->sen_weight_dsb->setValue(_params.fp.weights.sensitivity);
+    ui->spe_weight_dsb->setValue(_params.fp.weights.specificity);
+    ui->fscore_weight_dsb->setValue(_params.fp.weights.f_score);
 }
 
 void MainWindow::setInnerNetNodesFromGui() {
-    InnerNetNodesInput * dialog = new InnerNetNodesInput(_nParams);
+    InnerNetNodesInput * dialog = new InnerNetNodesInput(_params.np);
 }
 
 void MainWindow::setParameterDefaults() {
-    _pParams.particles = 50; // 50
-    _pParams.neighbors = 13; // 10
-    _pParams.iterations = 1000;
-    _pParams.delta = 5E-7;
-    _pParams.vDelta = 5E-200;
-    _pParams.termIterationFlag = true;
-    _pParams.termDeltaFlag = true;
-    _pParams.window = 500;
+    _params.pp.particles = 50; // 50
+    _params.pp.neighbors = 13; // 10
+    _params.pp.iterations = 1000;
+    _params.pp.delta = 5E-7;
+    _params.pp.vDelta = 5E-200;
+    _params.pp.termIterationFlag = true;
+    _params.pp.termDeltaFlag = true;
+    _params.pp.window = 500;
 
     /*
     NeuralNetParameters nParams;
@@ -218,27 +218,27 @@ void MainWindow::setParameterDefaults() {
     //nParams.innerNetNodes.push_back(50);
     nParams.outputs = 10;
     */
-    _nParams.inputs = _inputData[0].size();
-    _nParams.innerNetNodes.clear();
-    _nParams.innerNetNodes.push_back(3);
-    _nParams.innerNetNodes.push_back(2);
-    _nParams.innerNets = _nParams.innerNetNodes.size();
-    _nParams.outputs = 1;
-    _nParams.testIterations = 200; //500
+    _params.np.inputs = _inputData[0].size();
+    _params.np.innerNetNodes.clear();
+    _params.np.innerNetNodes.push_back(3);
+    _params.np.innerNetNodes.push_back(2);
+    _params.np.innerNets = _params.np.innerNetNodes.size();
+    _params.np.outputs = 1;
+    _params.np.testIterations = 200; //500
 
-    _fParams.floors.accuracy = .05;
-    _fParams.floors.precision = 0.05;
-    _fParams.floors.sensitivity = 0.05;
-    _fParams.floors.specificity = .05;
-    _fParams.floors.f_score = 0.05;
-    _fParams.mse_floor = 0;
+    _params.fp.floors.accuracy = .05;
+    _params.fp.floors.precision = 0.05;
+    _params.fp.floors.sensitivity = 0.05;
+    _params.fp.floors.specificity = .05;
+    _params.fp.floors.f_score = 0.05;
+    _params.fp.mse_floor = 0;
 
-    _fParams.mse_weight = 1;
-    _fParams.weights.accuracy = 0.01;
-    _fParams.weights.precision = .4;
-    _fParams.weights.sensitivity = 100.0;
-    _fParams.weights.specificity = 0.001;
-    _fParams.weights.f_score = .01;
+    _params.fp.mse_weight = 1;
+    _params.fp.weights.accuracy = 0.01;
+    _params.fp.weights.precision = .4;
+    _params.fp.weights.sensitivity = 100.0;
+    _params.fp.weights.specificity = 0.001;
+    _params.fp.weights.f_score = .01;
 
     updateParameterGui();
 }
@@ -257,7 +257,7 @@ void MainWindow::setInputsForTrainedNetFromGui() {
 }
 
 void MainWindow::updateConfusionMatrix() {
-    TestStatistics & ts = _neuralPso->testStats();
+    TestStatistics & ts = _neuralPsoTrainer->testStats();
     TestStatistics::ClassificationError ce;
     ts.getClassError(&ce);
 
@@ -347,7 +347,7 @@ void MainWindow::stopPso() {
 
     QString completionMsg;
     completionMsg.append("Complete. ");
-    completionMsg.append(QString::number(_neuralPso->iterations(), 10));
+    completionMsg.append(QString::number(_neuralPsoTrainer->iterations(), 10));
     completionMsg.append(" iterations\t");
     completionMsg.append(QString::number((double)_runTimer.elapsed() / 1000.0));
     completionMsg.append(" seconds");
@@ -385,26 +385,26 @@ void MainWindow::runNeuralPso() {
   std::string outputString;
 
   outputString += "\n\nInputs: ";
-  outputString += stringPut(_nParams.inputs);
+  outputString += stringPut(_params.np.inputs);
   outputString += "\nInner Nets: ";
-  outputString += stringPut(_nParams.innerNets);
+  outputString += stringPut(_params.np.innerNets);
   outputString += "\n";
-  for (uint i = 0; i < _nParams.innerNetNodes.size(); i++) {
+  for (uint i = 0; i < _params.np.innerNetNodes.size(); i++) {
     outputString += " - ";
-    outputString += stringPut(_nParams.innerNetNodes[i]);
+    outputString += stringPut(_params.np.innerNetNodes[i]);
     outputString += "\n";
     //cout << " - " << nParams.innerNetNodes[i] << endl;
   }
   outputString += "Tests per train(min): ";
-    outputString += stringPut(_nParams.testIterations);
+    outputString += stringPut(_params.np.testIterations);
     outputString += "\n";
   outputString += "Particles: ";
-    outputString += stringPut(_pParams.particles);
+    outputString += stringPut(_params.pp.particles);
     outputString += "\nNeighbors: ";
-    outputString += stringPut(_pParams.neighbors);
+    outputString += stringPut(_params.pp.neighbors);
     outputString += "\n";
   outputString += "Minimum Particle Iterations: ";
-    outputString += stringPut(_pParams.iterations);
+    outputString += stringPut(_params.pp.iterations);
     outputString += "\n";
 
   //cout << "Tests per train(min): " << nParams.testIterations << endl;
@@ -418,12 +418,12 @@ void MainWindow::runNeuralPso() {
     }
   }
 
-  if (_neuralPso != nullptr) {
-      delete _neuralPso;
+  if (_neuralPsoTrainer != nullptr) {
+      delete _neuralPsoTrainer;
   }
 
-  NeuralPso *np = new NeuralPso(_pParams, _nParams, _fParams);
-  _neuralPso = np;
+  PETrainer *np = new PETrainer(_params);
+  _neuralPsoTrainer = np;
   //np->build(trainingImages, trainingLabels);
   np->build(_inputData, _labelsData);
   np->setFunctionMsg("PE");
@@ -453,19 +453,19 @@ void MainWindow::loadFile_btn() {
 }
 
 void MainWindow::updatePlot() {
-    if (_neuralPso != nullptr) {
-        NeuralNet::EdgeType * edge = &(_neuralPso->gb()->_x);
+    if (_neuralPsoTrainer != nullptr) {
+        NeuralNet::EdgeType * edge = &(_neuralPsoTrainer->gb()->_x);
         ui->neuralNetPlot->setEdges(edge);
         updateConfusionMatrix();
 
         if (_runPso) {
-            if (_neuralPso->checkTermProcess()) {
+            if (_neuralPsoTrainer->checkTermProcess()) {
                 stopPso();
             } else {
 
                 QString completionMsg;
                 completionMsg.append("Training running. ");
-                completionMsg.append(QString::number(_neuralPso->iterations(), 10));
+                completionMsg.append(QString::number(_neuralPsoTrainer->iterations(), 10));
                 completionMsg.append(" iterations");
                 setOutputLabel(completionMsg);
             }
@@ -569,8 +569,8 @@ bool MainWindow::readPEFile(vector<double> &labels, vector<vector<double>> &data
     ifstream inputFile(file);
 
   // Select data columns to skip (never select '0'th column!)
-  //vector<int> skips = {3, 5, 6, 8};
-    vector<int> skips;
+  vector<int> skips = {3, 5, 6, 8};
+  //vector<int> skips;
   _inputskips = skips;
 
   if (!inputFile.is_open()) {

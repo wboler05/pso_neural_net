@@ -108,6 +108,25 @@ win32 {
     }
 }
 
+win32-msvc* {
+    message (MSVC in use)
+    DEFINES += USE_MSVC
+
+    # Optimization for release
+    QMAKE_CXXFLAGS_RELEASE -= -O
+    QMAKE_CXXFLAGS_RELEASE -= -O1
+    QMAKE_CXXFLAGS_RELEASE -= -O2
+    QMAKE_CXXFLAGS_RELEASE += -Ox
+
+    # Optimization for debugging
+    QMAKE_CXXFLAGS_DEBUG += -Od
+} else {
+    message (None MSVC)
+#    CONFIG += c++14
+    QMAKE_CXXFLAGS_RELEASE += -O3
+    QMAKE_CXXFLAGS_DEBUG += -Og
+}
+
 INCLUDEPATH += \
     backend \
     frontend \
@@ -129,7 +148,8 @@ SOURCES += \
     backend/teststatistics.cpp \
     fnnpsogsa.cpp \
     Utils/custommath.cpp \
-    frontend/aboutconfusionmatrixdialog.cpp
+    frontend/aboutconfusionmatrixdialog.cpp \
+    petrainer.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -143,7 +163,8 @@ HEADERS += \
     backend/teststatistics.h \
     fnnpsogsa.h \
     Utils/custommath.h \
-    frontend/aboutconfusionmatrixdialog.h
+    frontend/aboutconfusionmatrixdialog.h \
+    petrainer.h
 
 FORMS += \
     frontend/mainwindow.ui \

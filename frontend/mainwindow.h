@@ -14,6 +14,7 @@
 #include <ctime>
 
 #include <boost/thread.hpp>
+#include <petrainer.h>
 #include "backend/neuralpso.h"
 #include "backend/NeuralNet/NeuralNet.h"
 #include "backend/PSO/pso.h"
@@ -99,11 +100,9 @@ protected slots:
 
 private:
     Ui::MainWindow *ui;
-    NeuralPso *_neuralPso = nullptr;
+    PETrainer *_neuralPsoTrainer = nullptr;
     std::unique_ptr<NeuralNet> _trainedNeuralNet;
-    PsoParams _pParams;
-    NeuralNetParameters _nParams;
-    FitnessParameters _fParams;
+    PEParameters _params;
 
     QTime _runTimer;
 

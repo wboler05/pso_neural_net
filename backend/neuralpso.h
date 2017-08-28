@@ -14,19 +14,9 @@
 #include "CL/cl.hpp"
 #include "util.h"
 
-/*
-template <class T>
-class Pso;
-*/
-template class Pso<NeuralNet::EdgeType>;
-
-/*
-template <class T>
-struct Particle;
-*/
-template struct Particle<NeuralNet::EdgeType>;
-
 class NeuralNet;
+template class Pso<NeuralNet::EdgeType>;
+template struct Particle<NeuralNet::EdgeType>;
 
 struct FitnessParameters {
     double mse_weight;
@@ -47,15 +37,11 @@ public:
   double getCost();
   void processEvents();
 
-  double testRun(double &correctRatio, uint &totalCount, double &confidence);
-  void testGB();
+  virtual double testRun(double &correctRatio, uint &totalCount, double &confidence);
+  virtual void testGB();
 
   NeuralNet * neuralNet() { return _neuralNet; }
   std::unique_ptr<NeuralNet> buildNeuralNetFromGb();
-
-  int randomizeTestInputs();
-  void runTrainer();
-  void loadTestInput(uint32_t I);
 
   void printGB();
   void printParticle(uint i);
@@ -64,49 +50,19 @@ public:
 
   static void setToPrintGBNet();
 
-  void setFunctionMsg(std::string s) { _functionMsg = s; }
-  std::string functionMsg() { return _functionMsg; }
-
-  void classError(TestStatistics::ClassificationError * ce);
-
   FitnessParameters * fitnessParams() { return &_fParams; }
 
   NeuralNet::EdgeType & getGbEdges();
 
-  //!TODO  convert to const, please
-  TestStatistics & testStats() { return _testStats; }
-
-  int convertOutput(const double & output);
-
 protected:
     NeuralNet *_neuralNet;
+    FitnessParameters _fParams;
 
 private:
-  std::vector<std::vector<std::vector<byte> > > *_images;
-  std::vector<byte> *_labels;
-  FitnessParameters _fParams;
-  TestStatistics _testStats;
-
-  // Test input
-  std::vector<std::vector<double> > *_input;
-  std::vector<double> *_output;
-  std::vector<double> *_outputCount;
-  std::vector<std::vector<uint>> _outputIterators;
-
-  std::string _functionMsg;
-
   static bool printGBFlag;
   static boost::mutex printGBMtx;
 
   void flyIteration(size_t particle, size_t inner_net, size_t left_edge, size_t right_edge);
-  virtual bool validateOutput(
-          std::vector<double> & outputs,
-          std::vector<double> & expectedOutputs,
-          std::vector<double> & outputError,
-          TestStatistics & testStats,
-          bool & correctOutput);
-
-//  vector<pair<bool, int>> _failureQueue;
 
 };
 
