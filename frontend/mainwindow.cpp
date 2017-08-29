@@ -230,9 +230,9 @@ void MainWindow::setParameterDefaults() {
     _params.pp.particles = 50; // 50
     _params.pp.neighbors = 13; // 10
     _params.pp.iterations = 1000;
-    _params.pp.delta = 5E-7;
+    _params.pp.delta = 5E-8;
     _params.pp.vDelta = 5E-200;
-    _params.pp.termIterationFlag = true;
+    _params.pp.termIterationFlag = false;
     _params.pp.termDeltaFlag = true;
     _params.pp.window = 500;
 
@@ -246,11 +246,12 @@ void MainWindow::setParameterDefaults() {
     */
     _params.np.inputs = _inputData[0].size();
     _params.np.innerNetNodes.clear();
-    _params.np.innerNetNodes.push_back(3);
-    _params.np.innerNetNodes.push_back(2);
+    _params.np.innerNetNodes.push_back(4);
+    _params.np.innerNetNodes.push_back(4);
+    _params.np.innerNetNodes.push_back(4);
     _params.np.innerNets = _params.np.innerNetNodes.size();
     _params.np.outputs = 1;
-    _params.np.testIterations = 200; //500
+    _params.np.testIterations = 500; //500
 
     _params.fp.floors.accuracy = .05;
     _params.fp.floors.precision = 0.05;
@@ -260,11 +261,11 @@ void MainWindow::setParameterDefaults() {
     _params.fp.mse_floor = 0;
 
     _params.fp.mse_weight = 1;
-    _params.fp.weights.accuracy = 0.01;
-    _params.fp.weights.precision = .4;
-    _params.fp.weights.sensitivity = 100.0;
-    _params.fp.weights.specificity = 0.001;
-    _params.fp.weights.f_score = .01;
+    _params.fp.weights.accuracy = 0.0;
+    _params.fp.weights.precision = 0.0;
+    _params.fp.weights.sensitivity = 0.0;
+    _params.fp.weights.specificity = 0.0;
+    _params.fp.weights.f_score = 0.0;
 
     updateParameterGui();
 }

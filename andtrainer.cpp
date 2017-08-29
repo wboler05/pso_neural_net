@@ -297,7 +297,7 @@ void ANDTrainer::runTrainer() {
 void ANDTrainer::classError(TestStatistics::ClassificationError *ce) {
   _testStats.clear();
 
-  size_t clampMax = 200;
+  size_t clampMax = _neuralNet->nParams()->testIterations;
   size_t inputSize = _input->size();
   if (inputSize > clampMax) {
       inputSize = clampMax;
