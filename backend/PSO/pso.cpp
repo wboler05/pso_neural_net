@@ -40,16 +40,18 @@ void Pso<T>::run() {
     processEvents();
     fly();
     double cost = getCost();
-    double prevCost = std::numeric_limits<double>::max();
-    for (size_t i = 0; i < history.size(); i++) {
-        prevCost = std::min(prevCost, history[i]);
+    double lowCost = std::numeric_limits<double>::max();
+    double highCost = cost;
+    for (size_t i = 0; i < history.size() && _psoParams.termDeltaFlag; i++) {
+        lowCost = std::min(lowCost, history[i]);
+        highCost = std::max(highCost, history[i]);
     }
     history.push_back(cost);
     if (history.size() > _psoParams.window) {
         history.erase(history.begin());
     }
 
-    double dif = (cost - prevCost);
+    double dif = (highCost - lowCost);
 
     if ((dif < _psoParams.delta && _psoParams.termDeltaFlag)
             && (history.size() == _psoParams.window))
