@@ -3,64 +3,75 @@
 
 std::queue<std::string> Logger::_queue;
 std::string Logger::_file;
-boost::mutex Logger::_writeMtx;
-boost::thread Logger::_loggingThread(Logger::LoggingConsummer);
+std::mutex Logger::_writeMtx;
+std::thread Logger::_loggingThread(Logger::LoggingConsummer);
 bool Logger::_fileSet = false;
 bool Logger::_verboseFlag = true;
+bool Logger::_terminateFlag = false;
 
 
 /// Sets write file and calls LoggingConsumer() thread
 void Logger::setOutputFile(std::string file) {
-  _writeMtx.lock();
+    std::unique_lock<std::mutex> lock1(_writeMtx, std::defer_lock);
+    lock1.lock();
   _file = file;
   _fileSet = true;
-  _writeMtx.unlock();
 }
 
 /// Allows user to print to screen and file.
 void Logger::write(std::string s) {
-  //_writeMtx.lock();
-  //_queue.push(s);
-  //_writeMtx.unlock();
-
-    std::cout << s;
+    std::unique_lock<std::mutex> lock1(_writeMtx, std::defer_lock);
+    lock1.lock();
+    _queue.push(s);
 }
 
 void Logger::LoggingConsummer() {
   for(;;) {
 
-    _writeMtx.lock();
+    std::unique_lock<std::mutex> lock1(_writeMtx, std::defer_lock);
+    lock1.lock();
 
-    if (_fileSet) {
-
-      if (_queue.size() > 0) {
-
+    if (_queue.size() > 0) {
         std::string s;
-        std::ofstream outputFile(_file, std::ios::app);
-        if (!outputFile.is_open()) {
-          std::cout << "Failed to open output file.";
-          continue;
-        } else {
-          s = _queue.front();
-          _queue.pop();
-          outputFile.write(s.c_str(), s.size());
-        }
-        if (_verboseFlag)
-          std::cout << s;
+        s = _queue.front();
+        _queue.pop();
 
-        outputFile.close();
-      }
+        if (_fileSet) {
+
+            std::ofstream outputFile(_file, std::ios::app);
+            if (outputFile.is_open()) {
+              outputFile.write(s.c_str(), s.size());
+              outputFile.close();
+            }
+        }
+
+        if (_verboseFlag) {
+          std::cout << s;
+        }
     }
-    _writeMtx.unlock();
+
+    if (_terminateFlag) {
+        std::cout << "Logger: Oh, you want to quit?" << std::endl;
+        return;
+    }
 
   }
 
 }
 
 void Logger::setVerbose(bool t) {
-  _writeMtx.lock();
-  _verboseFlag = t;
-  _writeMtx.unlock();
+    std::unique_lock<std::mutex> lock1(_writeMtx, std::defer_lock);
+    lock1.lock();
+    _verboseFlag = t;
+}
+
+void Logger::terminate() {
+    std::unique_lock<std::mutex> lock1(_writeMtx, std::defer_lock);
+    lock1.lock();
+    _terminateFlag = true;
+    std::cout << "Terminator: Terminating logger thread." << std::endl;
+    lock1.unlock();
+    _loggingThread.join();
 }
 
 

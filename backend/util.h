@@ -7,7 +7,11 @@
 #include <string>
 #include <sstream>
 
-#include <boost/thread.hpp>
+#include <QDebug>
+#include <thread>
+#include <mutex>
+
+//#include <boost/thread.hpp>
 
 class Logger {
 
@@ -22,16 +26,19 @@ public:
 
   static void setVerbose(bool t);
 
+  static void terminate();
+
 private:
 
   static void LoggingConsummer();
 
   static std::queue<std::string> _queue;
   static std::string _file;
-  static boost::mutex _writeMtx;
-  static boost::thread _loggingThread;
+  static std::mutex _writeMtx;
+  static std::thread _loggingThread;
   static bool _fileSet;
   static bool _verboseFlag;
+  static bool _terminateFlag;
 
 };
 

@@ -3,18 +3,23 @@
 
 #include "neuralpso.h"
 
-struct PEParameters {
+struct ANDParameters {
     PsoParams pp;
     NeuralNetParameters np;
     FitnessParameters fp;
 };
 
-class PETrainer : public NeuralPso
+class ANDTrainer : public NeuralPso
 {
-public:
-    PETrainer(const PEParameters & pe);
 
-    void build(std::vector<std::vector<std::vector<byte> > > &images, std::vector<byte> &labels);
+public:
+    struct InputCache {
+        bool a;
+        bool b;
+    };
+
+    ANDTrainer(const ANDParameters & pe);
+
     void build(std::vector<std::vector<double>> &input, std::vector<double> &output);
 
     double testRun(double &correctRatio, uint &totalCount, double &confidence);
@@ -23,18 +28,18 @@ public:
     int randomizeTestInputs();
     void runTrainer();
     void loadTestInput(uint32_t I);
+    void loadValidationInput(size_t I);
 
     void classError(TestStatistics::ClassificationError * ce);
     TestStatistics & testStats() { return _testStats; }
 
-    int convertOutput(const double & output);
+    static bool convertOutput(const double & output);
+    static double convertInput(const bool & b);
 
     void setFunctionMsg(std::string s) { _functionMsg = s; }
     std::string functionMsg() { return _functionMsg; }
 
 private:
-    std::vector<std::vector<std::vector<byte> > > *_images;
-    std::vector<byte> *_labels;
     TestStatistics _testStats;
     std::vector<std::vector<double> > *_input;
     std::vector<double> *_output;
@@ -44,8 +49,8 @@ private:
     std::string _functionMsg;
 
     bool validateOutput(
-            std::vector<double> & outputs,
-            std::vector<double> & expectedOutputs,
+            const std::vector<double> & outputs,
+            const std::vector<double> &expectedResult,
             std::vector<double> & outputError,
             TestStatistics & testStats,
             bool & correctOutput);

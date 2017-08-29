@@ -146,10 +146,9 @@ SOURCES += \
     frontend/neuralnetplot.cpp \
     frontend/innernetnodesinput.cpp \
     backend/teststatistics.cpp \
-    fnnpsogsa.cpp \
     Utils/custommath.cpp \
     frontend/aboutconfusionmatrixdialog.cpp \
-    petrainer.cpp
+    andtrainer.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -161,10 +160,9 @@ HEADERS += \
     frontend/neuralnetplot.h \
     frontend/innernetnodesinput.h \
     backend/teststatistics.h \
-    fnnpsogsa.h \
     Utils/custommath.h \
     frontend/aboutconfusionmatrixdialog.h \
-    petrainer.h
+    andtrainer.h
 
 FORMS += \
     frontend/mainwindow.ui \

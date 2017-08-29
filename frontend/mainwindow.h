@@ -12,9 +12,10 @@
 #include <cinttypes>
 #include <vector>
 #include <ctime>
+#include <random>
 
 #include <boost/thread.hpp>
-#include <petrainer.h>
+#include <andtrainer.h>
 #include "backend/neuralpso.h"
 #include "backend/NeuralNet/NeuralNet.h"
 #include "backend/PSO/pso.h"
@@ -22,9 +23,11 @@
 #include "CL/cl.hpp"
 #include "frontend/innernetnodesinput.h"
 
-#include "fnnpsogsa.h"
+//#include "fnnpsogsa.h"
 
 #include "aboutconfusionmatrixdialog.h"
+
+#define TOTAL_GENERATED_LABELS 10000000
 
 namespace Ui {
 class MainWindow;
@@ -39,7 +42,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-
+/*
     struct LabelInfo {
       uint32_t dataType;
       uint32_t dataDimensions;
@@ -53,27 +56,28 @@ public:
       uint32_t rows;
       uint32_t cols;
     };
+*/
 
 protected:
 
     void keyPressEvent(QKeyEvent * e);
     //void onKeyInput();
-    void loadTrainingData(std::string imageFile,
-                          std::string labelFile,
-                          std::vector<std::vector<vector<uint8_t> > > &trainingImages,
-                          std::vector<uint8_t> &trainingLabels);
-
-    bool readMagicNumber(std::ifstream &in,
-                         uint32_t &dataType,
-                         uint32_t &dimensions,
-                         uint32_t &numItems);
-    bool readLabelHeading(std::ifstream &in,
-                          LabelInfo &lb);
-    bool readImageHeading(std::ifstream &in,
-                          ImageInfo &im);
+//    void loadTrainingData(std::string imageFile,
+//                          std::string labelFile,
+//                          std::vector<std::vector<vector<uint8_t> > > &trainingImages,
+//                          std::vector<uint8_t> &trainingLabels);
+//
+//    bool readMagicNumber(std::ifstream &in,
+//                         uint32_t &dataType,
+//                         uint32_t &dimensions,
+//                         uint32_t &numItems);
+//    bool readLabelHeading(std::ifstream &in,
+//                          LabelInfo &lb);
+//    bool readImageHeading(std::ifstream &in,
+//                          ImageInfo &im);
     uint32_t char2uint(uint8_t *input);
     uint32_t readUnsignedInt(std::ifstream &input);
-    bool readPEFile(std::vector<double> &labels, std::vector<std::vector<double>> &data);
+//    bool readPEFile(std::vector<double> &labels, std::vector<std::vector<double>> &data);
 
     void initializeCL(std::vector<cl::Device> &cpuDevices,
                       std::vector<cl::Device> &gpuDevices,
@@ -81,11 +85,13 @@ protected:
 
     void setOutputLabel(const QString & s);
 
+    void generateAndLabels();
+
 protected slots:
     void runNeuralPso();
     void stopPso();
     void updatePlot();
-    void loadFile_btn();
+//    void loadFile_btn();
     void applyParameterChanges();
     void setParameterDefaults();
     void updateParameterGui();
@@ -97,21 +103,22 @@ protected slots:
     void testTrainedNetWithInput();
     void updateConfusionMatrix();
     void showConfusionMatrixHelpBox();
+    void closeEvent(QCloseEvent *event);
 
 private:
     Ui::MainWindow *ui;
-    PETrainer *_neuralPsoTrainer = nullptr;
+    ANDTrainer *_neuralPsoTrainer = nullptr;
     std::unique_ptr<NeuralNet> _trainedNeuralNet;
-    PEParameters _params;
+    ANDParameters _params;
 
     QTime _runTimer;
 
     // Input Data
-    FNNPSOGSA _inputCache;
+    ANDTrainer::InputCache _inputCache;
     std::vector<int> _inputskips;
 
     bool _runPso = false;
-    bool _fileLoaded = false;
+//    bool _fileLoaded = false;
 
     vector<double> _labelsData;
     vector<vector<double>> _inputData;

@@ -73,7 +73,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //thread1.join();
     connect(ui->run_btn, SIGNAL(clicked(bool)), this, SLOT(runNeuralPso()));
     connect(ui->stop_btn, SIGNAL(clicked(bool)), this, SLOT(stopPso()));
-    connect(ui->actionLoad_File, SIGNAL(triggered(bool)), this, SLOT(loadFile_btn()));
+    //connect(ui->actionLoad_File, SIGNAL(triggered(bool)), this, SLOT(loadFile_btn()));
     connect(ui->applyParams_btn, SIGNAL(clicked(bool)), this, SLOT(applyParameterChanges()));
     connect(ui->innerNet_btn, SIGNAL(clicked(bool)), this, SLOT(setInnerNetNodesFromGui()));
     connect(ui->printGB_btn, SIGNAL(clicked(bool)), this, SLOT(printGB()));
@@ -81,16 +81,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->setNet_btn, SIGNAL(clicked(bool)), this, SLOT(setCurrentNet()));
     connect(ui->testInput_btn, SIGNAL(clicked(bool)), this, SLOT(testTrainedNetWithInput()));
 
-    connect(ui->etco2_dsb, SIGNAL(editingFinished()), this, SLOT(setInputsForTrainedNetFromGui()));
-    connect(ui->age_dsb, SIGNAL(editingFinished()), this, SLOT(setInputsForTrainedNetFromGui()));
-    connect(ui->sysbloodpres_dsb, SIGNAL(editingFinished()), this, SLOT(setInputsForTrainedNetFromGui()));
-    connect(ui->sao2_dsb, SIGNAL(editingFinished()), this, SLOT(setInputsForTrainedNetFromGui()));
-    connect(ui->hemoptysis_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
-    connect(ui->tobacco_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
-    connect(ui->surgery_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
-    connect(ui->cardiac_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
-    connect(ui->dvtpe_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
-    connect(ui->uls_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
+    connect(ui->a_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
+    connect(ui->b_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
 
     connect(ui->actionConfusion_Matrix, SIGNAL(triggered(bool)), this, SLOT(showConfusionMatrixHelpBox()));
 
@@ -104,6 +96,13 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+    qDebug() << "MainWindow: Terminating program.";
+    Logger::terminate();
+    qDebug() << "MainWindow: Terminated successfully.";
+    QMainWindow::closeEvent(event);
 }
 
 void MainWindow::printGB() {
@@ -127,9 +126,36 @@ void MainWindow::setCurrentNet() {
 }
 
 void MainWindow::initializeData() {
-    loadFile_btn();
+    //loadFile_btn();
+    generateAndLabels();
     setParameterDefaults();
     setInputsForTrainedNetFromGui();
+}
+
+void MainWindow::generateAndLabels() {
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dist(0, 1);
+
+    _inputData.resize(TOTAL_GENERATED_LABELS);
+    _labelsData.resize(TOTAL_GENERATED_LABELS);
+
+    for (size_t i = 0; i < TOTAL_GENERATED_LABELS; i++) {
+        _inputData[i].resize(2);
+
+        double A = dist(gen);
+        double B = dist(gen);
+        double result =
+                ANDTrainer::convertInput(
+                    ANDTrainer::convertOutput(A) &&
+                    ANDTrainer::convertOutput(B)
+                );
+
+        _inputData[i][0] = A;
+        _inputData[i][1] = B;
+        _labelsData[i] = result;
+    }
 }
 
 void MainWindow::keyPressEvent(QKeyEvent * e) {
@@ -244,16 +270,8 @@ void MainWindow::setParameterDefaults() {
 }
 
 void MainWindow::setInputsForTrainedNetFromGui() {
-    _inputCache.etco2 = ui->etco2_dsb->value();
-    _inputCache.age = ui->age_dsb->value();
-    _inputCache.sysBloodPres = ui->sysbloodpres_dsb->value();
-    _inputCache.sao2 = ui->sao2_dsb->value();
-    _inputCache.hemoptysis = ui->hemoptysis_cb->isChecked();
-    _inputCache.tobacco = ui->tobacco_cb->isChecked();
-    _inputCache.surgery = ui->surgery_cb->isChecked();
-    _inputCache.cardiac = ui->cardiac_cb->isChecked();
-    _inputCache.dvtpe = ui->dvtpe_cb->isChecked();
-    _inputCache.uls = ui->uls_cb->isChecked();
+    _inputCache.a = ui->a_cb->isChecked();
+    _inputCache.b = ui->b_cb->isChecked();
 }
 
 void MainWindow::updateConfusionMatrix() {
@@ -295,7 +313,10 @@ void MainWindow::updateConfusionMatrix() {
 void MainWindow::testTrainedNetWithInput() {
     if (_trainedNeuralNet != nullptr) {
         std::vector<double> newInput;
-        std::vector<double> curInput = _inputCache.inputize();
+        //std::vector<double> curInput = _inputCache.inputize();
+        std::vector<double> curInput;
+        curInput.push_back(ANDTrainer::convertInput(_inputCache.a));
+        curInput.push_back(ANDTrainer::convertInput(_inputCache.b));
         for (int i = 0; i < curInput.size(); i++) {
             // Remember, skips include PE as the first index, so subtract 1
             bool skipPos=false;
@@ -329,12 +350,11 @@ void MainWindow::testTrainedNetWithInput() {
             ui->testInput_output->setText("UNK Output");
             return;
         } else {
-            if (output[0] < 0.5) {
-                ui->testInput_output->setText("No PE");
-            } else if (output[0] >= 0.5) {
-                ui->testInput_output->setText("Det PE");
+            bool result = ANDTrainer::convertOutput(output[0]);
+            if (result) {
+                ui->testInput_output->setText("Statement is True");
             } else {
-                ui->testInput_output->setText("Confused");
+                ui->testInput_output->setText("Statement is False");
             }
         }
     }
@@ -361,10 +381,6 @@ void MainWindow::setOutputLabel(const QString & s) {
 }
 
 void MainWindow::runNeuralPso() {
-  /// image.rows.cols
-  //vector<vector<vector<uint8_t> > > trainingImages;
-  //vector<uint8_t> trainingLabels;
-
   if (_runPso) {
       return;
   }
@@ -375,11 +391,7 @@ void MainWindow::runNeuralPso() {
   setOutputLabel("Training running.");
   enableParameterInput(false);
 
-  if (!_fileLoaded) {
-    return;
-  }
-
-    // Make sure that parameters are ready
+  // Make sure that parameters are ready
   applyParameterChanges();
 
   std::string outputString;
@@ -422,7 +434,7 @@ void MainWindow::runNeuralPso() {
       delete _neuralPsoTrainer;
   }
 
-  PETrainer *np = new PETrainer(_params);
+  ANDTrainer *np = new ANDTrainer(_params);
   _neuralPsoTrainer = np;
   //np->build(trainingImages, trainingLabels);
   np->build(_inputData, _labelsData);
@@ -448,9 +460,9 @@ void MainWindow::runNeuralPso() {
 
 }
 
-void MainWindow::loadFile_btn() {
-    _fileLoaded = readPEFile(_labelsData, _inputData);
-}
+//void MainWindow::loadFile_btn() {
+//    _fileLoaded = readPEFile(_labelsData, _inputData);
+//}
 
 void MainWindow::updatePlot() {
     if (_neuralPsoTrainer != nullptr) {
@@ -477,6 +489,7 @@ void MainWindow::enableParameterInput(bool b) {
     ui->param_gb->setEnabled(b);
 }
 
+/*
 void MainWindow::loadTrainingData(string imageFile, string labelFile, vector<vector<vector<uint8_t> > > &trainingImages, vector<uint8_t> &trainingLabels) {
   ifstream trainLabelFile(labelFile, ios::binary);
 
@@ -535,7 +548,9 @@ void MainWindow::loadTrainingData(string imageFile, string labelFile, vector<vec
   cout << "Loaded training images." << endl;
 
 }
+*/
 
+/*
 QString MainWindow::loadInputFileDialog() {
     qApp->processEvents();
     QDir curDir(qApp->applicationDirPath());
@@ -549,6 +564,7 @@ QString MainWindow::loadInputFileDialog() {
                 tr("Data Files (*.csv)"));
     return fileString;
 }
+*/
 
 void MainWindow::showConfusionMatrixHelpBox() {
     AboutConfusionMatrixDialog *db = new AboutConfusionMatrixDialog();
@@ -556,6 +572,7 @@ void MainWindow::showConfusionMatrixHelpBox() {
     db->show();
 }
 
+/*
 bool MainWindow::readPEFile(vector<double> &labels, vector<vector<double>> &data) {
 
     std::string file = loadInputFileDialog().toStdString();
@@ -623,10 +640,10 @@ bool MainWindow::readPEFile(vector<double> &labels, vector<vector<double>> &data
   inputFile.close();
   return true;
 }
+*/
 
 
-
-
+/*
 //bool MainWindow::readMagicNumber(ifstream &in, uint32_t &dataType, uint32_t &dimensions, uint32_t &numItems) {}
 bool MainWindow::readLabelHeading(ifstream &in, LabelInfo &lb) {
 
@@ -668,6 +685,7 @@ bool MainWindow::readImageHeading(ifstream &in, ImageInfo &im) {
 
   return true;
 }
+*/
 
 uint32_t MainWindow::readUnsignedInt(ifstream &input) {
   uint8_t temp[4];

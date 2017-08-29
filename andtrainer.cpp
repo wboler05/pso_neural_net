@@ -1,9 +1,7 @@
-#include "petrainer.h"
+#include "andtrainer.h"
 
-PETrainer::PETrainer(const PEParameters & pe) :
+ANDTrainer::ANDTrainer(const ANDParameters & pe) :
     NeuralPso(pe.pp, pe.np, pe.fp),
-    _images(nullptr),
-    _labels(nullptr),
     _input(nullptr),
     _output(nullptr),
     _outputCount(nullptr)
@@ -11,15 +9,7 @@ PETrainer::PETrainer(const PEParameters & pe) :
 
 }
 
-void PETrainer::build(vector<vector<vector<byte> > > &images, vector<byte> &labels) {
-  srand(time(NULL));
-  _images = &images;
-  _labels = &labels;
-
-  buildPso();
-}
-
-void PETrainer::build(vector<vector<double>> &input, vector<double> &output) {
+void ANDTrainer::build(vector<vector<double>> &input, vector<double> &output) {
   srand(time(NULL));
   _input = &input;
   _output = &output;
@@ -47,7 +37,7 @@ void PETrainer::build(vector<vector<double>> &input, vector<double> &output) {
   buildPso();
 }
 
-void PETrainer::testGB() {
+void ANDTrainer::testGB() {
   _neuralNet->setWeights(_gb._x);
   int I = randomizeTestInputs();
 
@@ -69,10 +59,10 @@ void PETrainer::testGB() {
 //      }
 //    }
     int answer = -1;
-    if (res[0] < 0.5) {
-        answer = 0;
-    } else if (res[0] >= 0.5) {
+    if (convertOutput(res[0])) {
         answer = 1;
+    } else {
+        answer = 0;
     }
     cout << "Got: " << answer << endl;
     cout << endl;
@@ -91,24 +81,20 @@ void PETrainer::testGB() {
 /// Correct ratio gives the ratio of correct runs.
 /// Total Count gives the total runs that were executed.
 /// Confidence returns how confident the net believes its answer is.
-double PETrainer::testRun(double &correctRatio, uint &totalCount, double &confidence) {
+double ANDTrainer::testRun(double &correctRatio, uint &totalCount, double &confidence) {
 
     double mse = 0;
     uint outputNodes = _neuralNet->nParams()->outputs;
     //!TODO Reconsider confidence calculation
     confidence = 0;
     vector<double> outputError;
+    std::vector<double> expectedOutput;
+    expectedOutput.resize(outputNodes);
 
     uint totalSetsToRun = _neuralNet->nParams()->testIterations;
     uint correctCount = totalSetsToRun;
 
     TestStatistics testStats;
-
-    vector<int> *answer = new vector<int>();
-    answer->resize(totalSetsToRun);
-    for (uint im = 0; im < totalSetsToRun; im++) {
-        (*answer)[im] = 0;
-    }
 
     // First, test each output and store to the vector of results;
     for (uint someSets = 0; someSets < totalSetsToRun; someSets++) {
@@ -116,7 +102,7 @@ double PETrainer::testRun(double &correctRatio, uint &totalCount, double &confid
         int I = randomizeTestInputs();
         //    double tConfidence = (double) outputNodes;
         //int I = It[someSets];
-        //loadTestInput(I);
+        loadTestInput(I);
 
         // Get the result from random input
         vector<double> output = _neuralNet->process();
@@ -124,25 +110,8 @@ double PETrainer::testRun(double &correctRatio, uint &totalCount, double &confid
             cout << "Size mismatch on nodes. " << endl;
             cout << " - Output: " << output.size() << ", Expected: " << outputNodes << endl;
         }
-        vector<double> expectedOutput;
 
-        // Check if we have labels loaded or not
-        int outputSize = output.size();
-        if (_input == nullptr) {
-            answer->at(someSets) = _labels->at(I);
-        } else {
-            answer->at(someSets) = _output->at(I);
-        }
-
-        // Initialize the expected output buffer
-        expectedOutput.resize(outputSize);
-        for (int i = 0; i < outputSize; i++) {
-            if (i == answer->at(someSets)) {
-                expectedOutput[i] = 1;
-            } else {
-                expectedOutput[i] = 0;
-            }
-        }
+        expectedOutput[0] = _output->at(I);
 
         //    double maxVal = -1.0;
         //    int maxNode = 0;
@@ -165,6 +134,11 @@ double PETrainer::testRun(double &correctRatio, uint &totalCount, double &confid
             return 0;
         }
 
+        // Get the MSE
+        for (uint i = 0; i < outputError.size(); i++) {
+            mse += pow(outputError[i], 2);
+        }
+
         // If we have a correct answer, then we're heading in the right direction
         if (!correctOutput) {
             correctCount--;
@@ -175,7 +149,6 @@ double PETrainer::testRun(double &correctRatio, uint &totalCount, double &confid
             if (totalSetsToRun < _input->size()) {
                 ++totalSetsToRun;
                 ++correctCount;
-                answer->push_back(0);
             }
         }
 
@@ -183,17 +156,14 @@ double PETrainer::testRun(double &correctRatio, uint &totalCount, double &confid
     }
     //confidence /= totalSetsToRun;
 
+    mse = sqrt(mse)/outputError.size() / totalSetsToRun;
+
+    qDebug() << "MSE: " << mse;
+
     TestStatistics::ClassificationError ce;
     testStats.getClassError(&ce);
 
-    // Get the MSE
-    mse = 0;
-    for (uint i = 0; i < outputError.size(); i++) {
-        mse += pow(outputError[i]/totalSetsToRun, 2);
-    }
-    mse = sqrt(mse)/outputError.size();
 
-    delete answer;
 
     correctRatio = (double) correctCount / (double) totalSetsToRun;
     totalCount = totalSetsToRun;
@@ -219,7 +189,7 @@ double PETrainer::testRun(double &correctRatio, uint &totalCount, double &confid
              + (_fParams.weights.specificity*ce.specificity)
              + (_fParams.weights.precision*ce.precision)
              + (_fParams.weights.f_score*ce.f_score));
-    return cost * (double)totalSetsToRun;
+    return cost;
 
   /* Previous tests
 
@@ -240,17 +210,16 @@ double PETrainer::testRun(double &correctRatio, uint &totalCount, double &confid
   */
 }
 
-bool PETrainer::validateOutput(
-        std::vector<double> & outputs,
-        std::vector<double> & expectedOutputs,
+bool ANDTrainer::validateOutput(
+        const std::vector<double> &outputs,
+        const std::vector<double> & expectedResult,
         std::vector<double> & outputError,
         TestStatistics & testStats,
         bool & correctOutput)
 {
-    // Check the output and expected output size are the same
-    if (outputs.size() != expectedOutputs.size()) {
-        // Return false if not
-        std::cout << "Error validating: outputs do not match.";
+
+    if (outputs.size() != expectedResult.size()) {
+        std::cout<< "Error, output size does not match expected size.";
         return false;
     }
 
@@ -260,35 +229,33 @@ bool PETrainer::validateOutput(
     // Initialize to true, set to false when one breaks
     correctOutput = true;
 
-    // For each output node
     for (size_t i = 0; i < outputs.size(); i++) {
-        // Compare the output node to the expected answer
-        // For our case, we just need between 0 and 1, with 0.5 being the threshold
-        int result = convertOutput(outputs[i]);
+        double result = outputs.at(0);
 
         // Collect stats
         if (result == 1) {
-            if (expectedOutputs[0] == 1) {
+            if (expectedResult[i] == 1) {
                 testStats.addTn();
             } else {
                 correctOutput = false;
                 testStats.addFp();
             }
         } else {
-            if (expectedOutputs[0] == 1) {
+            if (expectedResult[i] == 1) {
                 correctOutput = false;
                 testStats.addFn();
             } else {
                 testStats.addTp();
             }
         }
+
         // Set the output error for sum of squares later
-        outputError[i] = expectedOutputs[i] - outputs[i];
+        outputError[i] = expectedResult[i] - outputs[i];
     }
     return true;
 }
 
-int PETrainer::randomizeTestInputs() {
+int ANDTrainer::randomizeTestInputs() {
   _neuralNet->resetInputs();
 
   int uniformOutputIt = rand() % _outputIterators.size();
@@ -304,7 +271,7 @@ int PETrainer::randomizeTestInputs() {
   return I;
 }
 
-void PETrainer::loadTestInput(uint I) {
+void ANDTrainer::loadTestInput(uint I) {
   if (I >= _input->size()) return;
 
   _neuralNet->resetInputs();
@@ -314,7 +281,11 @@ void PETrainer::loadTestInput(uint I) {
   }
 }
 
-void PETrainer::runTrainer() {
+void ANDTrainer::loadValidationInput(size_t I) {
+    //todo
+}
+
+void ANDTrainer::runTrainer() {
 
   run();
 
@@ -323,32 +294,42 @@ void PETrainer::runTrainer() {
   _neuralNet->setWeights(gb()->_x);
 }
 
-void PETrainer::classError(TestStatistics::ClassificationError *ce) {
+void ANDTrainer::classError(TestStatistics::ClassificationError *ce) {
   _testStats.clear();
 
-  for (uint i = 0; i < _input->size(); i++) {
+  size_t clampMax = 200;
+  size_t inputSize = _input->size();
+  if (inputSize > clampMax) {
+      inputSize = clampMax;
+  }
+
+  for (uint i = 0; i < clampMax; i++) {
     _neuralNet->resetInputs();
-    for (uint j = 0; j < (*_input)[i].size(); j++) {
-      _neuralNet->loadInput((*_input)[i][j], j);
-    }
+    loadTestInput(i);
     double expectedAnswer = (*_output)[i];
     vector<double> output = _neuralNet->process();
 
     // Calling validateOutput would be expensive
-    int answer = convertOutput(output[0]);
+    bool result = convertOutput(output[0]);
+    bool expectedResult = convertOutput(expectedAnswer);
 
-    if (expectedAnswer == 1) {
-      if (answer == 1) {
+    if (expectedResult) {
+      if (result) {
         _testStats.addTp();
       } else {
         _testStats.addFn();
       }
     } else {
-      if (answer == 1) {
+      if (result) {
         _testStats.addFp();
       } else {
         _testStats.addTn();
       }
+    }
+    if (_testStats.fp() + _testStats.fn() == 0.0) {
+        if (++clampMax > _output->size()) {
+            break;
+        }
     }
   }
 
@@ -359,12 +340,20 @@ void PETrainer::classError(TestStatistics::ClassificationError *ce) {
 
 }
 
-int PETrainer::convertOutput(const double & output) {
+bool ANDTrainer::convertOutput(const double & output) {
     // Specific for the definition that below 0.5 is a negative result
     // above 0.5 is a positive result
     if (output < 0.5) {
-        return 0;
+        return false;
     } else {
-        return 1;
+        return true;
+    }
+}
+
+double ANDTrainer::convertInput(const bool & b) {
+    if (b) {
+        return 1.0;
+    } else {
+        return 0.0;
     }
 }
