@@ -219,7 +219,7 @@ double PETrainer::testRun(double &correctRatio, uint &totalCount, double &confid
              + (_fParams.weights.specificity*ce.specificity)
              + (_fParams.weights.precision*ce.precision)
              + (_fParams.weights.f_score*ce.f_score));
-    return cost;
+    return cost * (double)totalSetsToRun;
 
   /* Previous tests
 

@@ -271,73 +271,27 @@ const vector<double> & NeuralNet::process() {
   // Handle the input to the inner
   for (uint i = 0; i < _inputNodes.size(); i++) {
     for (uint j = 0; j < _innerNodes[0].size(); j++) {
-      double w = _inputNodes[i] * _edges[0][i][j];
-      _innerNodes[0][j] += w / _inputNodes.size();
+      _innerNodes[0][j] += _inputNodes[i] * _edges[0][i][j];;
     }
   }
-
-/*
-  cout << "Inputs (" << _inputNodes.size() << "): ";
-  for (uint i = 0; i < _inputNodes.size(); i++) {
-    cout << _inputNodes[i] << ", ";
-  }
-  cout << "\n" << endl;
-
-  cout << "Stage 1 Inner Node (" << _innerNodes[0].size() << "): ";
-  for (uint i = 0; i < _innerNodes[0].size(); i++) {
-    cout << _innerNodes[0][i] << ", ";
-  }
-  cout << "\n" << endl;
-*/
 
   // Handle the rest of the inner nodes
   for (uint i = 0; i < _innerNodes.size()-1; i++) {
     for (uint j = 0; j < _innerNodes[i].size(); j ++) {
       for (uint k = 0; k < _innerNodes[i+1].size(); k++) {
-        _innerNodes[i+1][k] += _edges[i+1][j][k] * activation(_innerNodes[i][j]) / _innerNodes[i].size();
+        _innerNodes[i+1][k] += _edges[i+1][j][k] * activation(_innerNodes[i][j]);
       }
     }
   }
 
-/*
-    cout << "Stage " << i+1 << " Inner Node (" << _innerNodes[i+1].size() << "): ";
-    for (uint f = 0; f < _innerNodes[i+1].size(); f++) {
-      cout << _innerNodes[i+1][f] << ", ";
-    }
-    cout << "\n" << endl;
-
-
-  }
-*/
   // Handle the inner nodes to the output
-  double maxVal = 0;
   for (uint i = 0; i < _outputNodes.size(); i++) {
     uint innerIndex = _innerNodes.size() - 1 ;
     uint innerSize = _innerNodes[innerIndex].size();
     for (uint j = 0; j < innerSize; j++) {
-//        double wuz = _innerNodes[innerIndex][j];
-      _outputNodes[i] += _edges[_edges.size()-1][j][i] * activation(_innerNodes[innerIndex][j]) / innerSize;
+      _outputNodes[i] += _edges[_edges.size()-1][j][i] * activation(_innerNodes[innerIndex][j]);
     }
-    //_outputNodes[i] = abs(_outputNodes[i]);
-//    _outputNodes[i] = (_outputNodes[i] / 2.0) + 0.5;
-//    if (_outputNodes[i] > maxVal) {
-//      maxVal = _outputNodes[i];
-//    }
   }
-
-//  if (maxVal != 0) {
-//    for (uint i = 0; i < _outputNodes.size(); i++) {
-//      _outputNodes[i] /= maxVal;
-//    }
-//  }
-
-/*
-  cout << "Output (" << _outputNodes.size() << "): ";
-  for (uint i = 0; i < _outputNodes.size(); i++) {
-    cout << _outputNodes[i] << ", ";
-  }
-  cout << "\n" << endl;
-*/
 
   return _outputNodes;
 }
@@ -354,6 +308,12 @@ void NeuralNet::resetInnerNodes() {
   }
 }
 
+/**
+ * @brief NeuralNet::setWeights
+ * @param w
+ * @return
+ * @todo Change it so that it can get a pointer to weights.
+ */
 bool NeuralNet::setWeights(const EdgeType & w) {
   //cout << "Edges: " << _edges.size() << " Setting: " << w->size() << endl;
   if (_edges.size() != w.size()) return false;
