@@ -11,8 +11,6 @@
 #include <thread>
 #include <mutex>
 
-//#include <boost/thread.hpp>
-
 class Logger {
 
 public:

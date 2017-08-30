@@ -3,11 +3,11 @@
 template <class T>
 bool Pso<T>::_overideTermFlag;
 template <class T>
-boost::mutex Pso<T>::stopProcessMtx;
+std::mutex Pso<T>::stopProcessMtx;
 template <class T>
 bool Pso<T>::_printFlag=false;
 template <class T>
-boost::mutex Pso<T>::printMtx;
+std::mutex Pso<T>::printMtx;
 
 template <class T>
 Pso<T>::Pso(PsoParams p) :
@@ -80,35 +80,40 @@ void Pso<T>::processEvents() {
 
 template <class T>
 void Pso<T>::interruptProcess() {
-//  boost::lock_guard<boost::mutex> guard(stopProcessMtx);
-  _overideTermFlag = true;
+    std::unique_lock<std::mutex> lock1(stopProcessMtx, std::defer_lock);
+    lock1.lock();
+    _overideTermFlag = true;
 }
 
 template <class T>
 bool Pso<T>::checkTermProcess() {
-//  boost::lock_guard<boost::mutex> guard(stopProcessMtx);
-  return _overideTermFlag;
+    std::unique_lock<std::mutex> lock1(stopProcessMtx, std::defer_lock);
+    lock1.lock();
+    return _overideTermFlag;
 }
 
 template <class T>
 void Pso<T>::resetProcess() {
-//  boost::lock_guard<boost::mutex> guard(stopProcessMtx);
-  _overideTermFlag = false;
+    std::unique_lock<std::mutex> lock1(stopProcessMtx, std::defer_lock);
+    lock1.lock();
+    _overideTermFlag = false;
 }
 
 template <class T>
 bool Pso<T>::checkForPrint() {
-//  boost::lock_guard<boost::mutex> guard(printMtx);
-  if (_printFlag) {
-    _printFlag = false;
-    return true;
-  } else {
-    return false;
-  }
+    std::unique_lock<std::mutex> lock1(printMtx, std::defer_lock);
+    lock1.lock();
+    if (_printFlag) {
+        _printFlag = false;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 template <class T>
 void Pso<T>::setToPrint() {
-//  boost::lock_guard<boost::mutex> guard(printMtx);
-  _printFlag = true;
+    std::unique_lock<std::mutex> lock1(printMtx, std::defer_lock);
+    lock1.lock();
+    _printFlag = true;
 }

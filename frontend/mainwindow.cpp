@@ -64,13 +64,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //initializeCL(_cpuDevices, _gpuDevices, _allDevices);
 
-    //! TODO Need to change this functionality
-    //boost::thread thread1(this->runNeuralPso);
-    //boost::thread thread2(&(this->onKeyInput());
-    //runNeuralPso();
-    //onKeyInput();
-
-    //thread1.join();
     connect(ui->run_btn, SIGNAL(clicked(bool)), this, SLOT(runNeuralPso()));
     connect(ui->stop_btn, SIGNAL(clicked(bool)), this, SLOT(stopPso()));
     //connect(ui->actionLoad_File, SIGNAL(triggered(bool)), this, SLOT(loadFile_btn()));
@@ -431,7 +424,9 @@ void MainWindow::runNeuralPso() {
     }
   }
 
+  NeuralNet::EdgeType gb;
   if (_neuralPsoTrainer != nullptr) {
+      gb = _neuralPsoTrainer->getGbEdges();
       delete _neuralPsoTrainer;
   }
 
@@ -446,6 +441,7 @@ void MainWindow::runNeuralPso() {
   //ui->neuralNetPlot->setEdges(&(net->getWeights()));
 
   // Train the net
+  np->injectGb(gb);
   np->runTrainer();
 
   /*

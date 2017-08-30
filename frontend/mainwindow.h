@@ -14,7 +14,6 @@
 #include <ctime>
 #include <random>
 
-#include <boost/thread.hpp>
 #include <andtrainer.h>
 #include "backend/neuralpso.h"
 #include "backend/NeuralNet/NeuralNet.h"

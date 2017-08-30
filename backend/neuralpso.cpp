@@ -5,7 +5,7 @@
 
 volatile bool stopProcessing = false;
 bool NeuralPso::printGBFlag = false;
-boost::mutex NeuralPso::printGBMtx;
+std::mutex NeuralPso::printGBMtx;
 
 NeuralPso::NeuralPso(PsoParams pp, NeuralNetParameters np, FitnessParameters fp) :
   Pso(pp),
@@ -545,6 +545,33 @@ void NeuralPso::printParticleLBest(uint I) {
     }
   }
   Logger::write(printString);
+}
+
+bool NeuralPso::injectGb(const NeuralNet::EdgeType &w) {
+    if (_particles.size() < 1) {
+        return false;
+    }
+
+    NeuralNet::EdgeType & px = _particles[0]._x;
+
+    if (w.size() != px.size()) {
+        return false;
+    }
+
+    for (size_t inner_node = 0; inner_node < px.size(); inner_node++) {
+        if (w.at(inner_node).size() != px[inner_node].size()) {
+            return false;
+        }
+        for (size_t left_node = 0; left_node < px[inner_node].size(); left_node++) {
+            if (w.at(inner_node).at(left_node).size() != px[inner_node][left_node].size()) {
+                return false;
+            }
+            for (size_t right_node = 0; right_node < px[inner_node][left_node].size(); right_node++) {
+                    px[inner_node][left_node][right_node] = w.at(inner_node).at(left_node).at(right_node);
+            }
+        }
+    }
+    return true;
 }
 
 void NeuralPso::setToPrintGBNet() {
