@@ -78,17 +78,23 @@ exists($$CUDA_PATH) {
     CUDA_PATH = $$(CUDA_PATH_V7_5)
     exists($$CUDA_PATH) {
         message(lOADED CUDA v7.5: $$CUDA_PATH)
+        DEFINES += OPENCL_DEFINED
     } else {
         message(Failed to find CUDA path!  Change the hardcoded path in the .pro)
 
         # Change CUDA Path to something manual if not loading
-        CUDA_PATH = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5"
+        #CUDA_PATH = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5"
+        exists ($$(CUDA_PATH)) {
+# fix this too
+            #DEFINES += OPENCL_DEFINED
+            message(Skipping hardcode: $$(CUDA_PATH))
+            CUDA_PATH = $$(CUDA_PATH)
+        }
     }
 }
 
 INCLUDEPATH += $$CUDA_PATH/include
 DEPENDPATH += $$CUDA_PATH/include
-
 
 win32 {
     !contains(QT_ARCH, i386) {
@@ -126,7 +132,8 @@ win32-msvc* {
     QMAKE_LFLAGS +=  /openmp
 } else {
     message (None MSVC)
-#    CONFIG += c++14
+    CONFIG += c++14
+    CONFIG += -j # Need to fix this.
     QMAKE_CXXFLAGS_RELEASE += -O3
     QMAKE_CXXFLAGS_DEBUG += -Og
 

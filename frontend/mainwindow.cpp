@@ -702,6 +702,8 @@ uint32_t MainWindow::char2uint(uint8_t *input) {
   return num;
 }
 
+#ifdef OPENCL_DEFINED
+
 void MainWindow::initializeCL(std::vector<cl::Device> &cpuDevices,
                   std::vector<cl::Device> &gpuDevices,
                   std::vector<cl::Device> &allDevices)
@@ -753,6 +755,8 @@ void MainWindow::initializeCL(std::vector<cl::Device> &cpuDevices,
         cout << " -- " << deviceName.c_str() << "\t " << deviceVendor.c_str() << "\t" << deviceVersion.c_str() << endl;
     }
 }
+
+#endif
 
 
 /*

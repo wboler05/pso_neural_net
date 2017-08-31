@@ -12,8 +12,11 @@
 #include <memory>
 #include <random>
 
-#include "CL/cl.hpp"
 #include "util.h"
+
+#ifdef OPENCL_DEFINED
+#include "CL/cl.hpp"
+#endif
 
 class NeuralNet;
 template class Pso<NeuralNet::EdgeType>;
@@ -46,7 +49,7 @@ public:
 
   NeuralNet * neuralNet() { return _neuralNet; }
   std::unique_ptr<NeuralNet> buildNeuralNetFromGb();
-  bool NeuralPso::injectGb(const NeuralNet::EdgeType &w);
+  bool injectGb(const NeuralNet::EdgeType &w);
 
   void printGB();
   void printParticle(uint i);

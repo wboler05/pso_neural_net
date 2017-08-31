@@ -19,12 +19,15 @@
 #include "backend/NeuralNet/NeuralNet.h"
 #include "backend/PSO/pso.h"
 #include "backend/util.h"
-#include "CL/cl.hpp"
 #include "frontend/innernetnodesinput.h"
 
 //#include "fnnpsogsa.h"
 
 #include "aboutconfusionmatrixdialog.h"
+
+#ifdef OPENCL_DEFINED
+#include "CL/cl.hpp"
+#endif
 
 #define TOTAL_GENERATED_LABELS 10000000
 
@@ -78,10 +81,6 @@ protected:
     uint32_t readUnsignedInt(std::ifstream &input);
 //    bool readPEFile(std::vector<double> &labels, std::vector<std::vector<double>> &data);
 
-    void initializeCL(std::vector<cl::Device> &cpuDevices,
-                      std::vector<cl::Device> &gpuDevices,
-                      std::vector<cl::Device> &allDevices);
-
     void setOutputLabel(const QString & s);
 
     void generateAndLabels();
@@ -122,9 +121,15 @@ private:
     vector<double> _labelsData;
     vector<vector<double>> _inputData;
 
+#ifdef OPENCL_DEFINED
     std::vector<cl::Device> _cpuDevices;
     std::vector<cl::Device> _gpuDevices;
     std::vector<cl::Device> _allDevices;
+
+    void initializeCL(std::vector<cl::Device> &cpuDevices,
+                      std::vector<cl::Device> &gpuDevices,
+                      std::vector<cl::Device> &allDevices);
+#endif
 
     void initializeData();
     QString loadInputFileDialog();
