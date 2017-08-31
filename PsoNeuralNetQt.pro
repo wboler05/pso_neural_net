@@ -120,11 +120,19 @@ win32-msvc* {
 
     # Optimization for debugging
     QMAKE_CXXFLAGS_DEBUG += -Od
+
+    # OpenMP
+    QMAKE_CXXFLAGS+= /openmp
+    QMAKE_LFLAGS +=  /openmp
 } else {
     message (None MSVC)
 #    CONFIG += c++14
     QMAKE_CXXFLAGS_RELEASE += -O3
     QMAKE_CXXFLAGS_DEBUG += -Og
+
+    # OpenMP
+    QMAKE_CXXFLAGS+= -fopenmp
+    QMAKE_LFLAGS +=  -fopenmp
 }
 
 INCLUDEPATH += \

@@ -10,6 +10,7 @@
 #include <ctime>
 #include <limits>
 #include <memory>
+#include <random>
 
 #include "CL/cl.hpp"
 #include "util.h"
@@ -23,6 +24,9 @@ struct FitnessParameters {
     double mse_floor;
     TestStatistics::ClassificationError weights;
     TestStatistics::ClassificationError floors;
+
+    double edgeWeightMax = 10E5;
+    double edgeWeightMin = -10E5;
 };
 
 class NeuralPso : public Pso<NeuralNet::EdgeType> {

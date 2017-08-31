@@ -8,6 +8,10 @@
 #include <sstream>
 
 #include <QDebug>
+#include <QTextStream>
+#include <QTextBrowser>
+#include <QScrollBar>
+#include <QPointer>
 #include <thread>
 #include <mutex>
 
@@ -18,6 +22,8 @@ public:
 
   /// Sets write file and calls LoggingConsumer() thread
   static void setOutputFile(std::string file);
+
+  static void setOutputBrowser(const QPointer<QTextBrowser> & outputBrowser);
 
   /// Allows user to print to screen and file.
   static void write(std::string s);
@@ -37,6 +43,8 @@ private:
   static bool _fileSet;
   static bool _verboseFlag;
   static bool _terminateFlag;
+
+  static QPointer<QTextBrowser> _outputBrowser;
 
 };
 

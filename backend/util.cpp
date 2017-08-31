@@ -8,6 +8,7 @@ std::thread Logger::_loggingThread(Logger::LoggingConsummer);
 bool Logger::_fileSet = false;
 bool Logger::_verboseFlag = true;
 bool Logger::_terminateFlag = false;
+QPointer<QTextBrowser> Logger::_outputBrowser;
 
 
 /// Sets write file and calls LoggingConsumer() thread
@@ -32,21 +33,33 @@ void Logger::LoggingConsummer() {
     lock1.lock();
 
     if (_queue.size() > 0) {
-        std::string s;
-        s = _queue.front();
+        QString s(_queue.front().c_str());
         _queue.pop();
 
         if (_fileSet) {
 
             std::ofstream outputFile(_file, std::ios::app);
             if (outputFile.is_open()) {
-              outputFile.write(s.c_str(), s.size());
+              outputFile.write(s.toStdString().c_str(), s.toStdString().size());
               outputFile.close();
             }
         }
 
         if (_verboseFlag) {
-          std::cout << s;
+            if (_outputBrowser != nullptr) {
+                _outputBrowser->append(s);
+
+                const int & scrollPos = _outputBrowser->verticalScrollBar()->value();
+                const int & scrollMax = _outputBrowser->verticalScrollBar()->maximum();
+                if (scrollMax - scrollPos < 5) {
+                    _outputBrowser->verticalScrollBar()->setValue(scrollMax);
+                }
+            }
+
+
+            QTextStream stream (stdout);
+            stream << s;
+          //std::cout << s;
         }
     }
 
@@ -57,6 +70,15 @@ void Logger::LoggingConsummer() {
 
   }
 
+  // Don't bog me down.
+  std::chrono::milliseconds sleepTime(16);
+  std::this_thread::sleep_for(sleepTime);
+
+}
+
+void Logger::setOutputBrowser(const QPointer<QTextBrowser> & outputBrowser) {
+    _outputBrowser = outputBrowser;
+    _outputBrowser->append(QString("Boink!\n"));
 }
 
 void Logger::setVerbose(bool t) {

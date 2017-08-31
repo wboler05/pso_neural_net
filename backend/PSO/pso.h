@@ -23,6 +23,7 @@ struct PsoParams {
   bool termIterationFlag;
   bool termDeltaFlag;
 
+  ///TODO These NeuralPso parameters
   bool backPropagation=true;
   int iterationsPerLevel=100;
 

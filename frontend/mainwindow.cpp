@@ -23,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Set the logger file
     Logger::setOutputFile("log/run.log");
+    Logger::setOutputBrowser(QPointer<QTextBrowser>(ui->output_tb));
 
     time_t now = time(0);
     tm *gmtm = gmtime(&now);

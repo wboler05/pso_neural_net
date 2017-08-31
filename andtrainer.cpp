@@ -158,7 +158,7 @@ double ANDTrainer::testRun(double &correctRatio, uint &totalCount, double &confi
 
     mse = sqrt(mse)/outputError.size() / totalSetsToRun;
 
-    qDebug() << "MSE: " << mse;
+    //qDebug() << "MSE: " << mse;
 
     TestStatistics::ClassificationError ce;
     testStats.getClassError(&ce);
