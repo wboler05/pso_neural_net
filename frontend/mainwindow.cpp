@@ -456,6 +456,8 @@ void MainWindow::runNeuralPso() {
 
   stopPso();
 
+  qApp->alert(this);
+
 }
 
 //void MainWindow::loadFile_btn() {
