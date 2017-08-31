@@ -12,8 +12,8 @@
 #include <cinttypes>
 #include <vector>
 #include <ctime>
+#include <random>
 
-#include <boost/thread.hpp>
 #include <petrainer.h>
 #include "backend/neuralpso.h"
 #include "backend/NeuralNet/NeuralNet.h"
@@ -97,6 +97,7 @@ protected slots:
     void testTrainedNetWithInput();
     void updateConfusionMatrix();
     void showConfusionMatrixHelpBox();
+    void closeEvent(QCloseEvent *event);
 
 private:
     Ui::MainWindow *ui;

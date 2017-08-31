@@ -27,7 +27,8 @@ public:
     void classError(TestStatistics::ClassificationError * ce);
     TestStatistics & testStats() { return _testStats; }
 
-    int convertOutput(const double & output);
+    static bool convertOutput(const double & output);
+    static double convertInput(const bool & input);
 
     void setFunctionMsg(std::string s) { _functionMsg = s; }
     std::string functionMsg() { return _functionMsg; }
@@ -43,9 +44,8 @@ private:
 
     std::string _functionMsg;
 
-    bool validateOutput(
-            std::vector<double> & outputs,
-            std::vector<double> & expectedOutputs,
+    bool validateOutput(const std::vector<double> &outputs,
+            const std::vector<double> &expectedOutputs,
             std::vector<double> & outputError,
             TestStatistics & testStats,
             bool & correctOutput);

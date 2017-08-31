@@ -7,8 +7,9 @@
 #include <vector>
 #include <queue>
 #include "particles.h"
-#include <boost/thread.hpp>
 #include <limits>
+#include <thread>
+#include <mutex>
 
 struct PsoParams {
   uint32_t particles=50;
@@ -22,6 +23,7 @@ struct PsoParams {
   bool termIterationFlag;
   bool termDeltaFlag;
 
+  ///TODO These NeuralPso parameters
   bool backPropagation=true;
   int iterationsPerLevel=100;
 
@@ -68,9 +70,9 @@ private:
   uint32_t _iterations=0;
 
   static bool _overideTermFlag;
-  static boost::mutex stopProcessMtx;
+  static std::mutex stopProcessMtx;
   static bool _printFlag;
-  static boost::mutex printMtx;
+  static std::mutex printMtx;
 
 };
 

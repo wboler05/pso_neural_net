@@ -10,6 +10,7 @@
 #include <ctime>
 #include <limits>
 #include <memory>
+#include <random>
 
 #include "CL/cl.hpp"
 #include "util.h"
@@ -23,6 +24,9 @@ struct FitnessParameters {
     double mse_floor;
     TestStatistics::ClassificationError weights;
     TestStatistics::ClassificationError floors;
+
+    double edgeWeightMax = 10E5;
+    double edgeWeightMin = -10E5;
 };
 
 class NeuralPso : public Pso<NeuralNet::EdgeType> {
@@ -42,6 +46,7 @@ public:
 
   NeuralNet * neuralNet() { return _neuralNet; }
   std::unique_ptr<NeuralNet> buildNeuralNetFromGb();
+  bool NeuralPso::injectGb(const NeuralNet::EdgeType &w);
 
   void printGB();
   void printParticle(uint i);
@@ -60,7 +65,7 @@ protected:
 
 private:
   static bool printGBFlag;
-  static boost::mutex printGBMtx;
+  static std::mutex printGBMtx;
 
   void flyIteration(size_t particle, size_t inner_net, size_t left_edge, size_t right_edge);
 

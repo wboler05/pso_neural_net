@@ -23,51 +23,51 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 # BOOST
-win32 {
-    # These lines will link into BOOST.
-    _BOOST_ROOT = $$(BOOST_ROOT)
-    isEmpty(_BOOST_ROOT) {
-        _BOOST_VERSION = $$(BOOST_VERSION)
-        isEmpty(_BOOST_VERSION) {
-            BOOST_LOCATION = C:/boost/boost_1_57_0
-        }
-        else {
-            win32: QWT_LOCATION = C:/boost/boost_$$(BOOST_VERSION)
-        }
-        message(Boost Default: $$BOOST_LOCATION)
-    }
-    else {
-        BOOST_LOCATION = $$(BOOST_ROOT)
-        message(Boost Defined: $$BOOST_LOCATION)
-    }
-    INCLUDEPATH += $$BOOST_LOCATION
+#win32 {
+#    # These lines will link into BOOST.
+#    _BOOST_ROOT = $$(BOOST_ROOT)
+#    isEmpty(_BOOST_ROOT) {
+#        _BOOST_VERSION = $$(BOOST_VERSION)
+#        isEmpty(_BOOST_VERSION) {
+#            BOOST_LOCATION = C:/boost/boost_1_57_0
+#        }
+#        else {
+#            win32: QWT_LOCATION = C:/boost/boost_$$(BOOST_VERSION)
+#        }
+#        message(Boost Default: $$BOOST_LOCATION)
+#    }
+#    else {
+#        BOOST_LOCATION = $$(BOOST_ROOT)
+#        message(Boost Defined: $$BOOST_LOCATION)
+#    }
+#    INCLUDEPATH += $$BOOST_LOCATION
 
-    _LIB_BUILT = 0
-    exists($$BOOST_LOCATION/lib64-msvc-12.0) {
-        message(lib64-msvc-12.0)
-        LIBS += "-L$$BOOST_LOCATION/lib64-msvc-12.0"
-        _LIB_BUILT = 1
-    }
+#    _LIB_BUILT = 0
+#    exists($$BOOST_LOCATION/lib64-msvc-12.0) {
+#        message(lib64-msvc-12.0)
+#        LIBS += "-L$$BOOST_LOCATION/lib64-msvc-12.0"
+#        _LIB_BUILT = 1
+#    }
 
-    exists($$BOOST_LOCATION/stage/lib/boost*.dll) {
-        message(stage exists)
-        LIBS += "-L$$BOOST_LOCATION/stage/lib/"     # Did you compile boost with "stage"?
-        _LIB_BUILT = 1
-    }
+#    exists($$BOOST_LOCATION/stage/lib/boost*.dll) {
+#        message(stage exists)
+#        LIBS += "-L$$BOOST_LOCATION/stage/lib/"     # Did you compile boost with "stage"?
+#        _LIB_BUILT = 1
+#    }
 
-    lessThan(_LIB_BUILT,1) {
-        message(Check your Boost Build)
-    }
+#    lessThan(_LIB_BUILT,1) {
+#        message(Check your Boost Build)
+#    }
 
-    # Setup path for dlib
-    exists($$(DLIB_PATH)) {
-        message(DLIB Found: $$(DLIB_PATH))
-        INCLUDEPATH += $$(DLIB_PATH)
-    }
-    else {
-        message(DLIB Missing! Check DLIB_PATH)
-    }
-}
+#    # Setup path for dlib
+#    exists($$(DLIB_PATH)) {
+#        message(DLIB Found: $$(DLIB_PATH))
+#        INCLUDEPATH += $$(DLIB_PATH)
+#    }
+#    else {
+#        message(DLIB Missing! Check DLIB_PATH)
+#    }
+#}
 
 # OpenCL
 # Load up some CUDA, yo
@@ -120,11 +120,19 @@ win32-msvc* {
 
     # Optimization for debugging
     QMAKE_CXXFLAGS_DEBUG += -Od
+
+    # OpenMP
+    QMAKE_CXXFLAGS+= /openmp
+    QMAKE_LFLAGS +=  /openmp
 } else {
     message (None MSVC)
 #    CONFIG += c++14
     QMAKE_CXXFLAGS_RELEASE += -O3
     QMAKE_CXXFLAGS_DEBUG += -Og
+
+    # OpenMP
+    QMAKE_CXXFLAGS+= -fopenmp
+    QMAKE_LFLAGS +=  -fopenmp
 }
 
 INCLUDEPATH += \
@@ -146,10 +154,10 @@ SOURCES += \
     frontend/neuralnetplot.cpp \
     frontend/innernetnodesinput.cpp \
     backend/teststatistics.cpp \
-    fnnpsogsa.cpp \
     Utils/custommath.cpp \
     frontend/aboutconfusionmatrixdialog.cpp \
-    petrainer.cpp
+    petrainer.cpp \
+    fnnpsogsa.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -161,10 +169,10 @@ HEADERS += \
     frontend/neuralnetplot.h \
     frontend/innernetnodesinput.h \
     backend/teststatistics.h \
-    fnnpsogsa.h \
     Utils/custommath.h \
     frontend/aboutconfusionmatrixdialog.h \
-    petrainer.h
+    petrainer.h \
+    fnnpsogsa.h
 
 FORMS += \
     frontend/mainwindow.ui \

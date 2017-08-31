@@ -3,64 +3,97 @@
 
 std::queue<std::string> Logger::_queue;
 std::string Logger::_file;
-boost::mutex Logger::_writeMtx;
-boost::thread Logger::_loggingThread(Logger::LoggingConsummer);
+std::mutex Logger::_writeMtx;
+std::thread Logger::_loggingThread(Logger::LoggingConsummer);
 bool Logger::_fileSet = false;
 bool Logger::_verboseFlag = true;
+bool Logger::_terminateFlag = false;
+QPointer<QTextBrowser> Logger::_outputBrowser;
 
 
 /// Sets write file and calls LoggingConsumer() thread
 void Logger::setOutputFile(std::string file) {
-  _writeMtx.lock();
+    std::unique_lock<std::mutex> lock1(_writeMtx, std::defer_lock);
+    lock1.lock();
   _file = file;
   _fileSet = true;
-  _writeMtx.unlock();
 }
 
 /// Allows user to print to screen and file.
 void Logger::write(std::string s) {
-  //_writeMtx.lock();
-  //_queue.push(s);
-  //_writeMtx.unlock();
-
-    std::cout << s;
+    std::unique_lock<std::mutex> lock1(_writeMtx, std::defer_lock);
+    lock1.lock();
+    _queue.push(s);
 }
 
 void Logger::LoggingConsummer() {
   for(;;) {
 
-    _writeMtx.lock();
+    std::unique_lock<std::mutex> lock1(_writeMtx, std::defer_lock);
+    lock1.lock();
 
-    if (_fileSet) {
+    if (_queue.size() > 0) {
+        QString s(_queue.front().c_str());
+        _queue.pop();
 
-      if (_queue.size() > 0) {
+        if (_fileSet) {
 
-        std::string s;
-        std::ofstream outputFile(_file, std::ios::app);
-        if (!outputFile.is_open()) {
-          std::cout << "Failed to open output file.";
-          continue;
-        } else {
-          s = _queue.front();
-          _queue.pop();
-          outputFile.write(s.c_str(), s.size());
+            std::ofstream outputFile(_file, std::ios::app);
+            if (outputFile.is_open()) {
+              outputFile.write(s.toStdString().c_str(), s.toStdString().size());
+              outputFile.close();
+            }
         }
-        if (_verboseFlag)
-          std::cout << s;
 
-        outputFile.close();
-      }
+        if (_verboseFlag) {
+            if (_outputBrowser != nullptr) {
+                _outputBrowser->append(s);
+
+                const int & scrollPos = _outputBrowser->verticalScrollBar()->value();
+                const int & scrollMax = _outputBrowser->verticalScrollBar()->maximum();
+                if (scrollMax - scrollPos < 5) {
+                    _outputBrowser->verticalScrollBar()->setValue(scrollMax);
+                }
+            }
+
+
+            QTextStream stream (stdout);
+            stream << s;
+          //std::cout << s;
+        }
     }
-    _writeMtx.unlock();
+
+    if (_terminateFlag) {
+        std::cout << "Logger: Oh, you want to quit?" << std::endl;
+        return;
+    }
 
   }
 
+  // Don't bog me down.
+  std::chrono::milliseconds sleepTime(16);
+  std::this_thread::sleep_for(sleepTime);
+
+}
+
+void Logger::setOutputBrowser(const QPointer<QTextBrowser> & outputBrowser) {
+    _outputBrowser = outputBrowser;
+    _outputBrowser->append(QString("Boink!\n"));
 }
 
 void Logger::setVerbose(bool t) {
-  _writeMtx.lock();
-  _verboseFlag = t;
-  _writeMtx.unlock();
+    std::unique_lock<std::mutex> lock1(_writeMtx, std::defer_lock);
+    lock1.lock();
+    _verboseFlag = t;
+}
+
+void Logger::terminate() {
+    std::unique_lock<std::mutex> lock1(_writeMtx, std::defer_lock);
+    lock1.lock();
+    _terminateFlag = true;
+    std::cout << "Terminator: Terminating logger thread." << std::endl;
+    lock1.unlock();
+    _loggingThread.join();
 }
 
 

@@ -23,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Set the logger file
     Logger::setOutputFile("log/run.log");
+    Logger::setOutputBrowser(QPointer<QTextBrowser>(ui->output_tb));
 
     time_t now = time(0);
     tm *gmtm = gmtime(&now);
@@ -64,13 +65,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //initializeCL(_cpuDevices, _gpuDevices, _allDevices);
 
-    //! TODO Need to change this functionality
-    //boost::thread thread1(this->runNeuralPso);
-    //boost::thread thread2(&(this->onKeyInput());
-    //runNeuralPso();
-    //onKeyInput();
-
-    //thread1.join();
     connect(ui->run_btn, SIGNAL(clicked(bool)), this, SLOT(runNeuralPso()));
     connect(ui->stop_btn, SIGNAL(clicked(bool)), this, SLOT(stopPso()));
     connect(ui->actionLoad_File, SIGNAL(triggered(bool)), this, SLOT(loadFile_btn()));
@@ -104,6 +98,13 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+    qDebug() << "MainWindow: Terminating program.";
+    Logger::terminate();
+    qDebug() << "MainWindow: Terminated successfully.";
+    QMainWindow::closeEvent(event);
 }
 
 void MainWindow::printGB() {
@@ -329,12 +330,11 @@ void MainWindow::testTrainedNetWithInput() {
             ui->testInput_output->setText("UNK Output");
             return;
         } else {
-            if (output[0] < 0.5) {
+            bool result = PETrainer::convertOutput(output[0]);
+            if (!result) {
                 ui->testInput_output->setText("No PE");
-            } else if (output[0] >= 0.5) {
-                ui->testInput_output->setText("Det PE");
             } else {
-                ui->testInput_output->setText("Confused");
+                ui->testInput_output->setText("Det PE");
             }
         }
     }
@@ -418,7 +418,9 @@ void MainWindow::runNeuralPso() {
     }
   }
 
+  NeuralNet::EdgeType gb;
   if (_neuralPsoTrainer != nullptr) {
+      gb = _neuralPsoTrainer->getGbEdges();
       delete _neuralPsoTrainer;
   }
 
@@ -433,6 +435,7 @@ void MainWindow::runNeuralPso() {
   //ui->neuralNetPlot->setEdges(&(net->getWeights()));
 
   // Train the net
+  np->injectGb(gb);
   np->runTrainer();
 
   /*
