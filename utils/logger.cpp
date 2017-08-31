@@ -1,5 +1,4 @@
-#include "util.h"
-
+#include "logger.h"
 
 std::queue<std::string> Logger::_queue;
 std::string Logger::_file;
@@ -47,13 +46,16 @@ void Logger::LoggingConsummer() {
 
         if (_verboseFlag) {
             if (_outputBrowser != nullptr) {
-                _outputBrowser->append(s);
-
                 const int & scrollPos = _outputBrowser->verticalScrollBar()->value();
                 const int & scrollMax = _outputBrowser->verticalScrollBar()->maximum();
-                if (scrollMax - scrollPos < 5) {
-                    _outputBrowser->verticalScrollBar()->setValue(scrollMax);
-                }
+
+                _outputBrowser->append(s);
+
+                //if (scrollMax - scrollPos < 50) {
+                    _outputBrowser->verticalScrollBar()->setValue(
+                                _outputBrowser->verticalScrollBar()->maximum());
+                    _outputBrowser->verticalScrollBar()->update();
+                //}
             }
 
 
@@ -94,23 +96,4 @@ void Logger::terminate() {
     std::cout << "Terminator: Terminating logger thread." << std::endl;
     lock1.unlock();
     _loggingThread.join();
-}
-
-
-/** @brief cdfUniform()
- *  @detail Returns the uniform CDF of the ordered probability sets in the form
- *        [ 1st limit, 2nd limit, ... , kth limit ]
-**/
-std::vector<double> cdfUniform(std::vector<double> n) {
-  std::vector<double> cdf;
-  double sum = 0;
-  for (uint32_t i = 0; i < n.size(); i++) {
-    sum += n[i];
-  }
-  double nSum = 0;
-  for (uint32_t i = 0; i < n.size(); i++) {
-    nSum += n[i] / sum;
-    cdf.push_back(nSum);
-  }
-  return cdf;
 }

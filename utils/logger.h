@@ -1,5 +1,5 @@
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef LOGGER_H
+#define LOGGER_H
 
 #include <iostream>
 #include <fstream>
@@ -47,16 +47,4 @@ private:
   static QPointer<QTextBrowser> _outputBrowser;
 
 };
-
-template <class T>
-std::string stringPut(T s) {
-  std::stringstream ss;
-  std::string out;
-  ss << s;
-  ss >> out;
-  return out;
-}
-
-std::vector<double> cdfUniform(std::vector<double> nonNormalPdf);
-
-#endif // UTIL_H
+#endif // LOGGER_H

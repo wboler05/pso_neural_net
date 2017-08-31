@@ -128,8 +128,8 @@ win32-msvc* {
     QMAKE_CXXFLAGS_DEBUG += -Od
 
     # OpenMP
-    QMAKE_CXXFLAGS+= /openmp
-    QMAKE_LFLAGS +=  /openmp
+    #QMAKE_CXXFLAGS+= /openmp
+    #QMAKE_LFLAGS +=  /openmp
 } else {
     message (None MSVC)
     CONFIG += c++14
@@ -145,7 +145,7 @@ win32-msvc* {
 INCLUDEPATH += \
     backend \
     frontend \
-    Utils
+    utils
 
 QWT_LOCATION = $$(QWT_ROOT)
 message(Qwt Defined: $$QWT_LOCATION)
@@ -155,29 +155,31 @@ SOURCES += \
     backend/NeuralNet/NeuralNet.cpp \
     backend/PSO/pso.cpp \
     backend/neuralpso.cpp \
-    backend/util.cpp \
     frontend/main.cpp \
     frontend/mainwindow.cpp \
     frontend/neuralnetplot.cpp \
     frontend/innernetnodesinput.cpp \
     backend/teststatistics.cpp \
-    Utils/custommath.cpp \
+    utils/custommath.cpp \
     frontend/aboutconfusionmatrixdialog.cpp \
-    andtrainer.cpp
+    andtrainer.cpp \
+    utils/logger.cpp \
+    utils/util.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
     backend/PSO/particles.h \
     backend/PSO/pso.h \
     backend/neuralpso.h \
-    backend/util.h \
     frontend/mainwindow.h \
     frontend/neuralnetplot.h \
     frontend/innernetnodesinput.h \
     backend/teststatistics.h \
-    Utils/custommath.h \
+    utils/custommath.h \
     frontend/aboutconfusionmatrixdialog.h \
-    andtrainer.h
+    andtrainer.h \
+    utils/logger.h \
+    utils/util.h
 
 FORMS += \
     frontend/mainwindow.ui \

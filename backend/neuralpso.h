@@ -12,7 +12,7 @@
 #include <memory>
 #include <random>
 
-#include "util.h"
+#include "logger.h"
 
 #ifdef OPENCL_DEFINED
 #include "CL/cl.hpp"

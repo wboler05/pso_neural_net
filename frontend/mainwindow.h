@@ -18,7 +18,7 @@
 #include "backend/neuralpso.h"
 #include "backend/NeuralNet/NeuralNet.h"
 #include "backend/PSO/pso.h"
-#include "backend/util.h"
+#include "logger.h"
 #include "frontend/innernetnodesinput.h"
 
 //#include "fnnpsogsa.h"
