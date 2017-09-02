@@ -1,3 +1,9 @@
+# Custom
+logs/
+debug/
+release/
+run*
+
 # C++ objects and libs
 
 *.slo
