@@ -75,6 +75,7 @@ protected slots:
     void scrollToBottom_toggled();
     void on_actionEnable_Output_toggled(bool b);
     void on_actionSave_PSO_State_triggered();
+    void on_actionLoad_PSO_State_triggered();
 
 private:
     Ui::MainWindow *ui;

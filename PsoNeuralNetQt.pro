@@ -164,7 +164,8 @@ SOURCES += \
     frontend/aboutconfusionmatrixdialog.cpp \
     andtrainer.cpp \
     utils/logger.cpp \
-    utils/util.cpp
+    utils/util.cpp \
+    neuralpsostream.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -179,7 +180,8 @@ HEADERS += \
     frontend/aboutconfusionmatrixdialog.h \
     andtrainer.h \
     utils/logger.h \
-    utils/util.h
+    utils/util.h \
+    neuralpsostream.h
 
 FORMS += \
     frontend/mainwindow.ui \

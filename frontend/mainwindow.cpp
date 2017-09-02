@@ -115,7 +115,6 @@ void MainWindow::on_actionEnable_Output_toggled(bool b) {
 }
 
 void MainWindow::on_actionSave_PSO_State_triggered() {
-    qDebug() << "Auto on action save";
 
     if (_neuralPsoTrainer == nullptr) {
         QMessageBox * msgBox = new QMessageBox();
@@ -129,7 +128,7 @@ void MainWindow::on_actionSave_PSO_State_triggered() {
     QString psoState(_neuralPsoTrainer->stringifyState().c_str());
 
     QFile outputFile(fileName);
-    if (outputFile.open(QFile::WriteOnly)) {
+    if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
         QTextStream outputStream(&outputFile);
         outputStream << psoState;
         outputFile.close();
@@ -150,6 +149,44 @@ void MainWindow::on_actionSave_PSO_State_triggered() {
         msgBox->exec();
         return;
     }
+}
+
+void MainWindow::on_actionLoad_PSO_State_triggered() {
+    //!TEST!//
+    qDebug() << "auto load state triggered";
+    QMessageBox *msgBox = new QMessageBox();
+    QString msgTxt;
+
+    QDir curDir(qApp->applicationDirPath());
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open PSO State"), curDir.absolutePath(), ("PSO (*.pso)"));
+
+    QFile inputFile(fileName);
+    if (inputFile.open(QFile::ReadOnly)) {
+
+        QTextStream inputStream(&inputFile);
+        QString psoState = inputStream.readAll();
+
+        applyParameterChanges();
+
+        if (_neuralPsoTrainer == nullptr) {
+            _neuralPsoTrainer = new ANDTrainer(_params);
+        }
+
+        if (_neuralPsoTrainer->fromString(psoState.toStdString())) {
+            msgTxt.append("Loaded PSO State: \n" );
+            msgTxt.append(fileName);
+        } else {
+            msgTxt.append("PSO State is unreadable!\n" );
+            msgTxt.append(fileName);
+        }
+
+    } else {
+        msgTxt.append("Failed to open file: \n" );
+        msgTxt.append(fileName);
+    }
+
+    msgBox->setText(msgTxt);
+    msgBox->exec();
 }
 
 void MainWindow::printGB() {
@@ -365,10 +402,10 @@ void MainWindow::testTrainedNetWithInput() {
         std::vector<double> curInput;
         curInput.push_back(ANDTrainer::convertInput(_inputCache.a));
         curInput.push_back(ANDTrainer::convertInput(_inputCache.b));
-        for (int i = 0; i < curInput.size(); i++) {
+        for (size_t i = 0; i < curInput.size(); i++) {
             // Remember, skips include PE as the first index, so subtract 1
             bool skipPos=false;
-            for (int j = 0; j < _inputskips.size(); j++) {
+            for (size_t j = 0; j < _inputskips.size(); j++) {
                 if (_inputskips[j] == i+1) {
                     skipPos = true;
                     break;

@@ -602,19 +602,22 @@ NeuralNet::EdgeType & NeuralPso::getGbEdges() {
 }
 
 std::string NeuralPso::stringifyState() {
+    //!TEST!//
+    using namespace NeuralPsoStream;
+
     std::string stringState;
 
     // Get Global Best
-    stringState.append("<_gb>");
+    stringState.append("<_gb>\n");
     stringState.append(stringifyParticle(_gb));
-    stringState.append("</gb>");
+    stringState.append("</_gb>\n");
 
     // Get Particles
-    stringState.append("<_particles>");
+    stringState.append("<_particles>\n");
     for (size_t i = 0; i < _particles.size(); i++) {
         stringState.append("<");
-        stringState.append(std::to_string(i));
-        stringState.append(">");
+        stringState.append(stringPut(i));
+        stringState.append(">\n");
         stringState.append(stringifyParticle(_particles[i]));
     }
     stringState.append("</_particles>");
@@ -623,119 +626,28 @@ std::string NeuralPso::stringifyState() {
     return stringState;
 }
 
-std::string NeuralPso::stringifyParticle(const Particle<NeuralNet::EdgeType> & p) {
-    std::string particleString;
-
-    // Particle Position X
-    particleString.append("<_x>");
-    particleString.append(stringifyEdges(p._x));
-    particleString.append("<\_x>");
-
-    // Particle Velocity
-    particleString.append("<_v>");
-    particleString.append(stringifyEdges(p._v));
-    particleString.append("<\_v>");
-
-    // Particle Personal Best X
-    particleString.append("<_x_pb>");
-    particleString.append(stringifyEdges(p._x_pb));
-    particleString.append("</_x_pb>");
-
-    // Particle Local Best
-    particleString.append("<_x_lb>");
-    particleString.append(stringifyEdges(p._x_lb));
-    particleString.append("</_x_lb>");
-
-    // Particle Personal Best Fitness
-    particleString.append("<_fit_pb>");
-    particleString.append(std::to_string(p._fit_pb));
-    particleString.append("<\_fit_pb>");
-
-    // Particle Local Best Fitness
-    particleString.append("<_fit_lb>");
-    particleString.append(std::to_string(p._fit_lb));
-    particleString.append("<\_fit_lb>");
-
-    int worstFlag = p._worstFlag ? 1 : 0;
-    // Particle Worst Flag
-    particleString.append("<_worstFlag>");
-    particleString.append(std::to_string(worstFlag));
-    particleString.append("<\_worstFlag>");
-
-    // Particle Points
-    particleString.append("<_points>");
-    particleString.append(std::to_string(p._points));
-    particleString.append("<\_points>");
-
-    return particleString;
-}
-
-std::string NeuralPso::stringifyEdges(const NeuralNet::EdgeType & edges) {
-    std::string particleString;
-
-    for (size_t i = 0; i < edges.size(); i++) {
-        particleString.append("{");
-        for (size_t j = 0; j < edges[i].size(); j++) {
-            particleString.append("{");
-            for (size_t k = 0; k < edges[i][j].size(); k++) {
-                particleString.append(std::to_string(edges[i][j][k]));
-                if (k != edges[i][k].size() -1)
-                    particleString.append(",");
-            }
-            particleString.append("}");
-        }
-        particleString.append("}");
-    }
-
-    return particleString;
-}
-
-NeuralNet::EdgeType Neuralpso::edgesFromString(const std::string & edgeString) {
+bool NeuralPso::fromString(const string &psoState) {
     //!TEST!//
+    using namespace NeuralPsoStream;
 
-    NeuralNet::EdgeType e;
+    std::string cleanString = psoState;
+    cleanInputString(cleanString);
+
+    Particle<NeuralNet::EdgeType> particles;
 
     int it = 0;
-    while ( it < edgeString.size()) {
-        if (edgesString[it]  == '{') {
-            it++;
-            while (edgesString[it] != '}') {
-                std::vector<std::vector<double>> innerNet;
-                if (edgesString[it] == '{') {
-                    it++;
-                    while (edgeString[it] != '}') {
-                        std::vector<double> leftNode;
-                        int jt = it+1;
-                        while (edgesString[jt] != '}') {
-                            if (edgeString[jt] == ',') {
-                                std::string valString = edgeString.substr(it,jt-it);
-                                double val = std::stod(valString);
-                                leftNode.append(val);
-                                it = jt;
-                            }
-                            jt++;
-                        }
-                        innerNet.append(leftNode);
-                        it = jt;
-                    }
-                }
-                e.append(innerNet);
-                it++;
-            }
-        }
+
+    if (!findNextToken(cleanString, it)) {
+        return false;
     }
 
-    return e;
-}
+    std::string gbString = subStringByToken(cleanString, "_gb", it);
+    if (gbString.size() == 0) return false;
 
-std::unique_ptr<Particle<NeuralNet::EdgeType>> NeuralPso::particleFromString(const std::string & particleString) {
-    std::unique_ptr<Particle<NeuralNet::EdgeType>> pParticle =
-            std::make_unique<Particle<NeuralNet::EdgeType>>();
+    std::unique_ptr<Particle<NeuralNet::EdgeType>> particle =
+            particleFromString(gbString);
 
-    return pParticle;
-}
 
-bool NeuralPso::fromString(const std::string & psoState) {
 
     return false;
 }
