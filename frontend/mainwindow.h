@@ -7,6 +7,7 @@
 #include <QKeyEvent>
 #include <QTimer>
 #include <QTime>
+#include <QMessageBox>
 
 #include <fstream>
 #include <cinttypes>
@@ -29,7 +30,7 @@
 #include "CL/cl.hpp"
 #endif
 
-#define TOTAL_GENERATED_LABELS 10000000
+#define TOTAL_GENERATED_LABELS 10000
 
 namespace Ui {
 class MainWindow;
@@ -44,42 +45,12 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-/*
-    struct LabelInfo {
-      uint32_t dataType;
-      uint32_t dataDimensions;
-      uint32_t numItems;
-    };
-
-    struct ImageInfo {
-      uint32_t dataType;
-      uint32_t dataDimensions;
-      uint32_t numItems;
-      uint32_t rows;
-      uint32_t cols;
-    };
-*/
 
 protected:
 
     void keyPressEvent(QKeyEvent * e);
-    //void onKeyInput();
-//    void loadTrainingData(std::string imageFile,
-//                          std::string labelFile,
-//                          std::vector<std::vector<vector<uint8_t> > > &trainingImages,
-//                          std::vector<uint8_t> &trainingLabels);
-//
-//    bool readMagicNumber(std::ifstream &in,
-//                         uint32_t &dataType,
-//                         uint32_t &dimensions,
-//                         uint32_t &numItems);
-//    bool readLabelHeading(std::ifstream &in,
-//                          LabelInfo &lb);
-//    bool readImageHeading(std::ifstream &in,
-//                          ImageInfo &im);
     uint32_t char2uint(uint8_t *input);
     uint32_t readUnsignedInt(std::ifstream &input);
-//    bool readPEFile(std::vector<double> &labels, std::vector<std::vector<double>> &data);
 
     void setOutputLabel(const QString & s);
 
@@ -89,7 +60,6 @@ protected slots:
     void runNeuralPso();
     void stopPso();
     void updatePlot();
-//    void loadFile_btn();
     void applyParameterChanges();
     void setParameterDefaults();
     void updateParameterGui();
@@ -102,6 +72,9 @@ protected slots:
     void updateConfusionMatrix();
     void showConfusionMatrixHelpBox();
     void closeEvent(QCloseEvent *event);
+    void scrollToBottom_toggled();
+    void on_actionEnable_Output_toggled(bool b);
+    void on_actionSave_PSO_State_triggered();
 
 private:
     Ui::MainWindow *ui;

@@ -11,6 +11,8 @@
 #include <limits>
 #include <memory>
 #include <random>
+#include <string>
+#include "stable.h"
 
 #include "logger.h"
 
@@ -50,6 +52,13 @@ public:
   NeuralNet * neuralNet() { return _neuralNet; }
   std::unique_ptr<NeuralNet> buildNeuralNetFromGb();
   bool injectGb(const NeuralNet::EdgeType &w);
+
+  std::string stringifyState();
+  std::string stringifyParticle(const Particle<NeuralNet::EdgeType> & p);
+  std::string stringifyEdges(const NeuralNet::EdgeType & edges);
+  bool fromString(const std::string & psoState);
+  std::unique_ptr<Particle<NeuralNet::EdgeType>>
+        particleFromString(const std::string & particleState);
 
   void printGB();
   void printParticle(uint i);

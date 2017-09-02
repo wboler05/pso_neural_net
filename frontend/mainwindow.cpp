@@ -24,6 +24,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // Set the logger file
     Logger::setOutputFile("log/run.log");
     Logger::setOutputBrowser(QPointer<QTextBrowser>(ui->output_tb));
+    Logger::setEnableScrollToBottom(ui->scrollToBottom_cb->isChecked());
+    Logger::setEnableTextBrowser(ui->actionEnable_Output->isChecked());
 
     time_t now = time(0);
     tm *gmtm = gmtime(&now);
@@ -74,6 +76,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->classError_btn, SIGNAL(clicked(bool)), this, SLOT(printClassError()));
     connect(ui->setNet_btn, SIGNAL(clicked(bool)), this, SLOT(setCurrentNet()));
     connect(ui->testInput_btn, SIGNAL(clicked(bool)), this, SLOT(testTrainedNetWithInput()));
+    connect(ui->scrollToBottom_cb, SIGNAL(toggled(bool)), this, SLOT(scrollToBottom_toggled()));
 
     connect(ui->a_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
     connect(ui->b_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
@@ -97,6 +100,56 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     Logger::terminate();
     qDebug() << "MainWindow: Terminated successfully.";
     QMainWindow::closeEvent(event);
+}
+
+void MainWindow::scrollToBottom_toggled() {
+    Logger::setEnableScrollToBottom(ui->scrollToBottom_cb->isChecked());
+}
+
+void MainWindow::on_actionEnable_Output_toggled(bool b) {
+    qDebug() << "Auto stuff works.";
+
+    ui->txtBrowser_gb->setEnabled(b);
+    ui->txtBrowser_gb->setVisible(b);
+    Logger::setEnableTextBrowser(b);
+}
+
+void MainWindow::on_actionSave_PSO_State_triggered() {
+    qDebug() << "Auto on action save";
+
+    if (_neuralPsoTrainer == nullptr) {
+        QMessageBox * msgBox = new QMessageBox();
+        msgBox->setText("Error, you have not ran the simulation!\nNo data to save.");
+        msgBox->exec();
+        return;
+    }
+
+    QDir curDir(qApp->applicationDirPath());
+    QString fileName = QFileDialog::getSaveFileName(this, "Save the PSO State", curDir.absolutePath(), "PSO (*.pso)");
+    QString psoState(_neuralPsoTrainer->stringifyState().c_str());
+
+    QFile outputFile(fileName);
+    if (outputFile.open(QFile::WriteOnly)) {
+        QTextStream outputStream(&outputFile);
+        outputStream << psoState;
+        outputFile.close();
+
+        QMessageBox * msgBox = new QMessageBox();
+        QString msgBoxTxt;
+        msgBoxTxt.append("PSO State Saved!\n");
+        msgBoxTxt.append(fileName);
+        msgBox->setText(msgBoxTxt);
+        msgBox->exec();
+        return;
+    } else {
+        QMessageBox * msgBox = new QMessageBox();
+        QString msgBoxTxt;
+        msgBoxTxt.append("Error, could not open file:\n");
+        msgBoxTxt.append(fileName);
+        msgBox->setText(msgBoxTxt);
+        msgBox->exec();
+        return;
+    }
 }
 
 void MainWindow::printGB() {

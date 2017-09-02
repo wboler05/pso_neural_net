@@ -1060,6 +1060,30 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_6">
+         <item>
+          <spacer name="horizontalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="scrollToBottom_cb">
+           <property name="text">
+            <string>Scroll To Bottom</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
         <widget class="QTextBrowser" name="output_tb"/>
        </item>
       </layout>
@@ -1159,15 +1183,33 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionLoad_File"/>
+    <widget class="QMenu" name="menuSave">
+     <property name="title">
+      <string>Save</string>
+     </property>
+     <addaction name="actionGB_Neural_Net"/>
+     <addaction name="actionSave_PSO_State"/>
+    </widget>
+    <widget class="QMenu" name="menuLoad">
+     <property name="title">
+      <string>Load</string>
+     </property>
+     <addaction name="actionLoad_Input_File"/>
+     <addaction name="actionLoad_GB_Neural_Net"/>
+     <addaction name="actionLoad_PSO_State"/>
+    </widget>
+    <addaction name="menuLoad"/>
+    <addaction name="menuSave"/>
     <addaction name="separator"/>
     <addaction name="actionClose"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
      <string>Settings</string>
     </property>
     <addaction name="actionClear_Global_Best"/>
+    <addaction name="actionEnable_Output"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -1193,9 +1235,9 @@
     <string>Close</string>
    </property>
   </action>
-  <action name="actionLoad_File">
+  <action name="actionLoad_Input_File">
    <property name="text">
-    <string>Load File</string>
+    <string>Load Input File</string>
    </property>
   </action>
   <action name="actionClear_Global_Best">
@@ -1209,6 +1251,42 @@
   <action name="actionConfusion_Matrix">
    <property name="text">
     <string>Confusion Matrix?</string>
+   </property>
+  </action>
+  <action name="actionSave_GB_Neural_Net">
+   <property name="text">
+    <string>Save GB Neural Net</string>
+   </property>
+  </action>
+  <action name="actionGB_Neural_Net">
+   <property name="text">
+    <string>GB Neural Net</string>
+   </property>
+  </action>
+  <action name="actionSave_PSO_State">
+   <property name="text">
+    <string>PSO State</string>
+   </property>
+  </action>
+  <action name="actionEnable_Output">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable Output</string>
+   </property>
+  </action>
+  <action name="actionLoad_GB_Neural_Net">
+   <property name="text">
+    <string>Load GB Neural Net</string>
+   </property>
+  </action>
+  <action name="actionLoad_PSO_State">
+   <property name="text">
+    <string>Load PSO State</string>
    </property>
   </action>
  </widget>

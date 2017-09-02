@@ -25,6 +25,9 @@ public:
 
   static void setOutputBrowser(const QPointer<QTextBrowser> & outputBrowser);
 
+  static void setEnableScrollToBottom(const bool & b);
+  static void setEnableTextBrowser(const bool &b);
+
   /// Allows user to print to screen and file.
   static void write(std::string s);
 
@@ -39,10 +42,13 @@ private:
   static std::queue<std::string> _queue;
   static std::string _file;
   static std::mutex _writeMtx;
+  static std::mutex _textBrowserMtx;
   static std::thread _loggingThread;
   static bool _fileSet;
   static bool _verboseFlag;
   static bool _terminateFlag;
+  static bool _scrollToBottomFlag;
+  static bool _enableTbFlag;
 
   static QPointer<QTextBrowser> _outputBrowser;
 
