@@ -58,9 +58,8 @@ std::string stringifyEdges(const NeuralNet::EdgeType & edges) {
             particleString.append("\t\t\t{\n\t\t\t\t");
             for (size_t k = 0; k < edges[i][j].size(); k++) {
                 particleString.append(stringPut(edges[i][j][k]));
-                if (k != edges[i][k].size() -1)
-                    particleString.append(",");
-                else {
+                particleString.append(",");
+                if (k == edges[i][k].size() -1) {
                     particleString.append("\n");
                 }
             }
@@ -89,20 +88,28 @@ NeuralNet::EdgeType edgesFromString(const std::string & edgeString) {
                         std::vector<double> leftNode;
                         int jt = it+1;
                         while (edgeString[jt] != '}') {
-                            if (edgeString[jt] == ',') {
+                            if (edgeString[jt] == ',' || edgeString[jt] == '}') {
                                 std::string valString = edgeString.substr(it,jt-it);
-                                double val = std::stod(valString);
+                                double val = numberFromString<double>(valString);
                                 leftNode.push_back(val);
-                                it = jt;
+                                it = jt+1;
                             }
                             jt++;
                         }
                         innerNet.push_back(leftNode);
-                        it = jt;
+                        it = jt+1;
+                        if (edgeString[it] == '{') {
+                            it++;
+                        }
                     }
                 }
                 e.push_back(innerNet);
                 it++;
+                if (edgeString[it] == '{') {
+                    it++;
+                } else if (edgeString[it] == 0) {
+                    return e;
+                }
             }
         }
     }
@@ -110,9 +117,92 @@ NeuralNet::EdgeType edgesFromString(const std::string & edgeString) {
     return e;
 }
 
-std::unique_ptr<Particle<NeuralNet::EdgeType>> particleFromString(const std::string & particleString) {
-    std::unique_ptr<Particle<NeuralNet::EdgeType>> pParticle =
-            std::make_unique<Particle<NeuralNet::EdgeType>>();
+Particle<NeuralNet::EdgeType> particleFromString(const std::string & particleString) {
+    typedef Particle<NeuralNet::EdgeType> P;
+    P pParticle;
+    int it = 0;
+
+    // Particle Position X
+    if (!findNextToken(particleString, it)) {
+        return P();
+    }
+    std::string xString = subStringByToken(particleString, "_x", it);
+    if (!xString.empty()) {
+        NeuralNet::EdgeType xEdge = edgesFromString(xString);
+        pParticle._x = xEdge;
+    }
+
+
+    // Particle Velocity
+    if (!findNextToken(particleString, it)) {
+        return P();
+    }
+    std::string vString = subStringByToken(particleString, "_v", it);
+    if (!vString.empty()) {
+        NeuralNet::EdgeType vEdge = edgesFromString(vString);
+        pParticle._v = vEdge;
+    }
+
+    // Particle Personal Best X
+    if (!findNextToken(particleString, it)) {
+        return P();
+    }
+    std::string xbString = subStringByToken(particleString, "_x_pb", it);
+    if (!xbString.empty()) {
+        NeuralNet::EdgeType xbEdge = edgesFromString(xbString);
+        pParticle._x_pb = xbEdge;
+    }
+
+    // Particle Local Best
+    if (!findNextToken(particleString, it)) {
+        return P();
+    }
+    std::string xlString = subStringByToken(particleString, "_x_lb", it);
+    if (!xlString.empty()) {
+        NeuralNet::EdgeType xlEdge = edgesFromString(xlString);
+        pParticle._x_lb = xlEdge;
+    }
+
+    // Particle Personal Best Fitness
+    if (!findNextToken(particleString, it)) {
+        return P();
+    }
+    char c = particleString[it];
+    std::string fpbString = subStringByToken(particleString, "_fit_pb", it);
+    if (!fpbString.empty()) {
+        double fpb = numberFromString<double>(fpbString);
+        pParticle._fit_pb = fpb;
+    }
+
+    // Particle Local Best Fitness
+    if (!findNextToken(particleString, it)) {
+        return P();
+    }
+    std::string flbString = subStringByToken(particleString, "_fit_lb", it);
+    if (!flbString.empty()) {
+        double flb = numberFromString<double>(flbString);
+        pParticle._fit_lb = flb;
+    }
+
+    // Particle Worst Flag
+    if (!findNextToken(particleString, it)) {
+        return P();
+    }
+    std::string worstString = subStringByToken(particleString, "_worstFlag", it);
+    if (!worstString.empty()) {
+        int worst = numberFromString<int>(worstString);
+        pParticle._worstFlag = worst == 1;
+    }
+
+    // Particle Points
+    if (!findNextToken(particleString, it)) {
+        return P();
+    }
+    std::string pointsString = subStringByToken(particleString, "_points", it);
+    if (!pointsString.empty()) {
+        double points = numberFromString<double>(fpbString);
+        pParticle._points = points;
+    }
 
     return pParticle;
 }
@@ -165,7 +255,6 @@ std::string getTokenLabelFromString(const string &s, int &it, bool & isClose) {
  * @return Boolean - True if a token was found, false if not
  */
 bool findNextToken(const std::string & fullstring, int & it) {
-    //!TEST//
     if (it >= (int) fullstring.size()) {
         return false;
     }
@@ -225,7 +314,6 @@ bool findCloseToken(const string &fullstring, const string token, int &it) {
  * @return std::string - Substring between the tokens
  */
 std::string subStringByToken(const string &fullstring, const string token, int &it) {
-    //!TODO!//
     std::string subString;
 
     if (token.size() > fullstring.size()) {
@@ -277,7 +365,7 @@ std::string subStringByToken(const string &fullstring, const string token, int &
 
     if (foundClose) {
         subString = fullstring.substr(startIt+1, endIt-(startIt+1));
-        it = endIt;
+        //it = endIt;
     }
 
     return subString;
@@ -302,6 +390,26 @@ void cleanInputString(std::string & dirtyString) {
             it++;
         }
     }
+}
+
+std::vector<Particle<NeuralNet::EdgeType>> readParticlesFromString(const std::string & partSubString) {
+    std::vector<Particle<NeuralNet::EdgeType>> particles;
+    int it = 0;
+    int i = 0;
+    do {
+        if (!findNextToken(partSubString, it)) {
+            break;
+        }
+        std::string numString = stringPut(i++);
+        std::string pString = subStringByToken(partSubString, numString, it);
+        if (!pString.empty()) {
+            Particle<NeuralNet::EdgeType> p = particleFromString(pString);
+            particles.push_back(p);
+        }
+
+    }while (it < partSubString.size());
+
+    return particles;
 }
 
 }

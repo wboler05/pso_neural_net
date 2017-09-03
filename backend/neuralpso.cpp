@@ -619,6 +619,9 @@ std::string NeuralPso::stringifyState() {
         stringState.append(stringPut(i));
         stringState.append(">\n");
         stringState.append(stringifyParticle(_particles[i]));
+        stringState.append("</");
+        stringState.append(stringPut(i));
+        stringState.append(">\n");
     }
     stringState.append("</_particles>");
 
@@ -633,21 +636,20 @@ bool NeuralPso::fromString(const string &psoState) {
     std::string cleanString = psoState;
     cleanInputString(cleanString);
 
-    Particle<NeuralNet::EdgeType> particles;
-
     int it = 0;
 
     if (!findNextToken(cleanString, it)) {
         return false;
     }
-
     std::string gbString = subStringByToken(cleanString, "_gb", it);
     if (gbString.size() == 0) return false;
 
-    std::unique_ptr<Particle<NeuralNet::EdgeType>> particle =
+    Particle<NeuralNet::EdgeType> gb =
             particleFromString(gbString);
+    _gb = gb;
 
+    std::string partString = subStringByToken(cleanString, "_particles", it);
+    _particles = readParticlesFromString(partString);
 
-
-    return false;
+    return true;
 }

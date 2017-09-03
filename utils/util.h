@@ -26,6 +26,13 @@ std::string stringPut(T s) {
   return out;
 }
 
+template <class T>
+T numberFromString(const std::string & s) {
+    std::istringstream ss(s);
+    T result;
+    return ss >> result ? result : 0;
+}
+
 std::vector<double> cdfUniform(std::vector<double> nonNormalPdf);
 
 #endif // UTIL_H
