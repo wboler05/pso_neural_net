@@ -3,7 +3,7 @@
 
 #include "neuralpso.h"
 
-struct ANDParameters {
+struct TrainingParameters {
     PsoParams pp;
     NeuralNetParameters np;
     FitnessParameters fp;
@@ -18,7 +18,7 @@ public:
         bool b;
     };
 
-    ANDTrainer(const ANDParameters & pe);
+    ANDTrainer(const TrainingParameters & pe);
 
     void build(std::vector<std::vector<double>> &input, std::vector<double> &output);
 

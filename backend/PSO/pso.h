@@ -60,6 +60,8 @@ public:
 
   const uint32_t & iterations() const { return _iterations; }
 
+  const PsoParams & psoParams() { return _psoParams; }
+
 protected:
   std::vector<Particle<T> > _particles;
   Particle<T> _gb;

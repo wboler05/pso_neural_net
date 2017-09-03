@@ -59,14 +59,14 @@ NeuralNet::~NeuralNet() {
 
 void NeuralNet::initialize(const NeuralNetParameters & p) {
     _nParams = p;
+
     setTotalInputs(_nParams.inputs);
     setTotalInnerNets(_nParams.innerNets);
-
     for (int i = 0; i < _nParams.innerNets; i++) {
       setInnerNetNodes(_nParams.innerNetNodes[i], i);
     }
-
     setTotalOutputs(_nParams.outputs);
+
     buildNets();
 
     resetInputs();
@@ -101,88 +101,70 @@ void NeuralNet::resetWeights() {
 }
 
 void NeuralNet::setTotalInputs(uint n) {
-  if (n != _inputNodes.capacity()) {
     _inputNodes.clear();
-    _inputNodes.resize(n);
-    for (uint i = 0; i < n; i++) {
-      _inputNodes[i] = 0;
-    }
-    //buildNets();
-  }
+    _inputNodes.resize(n, 0);
 }
 
 // Clears all nodes
 /// Need to call setInnerNetNodes() after
 void NeuralNet::setTotalInnerNets(uint n) {
-  if (n != _innerNodes.capacity()) {
     _innerNodes.clear();
     _innerNodes.resize(n);
     _edges.clear();
     _edges.resize(n+1);
-  }
 }
 void NeuralNet::setInnerNetNodes(uint nodes, uint i) {
-  if (i >= 0 && i < _innerNodes.size()) {
-    if (_innerNodes[i].capacity() != nodes) {
-      _innerNodes[i].clear();
-      _innerNodes[i].resize(nodes);
-      for (uint j = 0; j < nodes; j++) {
-        _innerNodes[i][j] = 0;
-      }
+    if (i >= 0 && i < _innerNodes.size()) {
+        _innerNodes[i].clear();
+        _innerNodes[i].resize(nodes, 0);
     }
-  }
 }
 
 void NeuralNet::setTotalOutputs(uint n) {
-  if (n != _outputNodes.capacity()) {
     _outputNodes.clear();
-    _outputNodes.resize(n);
-    for (uint i = 0; i < n; i++) {
-      _outputNodes[i] = 0;
-    }
-  }
+    _outputNodes.resize(n, 0);
 }
 
 
 bool NeuralNet::buildNets() {
   // Verify nodes have been built
-  if (_inputNodes.capacity() == 0 || _innerNodes.capacity() == 0 || _outputNodes.capacity() == 0) {
+  if (_inputNodes.size() == 0 || _innerNodes.size() == 0 || _outputNodes.size() == 0) {
     return false;
   }
   // Verify at least one inner net is built
-  if (_innerNodes[0].capacity() == 0) {
+  if (_innerNodes[0].size() == 0) {
     return false;
   }
 
   // Connect the input to the inner nodes
-  for (uint i = 0; i < _edges.capacity(); i++) {
+  for (uint i = 0; i < _edges.size(); i++) {
     if (i == 0) { // Input to inner
       _edges[i].clear();
-      _edges[i].resize(_inputNodes.capacity());
-      for (uint j = 0; j < _inputNodes.capacity(); j++) {
+      _edges[i].resize(_inputNodes.size());
+      for (uint j = 0; j < _inputNodes.size(); j++) {
         _edges[i][j].clear();
-        _edges[i][j].resize(_innerNodes[i].capacity());
+        _edges[i][j].resize(_innerNodes[0].size());
       }
-    } else if (i == _edges.capacity()-1) { // inner to output
+    } else if (i == _edges.size()-1) { // inner to output
       _edges[i].clear();
-      _edges[i].resize(_innerNodes[i-1].capacity());
-      for (uint j = 0; j < _innerNodes[i-1].capacity(); j++) {
+      _edges[i].resize(_innerNodes[i-1].size());
+      for (uint j = 0; j < _innerNodes[i-1].size(); j++) {
         _edges[i][j].clear();
-        _edges[i][j].resize(_outputNodes.capacity());
+        _edges[i][j].resize(_outputNodes.size());
       }
     } else {
       _edges[i].clear();
-      _edges[i].resize(_innerNodes[i-1].capacity());
-      for (uint j = 0; j < _innerNodes[i-1].capacity(); j++) {
+      _edges[i].resize(_innerNodes[i-1].size());
+      for (uint j = 0; j < _innerNodes[i-1].size(); j++) {
         _edges[i][j].clear();
-        _edges[i][j].resize(_innerNodes[i].capacity());
+        _edges[i][j].resize(_innerNodes[i].size());
       }
     }
   }
 
-  for (uint i = 0; i < _edges.capacity(); i++) {
-    for (uint j = 0; j < _edges[i].capacity(); j++) {
-      for (uint k = 0; k < _edges[i][j].capacity(); k++) {
+  for (uint i = 0; i < _edges.size(); i++) {
+    for (uint j = 0; j < _edges[i].size(); j++) {
+      for (uint k = 0; k < _edges[i][j].size(); k++) {
         _edges[i][j][k] = (double) (rand() % 10000) / 10000.0;
       }
     }

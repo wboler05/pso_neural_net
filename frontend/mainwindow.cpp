@@ -72,8 +72,6 @@ MainWindow::MainWindow(QWidget *parent) :
     //connect(ui->actionLoad_File, SIGNAL(triggered(bool)), this, SLOT(loadFile_btn()));
     connect(ui->applyParams_btn, SIGNAL(clicked(bool)), this, SLOT(applyParameterChanges()));
     connect(ui->innerNet_btn, SIGNAL(clicked(bool)), this, SLOT(setInnerNetNodesFromGui()));
-    connect(ui->printGB_btn, SIGNAL(clicked(bool)), this, SLOT(printGB()));
-    connect(ui->classError_btn, SIGNAL(clicked(bool)), this, SLOT(printClassError()));
     connect(ui->setNet_btn, SIGNAL(clicked(bool)), this, SLOT(setCurrentNet()));
     connect(ui->testInput_btn, SIGNAL(clicked(bool)), this, SLOT(testTrainedNetWithInput()));
     connect(ui->scrollToBottom_cb, SIGNAL(toggled(bool)), this, SLOT(scrollToBottom_toggled()));
@@ -166,15 +164,16 @@ void MainWindow::on_actionLoad_PSO_State_triggered() {
         QTextStream inputStream(&inputFile);
         QString psoState = inputStream.readAll();
 
-        applyParameterChanges();
+        clearPSOState();
 
-        if (_neuralPsoTrainer == nullptr) {
-            _neuralPsoTrainer = new ANDTrainer(_params);
-        }
+        if (_neuralPsoTrainer->loadStatefromString(psoState.toStdString())) {
+            _params.pp = _neuralPsoTrainer->psoParams();
+            _params.np = *_neuralPsoTrainer->neuralNet()->nParams();
+            updateParameterGui();
 
-        if (_neuralPsoTrainer->fromString(psoState.toStdString())) {
             msgTxt.append("Loaded PSO State: \n" );
             msgTxt.append(fileName);
+            updatePlot();
         } else {
             msgTxt.append("PSO State is unreadable!\n" );
             msgTxt.append(fileName);
@@ -187,19 +186,6 @@ void MainWindow::on_actionLoad_PSO_State_triggered() {
 
     msgBox->setText(msgTxt);
     msgBox->exec();
-}
-
-void MainWindow::printGB() {
-    if (_neuralPsoTrainer != nullptr) {
-        _neuralPsoTrainer->printGB();
-    }
-}
-
-void MainWindow::printClassError() {
-    if (_neuralPsoTrainer != nullptr) {
-        TestStatistics::ClassificationError ce;
-//        _neuralPsoTrainer->classError(&ce);
-    }
 }
 
 void MainWindow::setCurrentNet() {
@@ -425,7 +411,7 @@ void MainWindow::testTrainedNetWithInput() {
         }
 
         _trainedNeuralNet->resetInputs();
-        for (int i = 0; i < newInput.size(); i++) {
+        for (size_t i = 0; i < newInput.size(); i++) {
             _trainedNeuralNet->loadInput(newInput[i], i);
         }
         std::vector<double> output = _trainedNeuralNet->process();
@@ -448,15 +434,6 @@ void MainWindow::testTrainedNetWithInput() {
 void MainWindow::stopPso() {
     _runPso = false;
     cout << "Ending process.  Please wait. " << endl;
-    enableParameterInput(true);
-
-    QString completionMsg;
-    completionMsg.append("Complete. ");
-    completionMsg.append(QString::number(_neuralPsoTrainer->iterations(), 10));
-    completionMsg.append(" iterations\t");
-    completionMsg.append(QString::number((double)_runTimer.elapsed() / 1000.0));
-    completionMsg.append(" seconds");
-    setOutputLabel(completionMsg);
 
     NeuralPso::interruptProcess();
 }
@@ -471,88 +448,99 @@ void MainWindow::runNeuralPso() {
   }
 
   _runTimer.restart();
-
   _runPso = true;
+
   setOutputLabel("Training running.");
   enableParameterInput(false);
 
   // Make sure that parameters are ready
   applyParameterChanges();
+  tellParameters();
 
-  std::string outputString;
-
-  outputString += "\n\nInputs: ";
-  outputString += stringPut(_params.np.inputs);
-  outputString += "\nInner Nets: ";
-  outputString += stringPut(_params.np.innerNets);
-  outputString += "\n";
-  for (uint i = 0; i < _params.np.innerNetNodes.size(); i++) {
-    outputString += " - ";
-    outputString += stringPut(_params.np.innerNetNodes[i]);
-    outputString += "\n";
-    //cout << " - " << nParams.innerNetNodes[i] << endl;
-  }
-  outputString += "Tests per train(min): ";
-    outputString += stringPut(_params.np.testIterations);
-    outputString += "\n";
-  outputString += "Particles: ";
-    outputString += stringPut(_params.pp.particles);
-    outputString += "\nNeighbors: ";
-    outputString += stringPut(_params.pp.neighbors);
-    outputString += "\n";
-  outputString += "Minimum Particle Iterations: ";
-    outputString += stringPut(_params.pp.iterations);
-    outputString += "\n";
-
-  //cout << "Tests per train(min): " << nParams.testIterations << endl;
-  //cout << "Particles: " << pParams.particles << "\nNeighbors: " << pParams.neighbors << endl;
-  //cout << "Minimum Particle Iterations: " << pParams.iterations << endl;
-  Logger::write(outputString);
-
-  for (uint i = 0; i < _labelsData.size(); i++) {
-    if (_labelsData[i] != 1) {
-      _labelsData[i] = 0;
-    }
+  if (_neuralPsoTrainer == nullptr) {
+      clearPSOState();
   }
 
-  NeuralNet::EdgeType gb;
-  if (_neuralPsoTrainer != nullptr) {
-      gb = _neuralPsoTrainer->getGbEdges();
-      delete _neuralPsoTrainer;
-  }
-
-  ANDTrainer *np = new ANDTrainer(_params);
-  _neuralPsoTrainer = np;
-  //np->build(trainingImages, trainingLabels);
-  np->build(_inputData, _labelsData);
-  np->setFunctionMsg("PE");
-
-  NeuralNet *net = np->neuralNet();
-
+  //NeuralNet *net = _neuralPsoTrainer->neuralNet();
   //ui->neuralNetPlot->setEdges(&(net->getWeights()));
 
   // Train the net
-  np->injectGb(gb);
-  np->runTrainer();
-
-  /*
-  for (int j = 0; j < 15; j++) { // Test point
-    np->testGB();
-  }
-  */
+  tryInjectGB();
+  _neuralPsoTrainer->runTrainer();
 
   TestStatistics::ClassificationError ce;
-  np->classError(&ce);
+  _neuralPsoTrainer->classError(&ce);
 
   stopPso();
 
-  qApp->alert(this);
+  enableParameterInput(true);
 
+  QString completionMsg;
+  completionMsg.append("Complete. ");
+  completionMsg.append(QString::number(_neuralPsoTrainer->iterations(), 10));
+  completionMsg.append(" iterations\t");
+  completionMsg.append(QString::number((double)_runTimer.elapsed() / 1000.0));
+  completionMsg.append(" seconds");
+  setOutputLabel(completionMsg);
+
+  _gb = _neuralPsoTrainer->getGbEdges();
+
+  qApp->alert(this);
 }
 
-//void MainWindow::loadFile_btn() {
-//    _fileLoaded = readPEFile(_labelsData, _inputData);
-//}
+void MainWindow::on_resetAndRun_btn_clicked() {
+    QMessageBox *msgBox = new QMessageBox(this);
+    msgBox->setText("Will run after clearing state.\nClear state and run?");
+    msgBox->addButton(QMessageBox::Yes);
+    msgBox->addButton(QMessageBox::Cancel);
+    int choice = msgBox->exec();
+
+    switch(choice) {
+    case QMessageBox::Yes:
+        clearPSOState();
+        runNeuralPso();
+        break;
+    default:
+        return;
+    }
+}
+
+void MainWindow::on_clearState_btn_clicked() {
+    QMessageBox *msgBox = new QMessageBox(this);
+    msgBox->setText("Will clear PSO State.\nProceed?");
+    msgBox->addButton(QMessageBox::Yes);
+    msgBox->addButton(QMessageBox::Cancel);
+    int choice = msgBox->exec();
+
+    switch(choice) {
+    case QMessageBox::Yes:
+        clearPSOState();
+        break;
+    default:
+        return;
+    }
+}
+
+void MainWindow::clearPSOState() {
+    if (_neuralPsoTrainer != nullptr) {
+        delete _neuralPsoTrainer;
+    }
+
+    _neuralPsoTrainer = new ANDTrainer(_params);
+    _neuralPsoTrainer->build(_inputData, _labelsData);
+    _neuralPsoTrainer->setFunctionMsg("AND");
+}
+
+void MainWindow::tryInjectGB() {
+
+    if (ui->actionInject_Global_Best->isChecked()) {
+        if (_neuralPsoTrainer != nullptr) {
+            if (_gb.size() != 0){
+                _neuralPsoTrainer->injectGb(_gb);
+            }
+        }
+    }
+}
 
 void MainWindow::updatePlot() {
     if (_neuralPsoTrainer != nullptr) {
@@ -579,219 +567,59 @@ void MainWindow::enableParameterInput(bool b) {
     ui->param_gb->setEnabled(b);
 }
 
-/*
-void MainWindow::loadTrainingData(string imageFile, string labelFile, vector<vector<vector<uint8_t> > > &trainingImages, vector<uint8_t> &trainingLabels) {
-  ifstream trainLabelFile(labelFile, ios::binary);
-
-  uint8_t temp;
-  LabelInfo trainingLabelInfo;
-
-  if (readLabelHeading(trainLabelFile, trainingLabelInfo)) {
-    cout << "Data type: " << trainingLabelInfo.dataType
-      << "\tDimensions: " << trainingLabelInfo.dataDimensions << "\tNum items: " << trainingLabelInfo.numItems << endl;
-  }
-
-  trainingLabels.resize(trainingLabelInfo.numItems);
-
-  for (uint32_t i = 0; i < trainingLabelInfo.numItems; i++) {
-    if (trainLabelFile.eof()) {
-      cout << "You can't count, son! " << trainingLabelInfo.numItems << " != " << i << endl;
-      break;
-    } else {
-      temp = trainLabelFile.get();
-      trainingLabels[i] = temp;
-      //cout << "(" << i << "): " << (uint32_t) trainingLabels.at(i) << endl;
-    }
-  }
-  trainLabelFile.close();
-
-
-  ifstream trainImageFile(imageFile, ios::binary);
-  // Load training images
-  ImageInfo trainingImageInfo;
-  if (readImageHeading(trainImageFile, trainingImageInfo)) {
-    cout << "Image file read. " << endl;
-  } else {
-    cout << "Image file broke, yo." << endl;
-  }
-
-  trainingImages.resize(trainingImageInfo.numItems);
-  for (uint i = 0; i < trainingImageInfo.numItems; i++) {
-    trainingImages[i].resize(trainingImageInfo.rows);
-    for (uint j = 0; j < trainingImageInfo.rows; j++) {
-      trainingImages[i][j].resize(trainingImageInfo.cols);
-    }
-  }
-
-  cout << "Allocated image space." << endl;
-
-  for (uint i = 0; i < trainingImageInfo.numItems; i++) {
-    for (uint j = 0; j < trainingImageInfo.rows; j++) {
-      for (uint k = 0; k < trainingImageInfo.cols; k++) {
-        temp = trainImageFile.get();
-        trainingImages[i][j][k] = temp;
-      }
-    }
-  }
-  trainImageFile.close();
-
-  cout << "Loaded training images." << endl;
-
-}
-*/
-
-/*
-QString MainWindow::loadInputFileDialog() {
-    qApp->processEvents();
-    QDir curDir(qApp->applicationDirPath());
-    curDir.cdUp();
-
-    QFileDialog * fileDialog = new QFileDialog();
-    QString fileString = fileDialog->getOpenFileName(
-                this,
-                tr("Open FNNPSOGSA data"),
-                curDir.absolutePath(),
-                tr("Data Files (*.csv)"));
-    return fileString;
-}
-*/
-
 void MainWindow::showConfusionMatrixHelpBox() {
     AboutConfusionMatrixDialog *db = new AboutConfusionMatrixDialog();
     connect(this, SIGNAL(destroyed(QObject*)), db, SLOT(close()));
     db->show();
 }
 
-/*
-bool MainWindow::readPEFile(vector<double> &labels, vector<vector<double>> &data) {
+void MainWindow::tellParameters() {
+    std::string outputString;
 
-    std::string file = loadInputFileDialog().toStdString();
-
-    if (file.empty()) {
-        cout << "File could not be read." << endl;
-        return false;
+    outputString += "\n\nInputs: ";
+    outputString += stringPut(_params.np.inputs);
+    outputString += "\nInner Nets: ";
+    outputString += stringPut(_params.np.innerNets);
+    outputString += "\n";
+    for (uint i = 0; i < _params.np.innerNetNodes.size(); i++) {
+        outputString += " - ";
+        outputString += stringPut(_params.np.innerNetNodes[i]);
+        outputString += "\n";
+        //cout << " - " << nParams.innerNetNodes[i] << endl;
     }
+    outputString += "Tests per train(min): ";
+    outputString += stringPut(_params.np.testIterations);
+    outputString += "\n";
+    outputString += "Particles: ";
+    outputString += stringPut(_params.pp.particles);
+    outputString += "\nNeighbors: ";
+    outputString += stringPut(_params.pp.neighbors);
+    outputString += "\n";
+    outputString += "Minimum Particle Iterations: ";
+    outputString += stringPut(_params.pp.iterations);
+    outputString += "\n";
 
-  //ifstream inputFile("FNNPSOGSAclot/clean.csv");
-    ifstream inputFile(file);
-
-  // Select data columns to skip (never select '0'th column!)
-  vector<int> skips = {3, 5, 6, 8};
-  //vector<int> skips;
-  _inputskips = skips;
-
-  if (!inputFile.is_open()) {
-    cout << "File could not be read." << endl;
-    return false;
-  }
-
-  labels.clear();
-  data.clear();
-
-  string temp;
-  getline(inputFile, temp, '\n');
-
-  while (getline(inputFile, temp)) {
-
-    vector<double> inData;
-    string::size_type prevP = 0, pos = 0;
-    int index = 0;
-    while ((pos = temp.find(',', pos)) != std::string::npos) {
-      bool skipLine = false;
-      for (uint i = 0; i < skips.size(); i++) {
-        if (skips[i] == 0) continue;
-        if (index == skips[i]) {
-          skipLine = true;
-          break;
-        }
-      }
-      index++;
-      if (!skipLine) {
-        std::string substring(temp.substr(prevP, pos-prevP));
-
-        double dig;
-        {
-          stringstream ss;
-          ss << substring;
-          ss >> dig;
-        }
-        inData.push_back(dig);
-      }
-      prevP = ++pos;
-    }
-    labels.push_back(inData[0]);
-    vector<double> data_;
-    data_.resize(inData.size()-1);
-    for(size_t i = 1; i < inData.size(); i++) {
-      data_[i-1] = inData[i];
-    }
-    data.push_back(data_);
-  }
-  inputFile.close();
-  return true;
+    //cout << "Tests per train(min): " << nParams.testIterations << endl;
+    //cout << "Particles: " << pParams.particles << "\nNeighbors: " << pParams.neighbors << endl;
+    //cout << "Minimum Particle Iterations: " << pParams.iterations << endl;
+    Logger::write(outputString);
 }
-*/
-
-
-/*
-//bool MainWindow::readMagicNumber(ifstream &in, uint32_t &dataType, uint32_t &dimensions, uint32_t &numItems) {}
-bool MainWindow::readLabelHeading(ifstream &in, LabelInfo &lb) {
-
-  in.seekg(0, in.beg);
-
-  unsigned char temp;
-
-  for (int i = 0; i < 2; i++) {
-      temp = in.get();
-      if (temp != 0)
-        return false;
-  }
-
-  lb.dataType = (uint32_t) in.get();
-  lb.dataDimensions = (uint32_t) in.get();
-
-  lb.numItems = readUnsignedInt(in);
-
-  return true;
-}
-
-bool MainWindow::readImageHeading(ifstream &in, ImageInfo &im) {
-  in.seekg(0, in.beg);
-
-  unsigned char temp;
-
-  for (int i = 0; i < 2; i++) {
-    temp = in.get();
-    if (temp != 0)
-      return false;
-  }
-
-  im.dataType = (uint32_t) in.get();
-  im.dataDimensions = (uint32_t) in.get();
-
-  im.numItems = readUnsignedInt(in);
-  im.rows = readUnsignedInt(in);
-  im.cols = readUnsignedInt(in);
-
-  return true;
-}
-*/
 
 uint32_t MainWindow::readUnsignedInt(ifstream &input) {
-  uint8_t temp[4];
-  for (int i = 3; i >= 0; i--) {
-    temp[i] = input.get();
-  }
-  return char2uint(temp);
+    uint8_t temp[4];
+    for (int i = 3; i >= 0; i--) {
+        temp[i] = input.get();
+    }
+    return char2uint(temp);
 }
 
 uint32_t MainWindow::char2uint(uint8_t *input) {
-  uint32_t num = 0x00000000;
-  num +=  ((uint32_t) input[0])         & 0x000000FF;
-  num +=  (((uint32_t) input[1]) << 8)  & 0x0000FF00;
-  num +=  (((uint32_t) input[2]) << 16) & 0x00FF0000;
-  num +=  (((uint32_t) input[3]) << 24) & 0xFF000000;
-  return num;
+    uint32_t num = 0x00000000;
+    num +=  ((uint32_t) input[0])         & 0x000000FF;
+    num +=  (((uint32_t) input[1]) << 8)  & 0x0000FF00;
+    num +=  (((uint32_t) input[2]) << 16) & 0x00FF0000;
+    num +=  (((uint32_t) input[3]) << 24) & 0xFF000000;
+    return num;
 }
 
 #ifdef OPENCL_DEFINED
@@ -849,105 +677,4 @@ void MainWindow::initializeCL(std::vector<cl::Device> &cpuDevices,
 }
 
 #endif
-
-
-/*
-
-FILE FORMATS FOR THE MNIST DATABASE
-
-The data is stored in a very simple file format designed for storing vectors and multidimensional matrices. General info on this format is given at the end of this page, but you don't need to read that to use the data files.
-All the integers in the files are stored in the MSB first (high endian) format used by most non-Intel processors. Users of Intel processors and other low-endian machines must flip the bytes of the header.
-
-There are 4 files:
-
-train-images-idx3-ubyte: training set images
-train-labels-idx1-ubyte: training set labels
-t10k-images-idx3-ubyte:  test set images
-t10k-labels-idx1-ubyte:  test set labels
-
-The training set contains 60000 examples, and the test set 10000 examples.
-
-The first 5000 examples of the test set are taken from the original NIST training set. The last 5000 are taken from the original NIST test set. The first 5000 are cleaner and easier than the last 5000.
-
-TRAINING SET LABEL FILE (train-labels-idx1-ubyte):
-
-[offset] [type]          [value]          [description]
-0000     32 bit integer  0x00000801(2049) magic number (MSB first)
-0004     32 bit integer  60000            number of items
-0008     unsigned byte   ??               label
-0009     unsigned byte   ??               label
-........
-xxxx     unsigned byte   ??               label
-The labels values are 0 to 9.
-
-TRAINING SET IMAGE FILE (train-images-idx3-ubyte):
-
-[offset] [type]          [value]          [description]
-0000     32 bit integer  0x00000803(2051) magic number
-0004     32 bit integer  60000            number of images
-0008     32 bit integer  28               number of rows
-0012     32 bit integer  28               number of columns
-0016     unsigned byte   ??               pixel
-0017     unsigned byte   ??               pixel
-........
-xxxx     unsigned byte   ??               pixel
-Pixels are organized row-wise. Pixel values are 0 to 255. 0 means background (white), 255 means foreground (black).
-
-TEST SET LABEL FILE (t10k-labels-idx1-ubyte):
-
-[offset] [type]          [value]          [description]
-0000     32 bit integer  0x00000801(2049) magic number (MSB first)
-0004     32 bit integer  10000            number of items
-0008     unsigned byte   ??               label
-0009     unsigned byte   ??               label
-........
-xxxx     unsigned byte   ??               label
-The labels values are 0 to 9.
-
-TEST SET IMAGE FILE (t10k-images-idx3-ubyte):
-
-[offset] [type]          [value]          [description]
-0000     32 bit integer  0x00000803(2051) magic number
-0004     32 bit integer  10000            number of images
-0008     32 bit integer  28               number of rows
-0012     32 bit integer  28               number of columns
-0016     unsigned byte   ??               pixel
-0017     unsigned byte   ??               pixel
-........
-xxxx     unsigned byte   ??               pixel
-Pixels are organized row-wise. Pixel values are 0 to 255. 0 means background (white), 255 means foreground (black).
-
-
-
-
-
-
-the IDX file format is a simple format for vectors and multidimensional matrices of various numerical types.
-The basic format is
-
-magic number
-size in dimension 0
-size in dimension 1
-size in dimension 2
-.....
-size in dimension N
-data
-
-The magic number is an integer (MSB first). The first 2 bytes are always 0.
-
-The third byte codes the type of the data:
-0x08: unsigned byte
-0x09: signed byte
-0x0B: short (2 bytes)
-0x0C: int (4 bytes)
-0x0D: float (4 bytes)
-0x0E: double (8 bytes)
-
-The 4-th byte codes the number of dimensions of the vector/matrix: 1 for vectors, 2 for matrices....
-
-The sizes in each dimension are 4-byte integers (MSB first, high endian, like in most non-Intel processors).
-
-The data is stored like in a C array, i.e. the index in the last dimension changes the fastest.
-
-*/
 

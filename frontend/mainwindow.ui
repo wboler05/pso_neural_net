@@ -1118,16 +1118,9 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="printGB_btn">
+       <widget class="QPushButton" name="clearState_btn">
         <property name="text">
-         <string>Print GB</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="classError_btn">
-        <property name="text">
-         <string>Class Error</string>
+         <string>Clear State</string>
         </property>
        </widget>
       </item>
@@ -1149,6 +1142,13 @@
        <widget class="Line" name="line">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="resetAndRun_btn">
+        <property name="text">
+         <string>Reset and Run</string>
         </property>
        </widget>
       </item>
@@ -1208,7 +1208,7 @@
     <property name="title">
      <string>Settings</string>
     </property>
-    <addaction name="actionClear_Global_Best"/>
+    <addaction name="actionInject_Global_Best"/>
     <addaction name="actionEnable_Output"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
@@ -1240,12 +1240,15 @@
     <string>Load Input File</string>
    </property>
   </action>
-  <action name="actionClear_Global_Best">
+  <action name="actionInject_Global_Best">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Clear Global Best</string>
+    <string>Inject Global Best</string>
+   </property>
+   <property name="toolTip">
+    <string>Inject the global best on next run.</string>
    </property>
   </action>
   <action name="actionConfusion_Matrix">
@@ -1330,8 +1333,6 @@
   <tabstop>run_btn</tabstop>
   <tabstop>stop_btn</tabstop>
   <tabstop>setNet_btn</tabstop>
-  <tabstop>printGB_btn</tabstop>
-  <tabstop>classError_btn</tabstop>
  </tabstops>
  <resources/>
  <connections>

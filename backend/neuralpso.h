@@ -54,7 +54,7 @@ public:
   bool injectGb(const NeuralNet::EdgeType &w);
 
   std::string stringifyState();
-  bool fromString(const std::string & psoState);
+  bool loadStatefromString(const std::string & psoState);
 
   void printGB();
   void printParticle(uint i);

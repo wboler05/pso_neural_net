@@ -43,6 +43,8 @@ public:
     NeuralNet & operator= (NeuralNet && n);
     ~NeuralNet();
 
+    void initialize(const NeuralNetParameters & p);
+
     void resetInputs();
     void resetInnerNodes();
     void resetWeights();
@@ -81,8 +83,6 @@ private:
     bool _localEdgesFlag;
 
     NeuralNetParameters _nParams;
-
-    void initialize(const NeuralNetParameters & p);
 
 /// Inner Edge index:           0           1            2  ... n-1            n
 /// Nodes:               input -> inner (0) -> inner (1) -> ... -> inner (n-1) -> output

@@ -602,34 +602,42 @@ NeuralNet::EdgeType & NeuralPso::getGbEdges() {
 }
 
 std::string NeuralPso::stringifyState() {
-    //!TEST!//
+
     using namespace NeuralPsoStream;
 
     std::string stringState;
 
+    stringState.append(stringifyPParams(psoParams()));
+    stringState.append(stringifyNParams(*_neuralNet->nParams()));
+
     // Get Global Best
-    stringState.append("<_gb>\n");
+    stringState.append(openToken("_gb"));
+    stringState.append("\n");
     stringState.append(stringifyParticle(_gb));
-    stringState.append("</_gb>\n");
+    stringState.append(closeToken("_gb"));
+    stringState.append("\n");
 
     // Get Particles
-    stringState.append("<_particles>\n");
+    stringState.append(openToken("_particles"));
+    stringState.append("\n");
     for (size_t i = 0; i < _particles.size(); i++) {
-        stringState.append("<");
-        stringState.append(stringPut(i));
-        stringState.append(">\n");
-        stringState.append(stringifyParticle(_particles[i]));
-        stringState.append("</");
-        stringState.append(stringPut(i));
-        stringState.append(">\n");
-    }
-    stringState.append("</_particles>");
+        stringState.append("\n");
+        stringState.append(openToken(stringPut(i)));
+        stringState.append("\n");
 
+        stringState.append(stringifyParticle(_particles[i]));
+
+        stringState.append("\n");
+        stringState.append(closeToken(stringPut(i)));
+        stringState.append("\n");
+    }
+    stringState.append(closeToken("_particles"));
+    stringState.append("\n");
 
     return stringState;
 }
 
-bool NeuralPso::fromString(const string &psoState) {
+bool NeuralPso::loadStatefromString(const string &psoState) {
     //!TEST!//
     using namespace NeuralPsoStream;
 
@@ -641,6 +649,17 @@ bool NeuralPso::fromString(const string &psoState) {
     if (!findNextToken(cleanString, it)) {
         return false;
     }
+
+    std::string psoParamString = subStringByToken(cleanString, "PsoParams", it);
+    if (psoParamString.size() == 0) return false;
+    PsoParams newPParams = psoParametersFromString(psoParamString);
+    _psoParams = newPParams;
+
+    std::string nParamString = subStringByToken(cleanString, "NeuralNetParameters", it);
+    if (nParamString.size() == 0) return false;
+    NeuralNetParameters newNParams = nParametersFromString(nParamString);
+    _neuralNet->initialize(newNParams);
+
     std::string gbString = subStringByToken(cleanString, "_gb", it);
     if (gbString.size() == 0) return false;
 

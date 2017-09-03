@@ -3,50 +3,63 @@
 namespace NeuralPsoStream {
 
 std::string stringifyParticle(const Particle<NeuralNet::EdgeType> & p) {
-    std::string particleString;
+    std::string ps;
 
     // Particle Position X
-    particleString.append("\t<_x>\n");
-    particleString.append(stringifyEdges(p._x));
-    particleString.append("\t</_x>\n");
+    ps.append(stringifyEdges(p._x, "_x"));
 
     // Particle Velocity
-    particleString.append("\t<_v>\n");
-    particleString.append(stringifyEdges(p._v));
-    particleString.append("\t</_v>\n");
+    ps.append(stringifyEdges(p._v, "_v"));
 
     // Particle Personal Best X
-    particleString.append("\t<_x_pb>\n");
-    particleString.append(stringifyEdges(p._x_pb));
-    particleString.append("\t</_x_pb>\n");
+    ps.append(stringifyEdges(p._x_pb, "_x_pb"));
 
     // Particle Local Best
-    particleString.append("\t<_x_lb>\n");
-    particleString.append(stringifyEdges(p._x_lb));
-    particleString.append("\t</_x_lb>\n");
+    ps.append(stringifyEdges(p._x_lb, "_x_lb"));
 
     // Particle Personal Best Fitness
-    particleString.append("\t<_fit_pb>\n\t\t");
-    particleString.append(stringPut(p._fit_pb));
-    particleString.append("\n\t</_fit_pb>\n");
+    ps.append(tokenizedValue(p._fit_pb, "_fit_pb"));
 
     // Particle Local Best Fitness
-    particleString.append("\t<_fit_lb>\n\t\t");
-    particleString.append(stringPut(p._fit_lb));
-    particleString.append("\n\t</_fit_lb>\n");
+    ps.append(tokenizedValue(p._fit_lb, "_fit_lb"));
 
     int worstFlag = p._worstFlag ? 1 : 0;
     // Particle Worst Flag
-    particleString.append("\t<_worstFlag>\n\t\t");
-    particleString.append(stringPut(worstFlag));
-    particleString.append("\n\t</_worstFlag>\n");
+    ps.append(tokenizedValue(worstFlag, "_worstFlag"));
 
     // Particle Points
-    particleString.append("\t<_points>\n\t\t");
-    particleString.append(stringPut(p._points));
-    particleString.append("\n\t</_points>\n");
+    ps.append(tokenizedValue(p._points, "_points"));
 
-    return particleString;
+    return ps;
+}
+
+template <class T>
+std::string tokenizedValue(const T & val, const std::string & token) {
+    std::string ps;
+
+    ps.append("\t");
+    ps.append(openToken(token));
+    ps.append("\n");
+    ps.append(stringPut(val));
+    ps.append("\t");
+    ps.append(closeToken(token));
+    ps.append("\n");
+
+    return ps;
+}
+
+std::string stringifyEdges(const NeuralNet::EdgeType & edges, const std::string & token) {
+    std::string ps;
+
+    ps.append("\t");
+    ps.append(openToken(token));
+    ps.append("\n");
+    ps.append(stringifyEdges(edges));
+    ps.append("\t");
+    ps.append(closeToken(token));
+    ps.append("\n");
+
+    return ps;
 }
 
 std::string stringifyEdges(const NeuralNet::EdgeType & edges) {
@@ -59,7 +72,7 @@ std::string stringifyEdges(const NeuralNet::EdgeType & edges) {
             for (size_t k = 0; k < edges[i][j].size(); k++) {
                 particleString.append(stringPut(edges[i][j][k]));
                 particleString.append(",");
-                if (k == edges[i][k].size() -1) {
+                if (k == edges[i][j].size() -1) {
                     particleString.append("\n");
                 }
             }
@@ -72,7 +85,6 @@ std::string stringifyEdges(const NeuralNet::EdgeType & edges) {
 }
 
 NeuralNet::EdgeType edgesFromString(const std::string & edgeString) {
-    //!TEST!//
 
     NeuralNet::EdgeType e;
 
@@ -123,88 +135,141 @@ Particle<NeuralNet::EdgeType> particleFromString(const std::string & particleStr
     int it = 0;
 
     // Particle Position X
-    if (!findNextToken(particleString, it)) {
-        return P();
+    {
+        NeuralNet::EdgeType xEdge;
+        if (!edgeFromNuggetString(particleString, "_x", it, xEdge)) {
+            return P();
+        } else {
+            pParticle._x = xEdge;
+        }
     }
-    std::string xString = subStringByToken(particleString, "_x", it);
-    if (!xString.empty()) {
-        NeuralNet::EdgeType xEdge = edgesFromString(xString);
-        pParticle._x = xEdge;
-    }
-
 
     // Particle Velocity
-    if (!findNextToken(particleString, it)) {
-        return P();
-    }
-    std::string vString = subStringByToken(particleString, "_v", it);
-    if (!vString.empty()) {
-        NeuralNet::EdgeType vEdge = edgesFromString(vString);
-        pParticle._v = vEdge;
+    {
+        NeuralNet::EdgeType vEdge;
+        if (!edgeFromNuggetString(particleString, "_v", it, vEdge)) {
+            return P();
+        } else {
+            pParticle._v = vEdge;
+        }
     }
 
     // Particle Personal Best X
-    if (!findNextToken(particleString, it)) {
-        return P();
-    }
-    std::string xbString = subStringByToken(particleString, "_x_pb", it);
-    if (!xbString.empty()) {
-        NeuralNet::EdgeType xbEdge = edgesFromString(xbString);
-        pParticle._x_pb = xbEdge;
+    {
+        NeuralNet::EdgeType xbEdge;
+        if (!edgeFromNuggetString(particleString, "_x_pb", it, xbEdge)) {
+            return P();
+        } else {
+            pParticle._x_pb = xbEdge;
+        }
     }
 
     // Particle Local Best
-    if (!findNextToken(particleString, it)) {
-        return P();
-    }
-    std::string xlString = subStringByToken(particleString, "_x_lb", it);
-    if (!xlString.empty()) {
-        NeuralNet::EdgeType xlEdge = edgesFromString(xlString);
-        pParticle._x_lb = xlEdge;
+    {
+        NeuralNet::EdgeType xlEdge;
+        if (!edgeFromNuggetString(particleString, "_x_lb", it, xlEdge)) {
+            return P();
+        } else {
+            pParticle._x_lb = xlEdge;
+        }
     }
 
     // Particle Personal Best Fitness
-    if (!findNextToken(particleString, it)) {
+    double fpb = 0;
+    if (!valFromNuggetString(particleString, "_fit_pb", it, fpb)) {
         return P();
-    }
-    char c = particleString[it];
-    std::string fpbString = subStringByToken(particleString, "_fit_pb", it);
-    if (!fpbString.empty()) {
-        double fpb = numberFromString<double>(fpbString);
+    } else {
         pParticle._fit_pb = fpb;
     }
 
     // Particle Local Best Fitness
-    if (!findNextToken(particleString, it)) {
+    double flb = 0;
+    if (!valFromNuggetString(particleString, "_fit_lb", it, flb)) {
         return P();
-    }
-    std::string flbString = subStringByToken(particleString, "_fit_lb", it);
-    if (!flbString.empty()) {
-        double flb = numberFromString<double>(flbString);
+    } else {
         pParticle._fit_lb = flb;
     }
 
     // Particle Worst Flag
-    if (!findNextToken(particleString, it)) {
+    int worst = 0;
+    if (!valFromNuggetString(particleString, "_worstFlag", it, worst)) {
         return P();
-    }
-    std::string worstString = subStringByToken(particleString, "_worstFlag", it);
-    if (!worstString.empty()) {
-        int worst = numberFromString<int>(worstString);
+    } else {
         pParticle._worstFlag = worst == 1;
     }
 
     // Particle Points
-    if (!findNextToken(particleString, it)) {
+    double points = 0;
+    if (!valFromNuggetString(particleString, "_points", it, points)) {
         return P();
-    }
-    std::string pointsString = subStringByToken(particleString, "_points", it);
-    if (!pointsString.empty()) {
-        double points = numberFromString<double>(fpbString);
+    } else {
         pParticle._points = points;
     }
 
     return pParticle;
+}
+
+bool edgeFromNuggetString(const std::string & cleanString, const std::string & token, int & it, NeuralNet::EdgeType & val) {
+    //!TEST!//
+
+    // Move the iterator to the next token in the full string
+    if (!findNextToken(cleanString, it)) {
+        // If no tokens found, bounce
+        return false;
+    }
+    // Get the edge string
+    std::string edgeString = subStringByToken(cleanString, token, it);
+    if (!edgeString.empty()) {
+        // If it's not a failure, get the edges
+        NeuralNet::EdgeType edge = edgesFromString(edgeString);
+        // Send the edges to the return value
+        val = edge;
+    }
+
+    return true;
+}
+
+template <class T>
+bool valFromNuggetString(const std::string & cleanString, const std::string & token, int & it, T & val) {
+
+    // Move the iterator to the next available token in the full string
+    if (!findNextToken(cleanString, it)) {
+        // If no token found, bounce
+        return false;
+    }
+
+    // Get the value string matching the token
+    std::string valString = subStringByToken(cleanString, token, it);
+    // If we found the value
+    if (!valString.empty()) {
+        // Get the value from the string
+        T val_ = numberFromString<T>(valString);
+        val = val_;
+    }
+    return true;
+}
+
+template <class T>
+bool vectorFromNuggetString(const std::string & cleanString, const std::string & token, int & it, std::vector<T> & val) {
+    //!TEST!//
+
+    if (!findNextToken(cleanString, it)) {
+        return false;
+    }
+
+    std::string valString = subStringByToken(cleanString, token, it);
+    if (!valString.empty()) {
+
+        std::vector<T> vec_;
+        T val_;
+        int i = 0;
+        int it_ = 0;
+        while (valFromNuggetString(valString, stringPut(i++), it_, val_)) {
+            vec_.push_back(val_);
+        }
+        val = vec_;
+    }
+    return true;
 }
 
 /**
@@ -407,9 +472,399 @@ std::vector<Particle<NeuralNet::EdgeType>> readParticlesFromString(const std::st
             particles.push_back(p);
         }
 
-    }while (it < partSubString.size());
+    }while (it < (int)partSubString.size());
 
     return particles;
+}
+
+//std::string stringifyParameters(const TrainingParameters & params) {
+//    std::string ps;
+
+//    ps.append(stringifyPsoParams(params.pp));
+//    ps.append(stringifyNNParams(params.np));
+////    ps.append(stringifyFParams(params.fp));
+
+//    return ps;
+//}
+
+std::string stringifyPParams(const PsoParams & p) {
+    //!TEST!//
+
+    std::string ps;
+    std::string token("PsoParams");
+
+    ps.append(openToken(token));
+    ps.append("\n");
+
+    // Particles
+    ps.append(stringifyParamsNugget<uint32_t>("particles", p.particles));
+
+    // Neighbors
+    ps.append(stringifyParamsNugget<uint32_t>("neighbors", p.neighbors));
+
+    // Iterations
+    ps.append(stringifyParamsNugget<uint32_t>("iterations", p.iterations));
+
+    // delta
+    ps.append(stringifyParamsNugget<double>("delta", p.delta));
+
+    // vDelta
+    ps.append(stringifyParamsNugget<double>("vDelta", p.vDelta));
+
+    // vLimit
+    ps.append(stringifyParamsNugget<double>("vLimit", p.vLimit));
+
+    // Window
+    ps.append(stringifyParamsNugget<uint32_t>("window", p.window));
+
+    // termIterationFlag
+    int termIterationFlag = p.termIterationFlag ? 1 : 0;
+    ps.append(stringifyParamsNugget<int>("termIterationFlag", termIterationFlag));
+
+    // TermDeltaFlag
+    int termDeltaFlag = p.termDeltaFlag ? 1 : 0;
+    ps.append(stringifyParamsNugget<int>("termDeltaFlag", termDeltaFlag));
+
+    // BackPropagation
+    int backPropagation = p.backPropagation ? 1 : 0;
+    ps.append(stringifyParamsNugget<int>("backPropagation", backPropagation));
+
+    // IterationsPerLevel
+    ps.append(stringifyParamsNugget<int>("iterationsPerLevel", p.iterationsPerLevel));
+
+    // StartPoints
+    ps.append(stringifyParamsNugget<int>("startPoints", p.startPoints));
+
+    // pbPoints
+    ps.append(stringifyParamsNugget<int>("pbPoints", p.pbPoints));
+
+    // lbPoints
+    ps.append(stringifyParamsNugget<int>("lbPoints", p.lbPoints));
+
+    // gbPoints
+    ps.append(stringifyParamsNugget<int>("gbPoints", p.gbPoints));
+
+    // weakPoints
+    ps.append(stringifyParamsNugget<int>("weakPoints", p.weakPoints));
+
+    // decayPoints
+    ps.append(stringifyParamsNugget<int>("decayPoints", p.decayPoints));
+
+    ps.append(closeToken(token));
+    ps.append("\n");
+
+    return ps;
+}
+
+std::string stringifyNParams(const NeuralNetParameters & p) {
+    //!TEST!//
+
+    std::string ps;
+    std::string token("NeuralNetParameters");
+
+    ps.append(openToken(token));
+    ps.append("\n");
+
+    // inputs
+    ps.append(stringifyParamsNugget<int>("inputs", p.inputs));
+
+    // innerNets
+    ps.append(stringifyParamsNugget<int>("innerNets", p.innerNets));
+
+    // innerNetNodes
+    ps.append(stringifyParamsVector<int>("innerNetNodes", p.innerNetNodes));
+
+    // outputs
+    ps.append(stringifyParamsNugget<int>("outputs", p.outputs));
+
+    // testIterations
+    ps.append(stringifyParamsNugget<int>("testIterations", p.testIterations));
+
+    ps.append(closeToken(token));
+    ps.append("\n");
+
+    return ps;
+}
+
+std::string stringifyFParams(const FitnessParameters & p) {
+    std::string ps;
+    std::string token("FitnessParameters");
+
+    ps.append(openToken(token));
+    ps.append("\n");
+
+    // Put stuff here later
+
+    ps.append(closeToken(token));
+    ps.append("\n");
+
+    return ps;
+}
+
+template <class T>
+std::string stringifyParamsNugget(const std::string & token, const T & val) {
+
+    // Write the nugget
+    std::string ps;
+
+    // Write the open token
+    ps.append("\t");
+    ps.append(openToken(token));
+    ps.append("\n\t\t");
+
+    // Write the value
+    ps.append(stringPut(val));
+
+    // Write the close token
+    ps.append("\n\t");
+    ps.append(closeToken(token));
+    ps.append("\n");
+
+    // Return our string
+    return ps;
+}
+
+template <class T>
+std::string stringifyParamsVector(const std::string & token, const std::vector<T> & val) {
+
+    //!TEST!//
+    std::string ps;
+
+    // Write the open token
+    ps.append("\t");
+    ps.append(openToken(token));
+    ps.append("\n\t\t");
+
+    // Write the list of vector values
+    for (size_t i = 0; i < val.size(); i++) {
+        // Use the placement in the vector as a token
+        ps.append(stringifyParamsNugget<T>(stringPut(i), val[i]));
+    }
+
+    // Write the close token
+    ps.append("\n\t");
+    ps.append(closeToken(token));
+    ps.append("\n");
+
+    // Return our string
+    return ps;
+}
+
+//TrainingParameters parametersFromString(const std::string & pString) {
+//    //!TEST!//
+//}
+
+PsoParams psoParametersFromString(const std::string & ps) {
+    //!TEST!//
+    PsoParams p;
+    PsoParams emptyP;
+    int it = 0;
+
+    // Particles
+    uint32_t particles = 0;
+    if (!valFromNuggetString(ps, "particles", it, particles)) {
+        return emptyP;
+    } else {
+        p.particles = particles;
+    }
+
+    // Neighbors
+    uint32_t neighbors=0;
+    if (!valFromNuggetString(ps, "neighbors", it, neighbors)) {
+        return emptyP;
+    } else {
+        p.neighbors = neighbors;
+    }
+
+    // Iterations
+    uint32_t iterations = 0;
+    if (!valFromNuggetString(ps, "iterations", it, iterations)) {
+        return emptyP;
+    } else {
+        p.iterations = iterations;
+    }
+
+    // Delta
+    double delta = 0;
+    if (!valFromNuggetString(ps, "delta", it, delta)) {
+        return emptyP;
+    } else {
+        p.delta = delta;
+    }
+
+    // vDelta
+    double vDelta =0;
+    if (!valFromNuggetString(ps, "vDelta", it, vDelta)) {
+        return emptyP;
+    } else {
+        p.vDelta = vDelta;
+    }
+
+    // vLimit
+    double vLimit = 0;
+    if (!valFromNuggetString(ps, "vLimit", it, vLimit)) {
+        return emptyP;
+    } else {
+        p.vLimit = vLimit;
+    }
+
+    // Window
+    uint32_t window = 0;
+    if (!valFromNuggetString(ps, "window", it, window)) {
+        return emptyP;
+    } else {
+        p.window = window;
+    }
+
+    // TermIterationFlag (bool)
+    int termIterationFlag = 0;
+    if (!valFromNuggetString(ps, "termIterationFlag", it, termIterationFlag)) {
+        return emptyP;
+    } else {
+        p.termIterationFlag = termIterationFlag == 1;
+    }
+
+    // TermDeltaFlag (bool)
+    int termDeltaFlag = 0;
+    if (!valFromNuggetString(ps, "termDeltaFlag", it, termDeltaFlag)) {
+        return emptyP;
+    } else {
+        p.termDeltaFlag = termDeltaFlag == 1;
+    }
+
+    // BackPropagation (bool)
+    int backPropagation = 0;
+    if (!valFromNuggetString(ps, "backPropagation", it, backPropagation)) {
+        return emptyP;
+    } else {
+        p.backPropagation = backPropagation == 1;
+    }
+
+    // IterationsPerLevel
+    int iterationsPerLevel = 0;
+    if (!valFromNuggetString(ps, "iterationsPerLevel", it, iterationsPerLevel)) {
+        return emptyP;
+    } else {
+        p.iterationsPerLevel = iterationsPerLevel;
+    }
+
+    // StartPoints
+    int startPoints = 0;
+    if (!valFromNuggetString(ps, "startPoints", it, startPoints)) {
+        return emptyP;
+    } else {
+        p.startPoints = startPoints;
+    }
+
+    // pbPoints
+    int pbPoints = 0;
+    if (!valFromNuggetString(ps, "pbPoints", it, pbPoints)) {
+        return emptyP;
+    } else {
+        p.pbPoints = pbPoints;
+    }
+
+    // lbPoints
+    int lbPoints = 0;
+    if (!valFromNuggetString(ps, "lbPoints", it, lbPoints)) {
+        return emptyP;
+    } else {
+        p.lbPoints = lbPoints;
+    }
+
+    // gbPoints
+    int gbPoints = 0;
+    if (!valFromNuggetString(ps, "gbPoints", it, gbPoints)) {
+        return emptyP;
+    } else {
+        p.gbPoints = gbPoints;
+    }
+
+    // WeakPoints
+    int weakPoints = 0;
+    if (!valFromNuggetString(ps, "weakPoints", it, weakPoints)) {
+        return emptyP;
+    } else {
+        p.weakPoints = weakPoints;
+    }
+
+    // DecayPoints
+    int decayPoints = 0;
+    if (!valFromNuggetString(ps, "decayPoints", it, decayPoints)) {
+        return emptyP;
+    } else {
+        p.decayPoints = decayPoints;
+    }
+
+    return p;
+}
+
+NeuralNetParameters nParametersFromString(const std::string & ps) {
+    //!TEST!//
+    NeuralNetParameters p;
+    NeuralNetParameters emptyP;
+
+    int it = 0;
+
+    // Inputs
+    int inputs = 0;
+    if (!valFromNuggetString(ps, "inputs", it, inputs)) {
+        return emptyP;
+    } else {
+        p.inputs = inputs;
+    }
+
+    // InnerNets
+    int innerNets = 0;
+    if (!valFromNuggetString(ps, "innerNets", it, innerNets)) {
+        return emptyP;
+    } else {
+        p.innerNets = innerNets;
+    }
+
+    {
+        // InnerNetNodes
+        std::vector<int> innerNetNodes;
+        if (!vectorFromNuggetString(ps, "innerNetNodes", it, innerNetNodes)) {
+            return emptyP;
+        } else {
+            p.innerNetNodes = innerNetNodes;
+        }
+    }
+
+    // Outputs
+    int outputs = 0;
+    if (!valFromNuggetString(ps, "outputs", it, outputs)) {
+        return emptyP;
+    } else {
+        p.outputs = outputs;
+    }
+
+    // testIterations
+    int testIterations = 0;
+    if (!valFromNuggetString(ps, "testIterations", it, testIterations)) {
+        return emptyP;
+    } else {
+        p.testIterations = testIterations;
+    }
+
+    return p;
+}
+
+std::string openToken(const std::string & token) {
+    std::string ps;
+    ps.append("<");
+    ps.append(token);
+    ps.append(">");
+    return ps;
+}
+
+std::string closeToken(const std::string & token) {
+    std::string ps;
+    ps.append("</");
+    ps.append(token);
+    ps.append(">");
+    return ps;
 }
 
 }

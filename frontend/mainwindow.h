@@ -55,6 +55,7 @@ protected:
     void setOutputLabel(const QString & s);
 
     void generateAndLabels();
+    void tellParameters();
 
 protected slots:
     void runNeuralPso();
@@ -64,8 +65,6 @@ protected slots:
     void setParameterDefaults();
     void updateParameterGui();
     void setInnerNetNodesFromGui();
-    void printGB();
-    void printClassError();
     void setCurrentNet();
     void setInputsForTrainedNetFromGui();
     void testTrainedNetWithInput();
@@ -76,12 +75,15 @@ protected slots:
     void on_actionEnable_Output_toggled(bool b);
     void on_actionSave_PSO_State_triggered();
     void on_actionLoad_PSO_State_triggered();
+    void on_resetAndRun_btn_clicked();
+    void on_clearState_btn_clicked();
 
 private:
     Ui::MainWindow *ui;
     ANDTrainer *_neuralPsoTrainer = nullptr;
     std::unique_ptr<NeuralNet> _trainedNeuralNet;
-    ANDParameters _params;
+    TrainingParameters _params;
+    NeuralNet::EdgeType _gb;
 
     QTime _runTimer;
 
@@ -108,6 +110,8 @@ private:
     void initializeData();
     QString loadInputFileDialog();
     void enableParameterInput(bool b);
+    void tryInjectGB();
+    void clearPSOState();
 };
 
 #endif // MAINWINDOW_H
