@@ -25,33 +25,33 @@ template class Pso<NeuralNet::EdgeType>;
 template struct Particle<NeuralNet::EdgeType>;
 
 struct FitnessParameters {
-    double mse_weight;
-    double mse_floor;
+    real mse_weight;
+    real mse_floor;
     TestStatistics::ClassificationError weights;
     TestStatistics::ClassificationError floors;
 
-    double edgeWeightMax = 10E5;
-    double edgeWeightMin = -10E5;
+    real edgeWeightMax = 10E5;
+    real edgeWeightMin = -10E5;
 };
 
-class NeuralPso : public Pso<NeuralNet::EdgeType> {
+class NeuralPso : public Pso<NeuralNet::CombEdgeType> {
 public:
-  NeuralPso(PsoParams pp, NeuralNetParameters np, FitnessParameters fp);
+  NeuralPso(PsoParams pp, NeuralNet::NeuralNetParameters np, FitnessParameters fp);
   ~NeuralPso();
 
   void buildPso();
   void build(std::vector<std::vector<std::vector<byte> > > &images, std::vector<byte> &labels);
-  void build(std::vector<std::vector<double>> &input, std::vector<double> &output);
+  void build(std::vector<std::vector<real>> &input, std::vector<real> &output);
   void fly();
-  double getCost();
+  real getCost();
   void processEvents();
 
-  virtual double testRun(double &correctRatio, uint &totalCount, double &confidence);
+  virtual real testRun(real &correctRatio, uint &totalCount, real &confidence);
   virtual void testGB();
 
   NeuralNet * neuralNet() { return _neuralNet; }
   std::unique_ptr<NeuralNet> buildNeuralNetFromGb();
-  bool injectGb(const NeuralNet::EdgeType &w);
+  bool injectGb(const NeuralNet::CombEdgeType &w);
 
   std::string stringifyState();
   bool loadStatefromString(const std::string & psoState);
@@ -65,7 +65,7 @@ public:
 
   FitnessParameters * fitnessParams() { return &_fParams; }
 
-  NeuralNet::EdgeType & getGbEdges();
+  NeuralNet::CombEdgeType & getGbEdges();
 
 protected:
     NeuralNet *_neuralNet;

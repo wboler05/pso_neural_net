@@ -9,7 +9,7 @@ ANDTrainer::ANDTrainer(const TrainingParameters & pe) :
 
 }
 
-void ANDTrainer::build(vector<vector<double>> &input, vector<double> &output) {
+void ANDTrainer::build(vector<vector<real>> &input, vector<real> &output) {
   srand(time(NULL));
   _input = &input;
   _output = &output;
@@ -17,7 +17,7 @@ void ANDTrainer::build(vector<vector<double>> &input, vector<double> &output) {
   if (_outputCount != nullptr) {
       delete _outputCount;
   }
-  _outputCount = new vector<double>();
+  _outputCount = new vector<real>();
 
   int totalCount = 2 * _neuralNet->nParams()->outputs;
   _outputCount->resize(totalCount);
@@ -41,7 +41,7 @@ void ANDTrainer::testGB() {
   _neuralNet->setWeights(_gb._x);
   int I = randomizeTestInputs();
 
-  vector<double> res = _neuralNet->process();
+  vector<real> res = _neuralNet->process();
   cout << _functionMsg << endl;
   cout << "Input: " << endl;
   for (uint i = 0; i < (*_input)[I].size(); i++) {
@@ -50,7 +50,7 @@ void ANDTrainer::testGB() {
   cout << endl;
 
   cout << "Expected: " << (*_output)[I] << endl;
-//    double maxVal = -1;
+//    real maxVal = -1;
 //    int answer = -1;
 //    for (uint i = 0; i < res.size(); i++) {
 //      if (res[i] > maxVal) {
@@ -81,14 +81,14 @@ void ANDTrainer::testGB() {
 /// Correct ratio gives the ratio of correct runs.
 /// Total Count gives the total runs that were executed.
 /// Confidence returns how confident the net believes its answer is.
-double ANDTrainer::testRun(double &correctRatio, uint &totalCount, double &confidence) {
+real ANDTrainer::testRun(real &correctRatio, uint &totalCount, real &confidence) {
 
-    double mse = 0;
+    real mse = 0;
     uint outputNodes = _neuralNet->nParams()->outputs;
     //!TODO Reconsider confidence calculation
     confidence = 0;
-    vector<double> outputError;
-    std::vector<double> expectedOutput;
+    vector<real> outputError;
+    std::vector<real> expectedOutput;
     expectedOutput.resize(outputNodes);
 
     uint totalSetsToRun = _neuralNet->nParams()->testIterations;
@@ -100,12 +100,12 @@ double ANDTrainer::testRun(double &correctRatio, uint &totalCount, double &confi
     for (uint someSets = 0; someSets < totalSetsToRun; someSets++) {
         // Set a random input
         int I = randomizeTestInputs();
-        //    double tConfidence = (double) outputNodes;
+        //    real tConfidence = (real) outputNodes;
         //int I = It[someSets];
         loadTestInput(I);
 
         // Get the result from random input
-        vector<double> output = _neuralNet->process();
+        vector<real> output = _neuralNet->process();
         if (output.size() != outputNodes) {
             cout << "Size mismatch on nodes. " << endl;
             cout << " - Output: " << output.size() << ", Expected: " << outputNodes << endl;
@@ -113,17 +113,17 @@ double ANDTrainer::testRun(double &correctRatio, uint &totalCount, double &confi
 
         expectedOutput[0] = _output->at(I);
 
-        //    double maxVal = -1.0;
+        //    real maxVal = -1.0;
         //    int maxNode = 0;
         //    // Compare the output to expected
         //    for (int i = 0; i < outputSize; i++) {
-        //      double expected = expectedOutput[i];
-        //      double got = output[i];
+        //      real expected = expectedOutput[i];
+        //      real got = output[i];
         //      if (output[i] > maxVal) {
         //        maxVal = output[i];
         //        maxNode = i;
         //      }
-        //       double dif = expectedOutput[i] - output[i];
+        //       real dif = expectedOutput[i] - output[i];
         //       tConfidence -= output[i];
         //       outputError[i] += pow(dif,2);
         //    }
@@ -165,10 +165,10 @@ double ANDTrainer::testRun(double &correctRatio, uint &totalCount, double &confi
 
 
 
-    correctRatio = (double) correctCount / (double) totalSetsToRun;
+    correctRatio = (real) correctCount / (real) totalSetsToRun;
     totalCount = totalSetsToRun;
 
-    double penalty = 1;
+    real penalty = 1;
     if ((1-mse) < _fParams.mse_floor)
         penalty *= 0.00001;
     if (ce.accuracy < _fParams.floors.accuracy)
@@ -182,7 +182,7 @@ double ANDTrainer::testRun(double &correctRatio, uint &totalCount, double &confi
     if (ce.f_score < _fParams.floors.f_score)
         penalty *= 0.00001;
 
-    double cost =  penalty *
+    real cost =  penalty *
             (_fParams.mse_weight*(1.0 - mse)
              + (_fParams.weights.accuracy*ce.accuracy)
              + (_fParams.weights.sensitivity*ce.sensitivity)
@@ -193,8 +193,8 @@ double ANDTrainer::testRun(double &correctRatio, uint &totalCount, double &confi
 
   /* Previous tests
 
-//  vector<double> w = {1, 0, 100};
-//  double probSum = 0;
+//  vector<real> w = {1, 0, 100};
+//  real probSum = 0;
 //  for (uint i = 0; i < w.size(); i++) {
 //    probSum += w[i];
 //  }
@@ -205,15 +205,15 @@ double ANDTrainer::testRun(double &correctRatio, uint &totalCount, double &confi
 
   return sqrt(pow(accuracy,2) + pow(specificity,2) + pow(sensitivity, 2))/3;
 
-  return (w[0]*((double) correctCount) + ((w[1]*confidence)+(w[2]*(1.0-mse)))) / probSum;
+  return (w[0]*((real) correctCount) + ((w[1]*confidence)+(w[2]*(1.0-mse)))) / probSum;
 
   */
 }
 
 bool ANDTrainer::validateOutput(
-        const std::vector<double> &outputs,
-        const std::vector<double> & expectedResult,
-        std::vector<double> & outputError,
+        const std::vector<real> &outputs,
+        const std::vector<real> & expectedResult,
+        std::vector<real> & outputError,
         TestStatistics & testStats,
         bool & correctOutput)
 {
@@ -230,7 +230,7 @@ bool ANDTrainer::validateOutput(
     correctOutput = true;
 
     for (size_t i = 0; i < outputs.size(); i++) {
-        double result = outputs.at(0);
+        real result = outputs.at(0);
 
         // Collect stats
         if (result == 1) {
@@ -306,8 +306,8 @@ void ANDTrainer::classError(TestStatistics::ClassificationError *ce) {
   for (uint i = 0; i < clampMax; i++) {
     _neuralNet->resetInputs();
     loadTestInput(i);
-    double expectedAnswer = (*_output)[i];
-    vector<double> output = _neuralNet->process();
+    real expectedAnswer = (*_output)[i];
+    vector<real> output = _neuralNet->process();
 
     // Calling validateOutput would be expensive
     bool result = convertOutput(output[0]);
@@ -340,7 +340,7 @@ void ANDTrainer::classError(TestStatistics::ClassificationError *ce) {
 
 }
 
-bool ANDTrainer::convertOutput(const double & output) {
+bool ANDTrainer::convertOutput(const real & output) {
     // Specific for the definition that below 0.5 is a negative result
     // above 0.5 is a positive result
     if (output < 0.5) {
@@ -350,7 +350,7 @@ bool ANDTrainer::convertOutput(const double & output) {
     }
 }
 
-double ANDTrainer::convertInput(const bool & b) {
+real ANDTrainer::convertInput(const bool & b) {
     if (b) {
         return 1.0;
     } else {

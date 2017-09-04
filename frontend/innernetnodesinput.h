@@ -16,7 +16,7 @@ class InnerNetNodesInput : public QWidget
     Q_OBJECT
 
 public:
-    explicit InnerNetNodesInput(NeuralNetParameters & n, QWidget *parent = 0);
+    explicit InnerNetNodesInput(NeuralNet::NeuralNetParameters & n, QWidget *parent = 0);
     ~InnerNetNodesInput();
 
 protected slots:
@@ -28,7 +28,7 @@ private:
     Ui::InnerNetNodesInput *ui;
 
     size_t _innerNodesCount=0;
-    NeuralNetParameters & _nParams;
+    NeuralNet::NeuralNetParameters & _nParams;
 
     void buildTable();
 };

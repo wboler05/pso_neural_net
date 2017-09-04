@@ -94,8 +94,8 @@ private:
     bool _runPso = false;
 //    bool _fileLoaded = false;
 
-    vector<double> _labelsData;
-    vector<vector<double>> _inputData;
+    vector<real> _labelsData;
+    vector<vector<real>> _inputData;
 
 #ifdef OPENCL_DEFINED
     std::vector<cl::Device> _cpuDevices;
@@ -112,6 +112,8 @@ private:
     void enableParameterInput(bool b);
     void tryInjectGB();
     void clearPSOState();
+    int getNetTypeCBIndex();
+    void setNetTypeByIndex(const int & i);
 };
 
 #endif // MAINWINDOW_H

@@ -22,8 +22,8 @@ void NeuralNetPlot::updateNodes() {
     float minY = 0, maxY = 1;
 
     // Plot Nodes
-    maxX = _edges->size();
-    for (size_t i = 0; i < _edges->size(); i++) {
+    maxX = _edges->size()-1;
+    for (size_t i = 0; i < _edges->size() - 1; i++) {
 
         double y_offset = 1.0f / (double) _edges->at(i).size();
         //maxY = std::max(maxY, (float)_edges->at(i).size());
@@ -57,7 +57,7 @@ void NeuralNetPlot::updateNodes() {
             }
         }
 
-        if (i == _edges->size() - 1) {
+        if (i == _edges->size() - 2) {
 
             y_offset = 1.0f / (double) _edges->at(i).at(0).size();
 //            maxY = std::max(maxY, (float)_edges->at(i).size());
@@ -90,7 +90,7 @@ QwtPlotMarker * NeuralNetPlot::getNodeMarker(const QPointF & pos) {
     return mark;
 }
 
-void NeuralNetPlot::setEdges(NeuralNet::EdgeType * edges) {
+void NeuralNetPlot::setEdges(NeuralNet::CombEdgeType * edges) {
     _edges = edges;
     updateNodes();
     replot();

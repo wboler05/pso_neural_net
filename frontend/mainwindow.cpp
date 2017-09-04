@@ -264,6 +264,8 @@ void MainWindow::applyParameterChanges() {
     _params.fp.weights.sensitivity = ui->sen_weight_dsb->value();
     _params.fp.weights.specificity = ui->spe_weight_dsb->value();
     _params.fp.weights.f_score = ui->fscore_weight_dsb->value();
+
+    setNetTypeByIndex(ui->netType_cb->currentIndex());
 }
 
 void MainWindow::updateParameterGui() {
@@ -290,6 +292,36 @@ void MainWindow::updateParameterGui() {
     ui->sen_weight_dsb->setValue(_params.fp.weights.sensitivity);
     ui->spe_weight_dsb->setValue(_params.fp.weights.specificity);
     ui->fscore_weight_dsb->setValue(_params.fp.weights.f_score);
+
+    ui->netType_cb->setCurrentIndex(getNetTypeCBIndex());
+}
+
+int MainWindow::getNetTypeCBIndex() {
+    switch (_params.np.type) {
+    case NeuralNet::Feedforward:
+        return 0;
+        break;
+    case NeuralNet::Recurrent:
+        return 1;
+        break;
+    default:
+        return 0;
+        break;
+    }
+}
+
+void MainWindow::setNetTypeByIndex(const int & i) {
+    switch (i) {
+    case 0:
+        _params.np.type = NeuralNet::Feedforward;
+        break;
+    case 1:
+        _params.np.type = NeuralNet::Recurrent;
+        break;
+    default:
+        _params.np.type = NeuralNet::Feedforward;
+        break;
+    }
 }
 
 void MainWindow::setInnerNetNodesFromGui() {
@@ -356,11 +388,11 @@ void MainWindow::updateConfusionMatrix() {
     double preNeg = ts.tn() + ts.fn();
     double pop = ts.population();
 
-    ui->acc_lbl->setText(QString::number(ce.accuracy));
-    ui->prec_lbl->setText(QString::number(ce.precision));
-    ui->sens_lbl->setText(QString::number(ce.sensitivity));
-    ui->spec_lbl->setText(QString::number(ce.specificity));
-    ui->fscore_lbl->setText(QString::number(ce.f_score));
+    ui->acc_lbl->setText(QString::number((double)ce.accuracy));
+    ui->prec_lbl->setText(QString::number((double)ce.precision));
+    ui->sens_lbl->setText(QString::number((double)ce.sensitivity));
+    ui->spec_lbl->setText(QString::number((double)ce.specificity));
+    ui->fscore_lbl->setText(QString::number((double)ce.f_score));
 
     ui->actPosNum_lbl->setText(QString::number(actPos));
     ui->actPosPerc_lbl->setText(QString::number(actPos / pop));
@@ -371,21 +403,21 @@ void MainWindow::updateConfusionMatrix() {
     ui->predNegNum_lbl->setText(QString::number(preNeg));
     ui->predNegPerc_lbl->setText(QString::number(preNeg / pop));
 
-    ui->truePosNum_lbl->setText(QString::number(ts.tp()));
-    ui->truePosPerc_lbl->setText(QString::number(ts.tp_norm()));
-    ui->trueNegNum_lbl->setText(QString::number(ts.tn()));
-    ui->trueNegPerc_lbl->setText(QString::number(ts.tn_norm()));
-    ui->falsePosNum_lbl->setText(QString::number(ts.fp()));
-    ui->falsePosPerc_lbl->setText(QString::number(ts.fp_norm()));
-    ui->falseNegNum_lbl->setText(QString::number(ts.fn()));
-    ui->falseNegPerc_lbl->setText(QString::number(ts.fn_norm()));
+    ui->truePosNum_lbl->setText(QString::number((double)ts.tp()));
+    ui->truePosPerc_lbl->setText(QString::number((double)ts.tp_norm()));
+    ui->trueNegNum_lbl->setText(QString::number((double)ts.tn()));
+    ui->trueNegPerc_lbl->setText(QString::number((double)ts.tn_norm()));
+    ui->falsePosNum_lbl->setText(QString::number((double)ts.fp()));
+    ui->falsePosPerc_lbl->setText(QString::number((double)ts.fp_norm()));
+    ui->falseNegNum_lbl->setText(QString::number((double)ts.fn()));
+    ui->falseNegPerc_lbl->setText(QString::number((double)ts.fn_norm()));
 }
 
 void MainWindow::testTrainedNetWithInput() {
     if (_trainedNeuralNet != nullptr) {
-        std::vector<double> newInput;
-        //std::vector<double> curInput = _inputCache.inputize();
-        std::vector<double> curInput;
+        std::vector<real> newInput;
+        //std::vector<real> curInput = _inputCache.inputize();
+        std::vector<real> curInput;
         curInput.push_back(ANDTrainer::convertInput(_inputCache.a));
         curInput.push_back(ANDTrainer::convertInput(_inputCache.b));
         for (size_t i = 0; i < curInput.size(); i++) {
@@ -414,7 +446,7 @@ void MainWindow::testTrainedNetWithInput() {
         for (size_t i = 0; i < newInput.size(); i++) {
             _trainedNeuralNet->loadInput(newInput[i], i);
         }
-        std::vector<double> output = _trainedNeuralNet->process();
+        std::vector<real> output = _trainedNeuralNet->process();
 
         if (output.size() != 1) {
             qDebug() << "What is this output?";

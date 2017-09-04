@@ -84,6 +84,39 @@ std::string stringifyEdges(const NeuralNet::EdgeType & edges) {
     return particleString;
 }
 
+std::string stringifyRecEdges(const NeuralNet::RecEdgeType & edges, const std::string & token) {
+    std::string ps;
+
+    ps.append("\t");
+    ps.append(openToken(token));
+    ps.append("\n");
+    ps.append(stringifyRecEdges(edges));
+    ps.append("\t");
+    ps.append(closeToken(token));
+    ps.append("\n");
+
+    return ps;
+}
+
+std::string stringifyRecEdges(const NeuralNet::RecEdgeType & edges) {
+
+    std::string ps;
+
+    for (size_t i = 0; i < edges.size(); i++) {
+        ps.append("\t\t{\n");
+        for (size_t j = 0; j < edges[i].size(); j++) {
+            ps.append(stringPut(edges[i][j]));
+            ps.append(",");
+            if (j == edges[i].size() -1) {
+                ps.append("\n");
+            }
+        }
+        ps.append("\t\t}\n");
+    }
+
+    return ps;
+}
+
 NeuralNet::EdgeType edgesFromString(const std::string & edgeString) {
 
     NeuralNet::EdgeType e;
@@ -93,16 +126,16 @@ NeuralNet::EdgeType edgesFromString(const std::string & edgeString) {
         if (edgeString[it]  == '{') {
             it++;
             while (edgeString[it] != '}') {
-                std::vector<std::vector<double>> innerNet;
+                std::vector<std::vector<real>> innerNet;
                 if (edgeString[it] == '{') {
                     it++;
                     while (edgeString[it] != '}') {
-                        std::vector<double> leftNode;
+                        std::vector<real> leftNode;
                         int jt = it+1;
                         while (edgeString[jt] != '}') {
                             if (edgeString[jt] == ',' || edgeString[jt] == '}') {
                                 std::string valString = edgeString.substr(it,jt-it);
-                                double val = numberFromString<double>(valString);
+                                real val = numberFromString<real>(valString);
                                 leftNode.push_back(val);
                                 it = jt+1;
                             }
@@ -126,6 +159,34 @@ NeuralNet::EdgeType edgesFromString(const std::string & edgeString) {
         }
     }
 
+    return e;
+}
+
+NeuralNet::RecEdgeType recEdgesFromString(const string &edgeString) {
+    NeuralNet::RecEdgeType e;
+
+    int it = 0;
+
+    while (it < edgeString.size()) {
+        if (edgeString[it++] == '{') {
+            std::vector<real> cache;
+            while (edgeString[it] != '}') {
+                int jt = it+1;
+                while (edgeString[jt] != ',') {
+                    jt++;
+                }
+                std::string val = edgeString.substr(it, jt-it);
+                cache.push_back(numberFromString<real>(val));
+                it = jt + 1;
+            }
+            e.push_back(cache);
+            if (edgeString[it] == '}') {
+                return e;
+            }
+        }
+    }
+
+    // Case is when edgeString is empty
     return e;
 }
 
@@ -175,7 +236,7 @@ Particle<NeuralNet::EdgeType> particleFromString(const std::string & particleStr
     }
 
     // Particle Personal Best Fitness
-    double fpb = 0;
+    real fpb = 0;
     if (!valFromNuggetString(particleString, "_fit_pb", it, fpb)) {
         return P();
     } else {
@@ -183,7 +244,7 @@ Particle<NeuralNet::EdgeType> particleFromString(const std::string & particleStr
     }
 
     // Particle Local Best Fitness
-    double flb = 0;
+    real flb = 0;
     if (!valFromNuggetString(particleString, "_fit_lb", it, flb)) {
         return P();
     } else {
@@ -199,7 +260,7 @@ Particle<NeuralNet::EdgeType> particleFromString(const std::string & particleStr
     }
 
     // Particle Points
-    double points = 0;
+    real points = 0;
     if (!valFromNuggetString(particleString, "_points", it, points)) {
         return P();
     } else {
@@ -506,13 +567,13 @@ std::string stringifyPParams(const PsoParams & p) {
     ps.append(stringifyParamsNugget<uint32_t>("iterations", p.iterations));
 
     // delta
-    ps.append(stringifyParamsNugget<double>("delta", p.delta));
+    ps.append(stringifyParamsNugget<real>("delta", p.delta));
 
     // vDelta
-    ps.append(stringifyParamsNugget<double>("vDelta", p.vDelta));
+    ps.append(stringifyParamsNugget<real>("vDelta", p.vDelta));
 
     // vLimit
-    ps.append(stringifyParamsNugget<double>("vLimit", p.vLimit));
+    ps.append(stringifyParamsNugget<real>("vLimit", p.vLimit));
 
     // Window
     ps.append(stringifyParamsNugget<uint32_t>("window", p.window));
@@ -556,7 +617,7 @@ std::string stringifyPParams(const PsoParams & p) {
     return ps;
 }
 
-std::string stringifyNParams(const NeuralNetParameters & p) {
+std::string stringifyNParams(const NeuralNet::NeuralNetParameters & p) {
     //!TEST!//
 
     std::string ps;
@@ -685,7 +746,7 @@ PsoParams psoParametersFromString(const std::string & ps) {
     }
 
     // Delta
-    double delta = 0;
+    real delta = 0;
     if (!valFromNuggetString(ps, "delta", it, delta)) {
         return emptyP;
     } else {
@@ -693,7 +754,7 @@ PsoParams psoParametersFromString(const std::string & ps) {
     }
 
     // vDelta
-    double vDelta =0;
+    real vDelta =0;
     if (!valFromNuggetString(ps, "vDelta", it, vDelta)) {
         return emptyP;
     } else {
@@ -701,7 +762,7 @@ PsoParams psoParametersFromString(const std::string & ps) {
     }
 
     // vLimit
-    double vLimit = 0;
+    real vLimit = 0;
     if (!valFromNuggetString(ps, "vLimit", it, vLimit)) {
         return emptyP;
     } else {
@@ -799,10 +860,10 @@ PsoParams psoParametersFromString(const std::string & ps) {
     return p;
 }
 
-NeuralNetParameters nParametersFromString(const std::string & ps) {
+NeuralNet::NeuralNetParameters nParametersFromString(const std::string & ps) {
     //!TEST!//
-    NeuralNetParameters p;
-    NeuralNetParameters emptyP;
+    NeuralNet::NeuralNetParameters p;
+    NeuralNet::NeuralNetParameters emptyP;
 
     int it = 0;
 

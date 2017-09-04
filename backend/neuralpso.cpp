@@ -7,7 +7,7 @@ volatile bool stopProcessing = false;
 bool NeuralPso::printGBFlag = false;
 std::mutex NeuralPso::printGBMtx;
 
-NeuralPso::NeuralPso(PsoParams pp, NeuralNetParameters np, FitnessParameters fp) :
+NeuralPso::NeuralPso(PsoParams pp, NeuralNet::NeuralNetParameters np, FitnessParameters fp) :
   Pso(pp),
   _neuralNet(new NeuralNet(np)),
   _fParams(fp)
@@ -20,27 +20,31 @@ NeuralPso::~NeuralPso() {
 }
 
 void NeuralPso::buildPso() {
-  _gb._fit_pb = -numeric_limits<double>::max();
+  _gb._fit_pb = -numeric_limits<real>::max();
+
+  std::default_random_engine gen;
+  std::uniform_real_distribution<real> dist(-1, 1);
 
   _particles.empty();
-  vector<vector<vector<double>>> &edges = _neuralNet->getWeights();
+  const NeuralNet::EdgeType &edges = _neuralNet->getWeights();
+  const NeuralNet::RecEdgeType & rEdges = _neuralNet->getRecWeights();
 
   // Create N particles
   _particles.resize(_psoParams.particles);
   for (uint i = 0; i < _psoParams.particles; i++) {
     // Create the number of inner columns
-    _particles[i]._fit_pb = -numeric_limits<double>::max();
-    _particles[i]._fit_lb = -numeric_limits<double>::max();
+    _particles[i]._fit_pb = -numeric_limits<real>::max();
+    _particles[i]._fit_lb = -numeric_limits<real>::max();
 
-    _particles[i]._x.resize(edges.size());
-    _particles[i]._v.resize(edges.size());
-    _particles[i]._x_pb.resize(edges.size());
-    _particles[i]._x_lb.resize(edges.size());
+    _particles[i]._x.resize(edges.size()+1);
+    _particles[i]._v.resize(edges.size()+1);
+    _particles[i]._x_pb.resize(edges.size()+1);
+    _particles[i]._x_lb.resize(edges.size()+1);
     _particles[i]._worstFlag = false;
     _particles[i]._points = _psoParams.startPoints;
 
     if (i == 0) {
-      _gb._x.resize(edges.size());
+      _gb._x.resize(edges.size()+1);
     }
     // Create each inner column edge
     for (uint j = 0; j < edges.size(); j++) {
@@ -62,10 +66,10 @@ void NeuralPso::buildPso() {
           _gb._x[j][k].resize(edges[j][k].size());
         }
         for (uint m = 0; m < edges[j][k].size(); m++) {
-          _particles[i]._x[j][k][m] = (double) (rand() % 10000) / 10000;
+          _particles[i]._x[j][k][m] = (real) (rand() % 10000) / 10000.0;
           _particles[i]._v[j][k][m] = 0;
-          _particles[i]._x_pb[j][k][m] = -std::numeric_limits<double>::max();
-          _particles[i]._x_lb[j][k][m] = -std::numeric_limits<double>::max();
+          _particles[i]._x_pb[j][k][m] = 0;
+          _particles[i]._x_lb[j][k][m] = 0;
 
           if (i == 0) {
             _gb._x[j][k][m] = 0;
@@ -73,12 +77,41 @@ void NeuralPso::buildPso() {
         }
       }
     }
+
+    const size_t recEdgeIt = edges.size();
+
+    _particles[i]._x[recEdgeIt].resize(rEdges.size());
+    _particles[i]._v[recEdgeIt].resize(rEdges.size());
+    _particles[i]._x_pb[recEdgeIt].resize(rEdges.size());
+    _particles[i]._x_lb[recEdgeIt].resize(rEdges.size());
+    if (i == 0) {
+        _gb._x[recEdgeIt].resize(rEdges.size());
+    }
+    for (uint j = 0; j < rEdges.size(); j++) {
+        _particles[i]._x[recEdgeIt][j].resize(rEdges[j].size());
+        _particles[i]._v[recEdgeIt][j].resize(rEdges[j].size());
+        _particles[i]._x_pb[recEdgeIt][j].resize(rEdges[j].size());
+        _particles[i]._x_lb[recEdgeIt][j].resize(rEdges[j].size());
+        if (i == 0) {
+            _gb._x[recEdgeIt][j].resize(rEdges[j].size());
+        }
+        for (uint k = 0; k < rEdges[j].size(); k++) {
+             _particles[i]._x[recEdgeIt][j][k] = (real) (rand() & 10000) / 10000.0;
+             _particles[i]._v[recEdgeIt][j][k] = 0;
+             _particles[i]._x_pb[recEdgeIt][j][k] = 0;
+             _particles[i]._x_lb[recEdgeIt][j][k] = 0;
+
+             if (i == 0) {
+                 _gb._x[recEdgeIt][j][k] = 0;
+             }
+        }
+    }
   }
 }
 
 void NeuralPso::fly() {
 
-    double velSum = 0;
+    real velSum = 0;
     bool term = true;
 
     if (_particles.size() == 0) return;
@@ -87,30 +120,31 @@ void NeuralPso::fly() {
     static int innerNetAccessCount = _psoParams.iterationsPerLevel;
     static uint innerNetIt = _particles[0]._v.size()-1;
 
-    double choice;
+    real choice;
     bool worstFlag;
 
-    const double C1 = 2.495, C2 = 2.495, C3 = 0.5;
-    double dt = 1;
-    double vLimit = _psoParams.vLimit;
+    const real C1 = 2.495, C2 = 2.495, C3 = 0.5;
+    real dt = 1;
+    real vLimit = _psoParams.vLimit;
 
     // Random, pb, lb, gb
-    static std::vector<double> pdf = {.001, 2, 8, 4};
-    static std::vector<double> cdf = cdfUniform(pdf);
+    static std::vector<real> pdf = {.001, 2, 8, 4};
+    static std::vector<real> cdf = cdfUniform(pdf);
 
     std::default_random_engine gen;
-    std::uniform_real_distribution<double> dist(0, 1);
+    std::uniform_real_distribution<real> dist(0, 1);
+    std::uniform_real_distribution<real> negPosRange(-1, 1);
 
     // For each particle
     for (uint i = 0; i < _particles.size(); i++) {
-        Particle<NeuralNet::EdgeType> *p = &_particles[i];
+        Particle<NeuralNet::CombEdgeType> *p = &_particles[i];
         //p->_worstFlag = false;
         worstFlag = p->_worstFlag;
 
         if (worstFlag) {
             p->_worstFlag = false;
             if (p->_points <= 0) {
-                //choice = (double) (rand() % 10000) / 10000.0;
+                //choice = (real) (rand() % 10000) / 10000.0;
                 choice = dist(gen);
                 p->_fit_pb = 0;
                 p->_fit_lb = 0;
@@ -149,7 +183,7 @@ void NeuralPso::fly() {
                     /// Find the worst of the particles and reset it.
                     if (worstFlag) { // Reset the worst one
                         if (choice < cdf[0]) {
-                            p->_x[inner_net][left_edge][right_edge] = ((double) (rand() % 20000) - 10000) / 10000.0;
+                            p->_x[inner_net][left_edge][right_edge] = negPosRange(gen);
                         } else if (choice < cdf[1]) {
                             p->_x[inner_net][left_edge][right_edge] = p->_x_pb[inner_net][left_edge][right_edge];
                         } else if (choice < cdf[2]) {
@@ -157,21 +191,21 @@ void NeuralPso::fly() {
                         } else {
                             p->_x[inner_net][left_edge][right_edge] = _gb._x[inner_net][left_edge][right_edge];
                         }
-                        p->_v[inner_net][left_edge][right_edge] = ((double) (rand() % 20000) - 10000) / 10000.0;
+                        p->_v[inner_net][left_edge][right_edge] = negPosRange(gen);
                         continue;
                     }
 
                     //flyIteration(i, inner_net, left_edge, right_edge);
-                    double *w_v = &p->_v[inner_net][left_edge][right_edge];
-                    double *w_x = &p->_x[inner_net][left_edge][right_edge];
-                    double *w_pb = &p->_x_pb[inner_net][left_edge][right_edge];
-                    double *w_lb = &p->_x_lb[inner_net][left_edge][right_edge];
-                    double *w_gb = &_gb._x[inner_net][left_edge][right_edge];
+                    real *w_v = &p->_v[inner_net][left_edge][right_edge];
+                    real *w_x = &p->_x[inner_net][left_edge][right_edge];
+                    real *w_pb = &p->_x_pb[inner_net][left_edge][right_edge];
+                    real *w_lb = &p->_x_lb[inner_net][left_edge][right_edge];
+                    real *w_gb = &_gb._x[inner_net][left_edge][right_edge];
 
-                    double inertia = ((double) ((rand() % 50000) + 50000)) / 100000.0;
-                    double c1 = C1 * ((double) (rand() % 10000)) / 10000.0;
-                    double c2 = C2 * ((double) (rand() % 10000)) / 10000.0;
-                    double c3 = C3 * ((double) (rand() % 10000)) / 10000.0;
+                    real inertia = (dist(gen)*0.5) + 0.5;
+                    real c1 = C1 * dist(gen);
+                    real c2 = C2 * dist(gen);
+                    real c3 = C3 * dist(gen);
 
                     *w_v = (
                                 inertia * (*w_v)
@@ -218,16 +252,15 @@ void NeuralPso::fly() {
 
     // If stagnant, mix it up a bit
     if (abs(velSum) < _psoParams.vDelta) {
-        std::uniform_real_distribution<double> negPosRange(-1, 1);
 
         for (uint i = 0; i < _particles.size(); i++) {
             // Reset bests
-            _particles[i]._fit_pb = -numeric_limits<double>::max();
-            _particles[i]._fit_lb = -numeric_limits<double>::max();
+            _particles[i]._fit_pb = -numeric_limits<real>::max();
+            _particles[i]._fit_lb = -numeric_limits<real>::max();
             for (uint j = 0; j < _particles[i]._x.size(); j++) {
                 for (uint k = 0; k < _particles[i]._x[j].size(); k++) {
                     for (uint m = 0; m < _particles[i]._x[j][k].size(); m++) {
-                        //_particles[i]._x[j][k][m] = ((double)(rand() % 20000)/10000.0) - 1.0;
+                        //_particles[i]._x[j][k][m] = ((real)(rand() % 20000)/10000.0) - 1.0;
                         _particles[i]._x[j][k][m] = negPosRange(gen);
                     }
                 }
@@ -247,19 +280,19 @@ void NeuralPso::flyIteration(
         size_t inner_net,
         size_t left_edge,
         size_t right_edge) {
-//    const double C1 = 2.495, C2 = 2.495, C3 = 0.5;
-//    double dt = 1;
-//    Particle<NeuralNet::EdgeType> *p = &_particles[particle];
-//    double *w_v = &p->_v[inner_net][left_edge][right_edge];
-//    double *w_x = &p->_x[inner_net][left_edge][right_edge];
-//    double *w_pb = &p->_x_pb[inner_net][left_edge][right_edge];
-//    double *w_lb = &p->_x_lb[inner_net][left_edge][right_edge];
-//    double *w_gb = &_gb._x[inner_net][left_edge][right_edge];
+//    const real C1 = 2.495, C2 = 2.495, C3 = 0.5;
+//    real dt = 1;
+//    Particle<NeuralNet::CombEdgeType> *p = &_particles[particle];
+//    real *w_v = &p->_v[inner_net][left_edge][right_edge];
+//    real *w_x = &p->_x[inner_net][left_edge][right_edge];
+//    real *w_pb = &p->_x_pb[inner_net][left_edge][right_edge];
+//    real *w_lb = &p->_x_lb[inner_net][left_edge][right_edge];
+//    real *w_gb = &_gb._x[inner_net][left_edge][right_edge];
 
-//    double inertia = ((double) ((rand() % 50000) + 50000)) / 100000.0;
-//    double c1 = C1 * ((double) (rand() % 10000)) / 10000.0;
-//    double c2 = C2 * ((double) (rand() % 10000)) / 10000.0;
-//    double c3 = C3 * ((double) (rand() % 10000)) / 10000.0;
+//    real inertia = ((real) ((rand() % 50000) + 50000)) / 100000.0;
+//    real c1 = C1 * ((real) (rand() % 10000)) / 10000.0;
+//    real c2 = C2 * ((real) (rand() % 10000)) / 10000.0;
+//    real c3 = C3 * ((real) (rand() % 10000)) / 10000.0;
 
 //    *w_v = (
 //                inertia * (*w_v)
@@ -288,13 +321,13 @@ void NeuralPso::flyIteration(
 //    }
 }
 
-double NeuralPso::getCost() {
-  double correctRatio=0;
+real NeuralPso::getCost() {
+  real correctRatio=0;
   int totalCount=0;
   bool printChange = false;
-  double worstFit = numeric_limits<double>::max();
-  double worstFitIt = 0;
-  static double prevBest = 0;
+  real worstFit = numeric_limits<real>::max();
+  real worstFitIt = 0;
+  static real prevBest = 0;
 
   for (uint i = 0; i < _particles.size(); i++) {
     if (checkTermProcess()) {
@@ -303,17 +336,17 @@ double NeuralPso::getCost() {
 
     Particle<NeuralNet::EdgeType> *p = &_particles[i];
 
-    if (!_neuralNet->setWeights(p->_x)) {
+    if (!_neuralNet->setCombinedWeights(p->_x)) {
       std::cout<< "Failure to set weights." << endl;
     }
 
     // Initialize storage variables
-    double tempCorrectRatio = 0;
+    real tempCorrectRatio = 0;
     uint tempTotalCount = 0;
-    double confidence = 0;
+    real confidence = 0;
 
     // Get fitness
-    double fit = testRun(tempCorrectRatio, tempTotalCount, confidence);
+    real fit = testRun(tempCorrectRatio, tempTotalCount, confidence);
 
     // Track worst fitness
     if (worstFit >= fit) {
@@ -367,7 +400,7 @@ double NeuralPso::getCost() {
         it -= _particles.size();
       }
 
-      Particle<NeuralNet::EdgeType> *p_n = &_particles[it];
+      Particle<NeuralNet::CombEdgeType> *p_n = &_particles[it];
       if (fit > p_n->_fit_lb) {
         p_n->_fit_lb = fit;
         p->_points += _psoParams.lbPoints;
@@ -444,7 +477,7 @@ double NeuralPso::getCost() {
   return gb()->_fit_pb;
 } // end getCost()
 
-double NeuralPso::testRun(double &correctRatio, uint32_t &totalCount, double &confidence) {
+real NeuralPso::testRun(real &correctRatio, uint32_t &totalCount, real &confidence) {
     std::cout << "Error, must be implemented via inherited training class." << std::endl;
     return 0;
 }
@@ -558,7 +591,7 @@ void NeuralPso::printParticleLBest(uint I) {
   Logger::write(printString);
 }
 
-bool NeuralPso::injectGb(const NeuralNet::EdgeType &w) {
+bool NeuralPso::injectGb(const NeuralNet::CombEdgeType &w) {
     if (_particles.size() < 1) {
         return false;
     }
@@ -597,7 +630,7 @@ std::unique_ptr<NeuralNet> NeuralPso::buildNeuralNetFromGb() {
     return n;
 }
 
-NeuralNet::EdgeType & NeuralPso::getGbEdges() {
+NeuralNet::CombEdgeType &NeuralPso::getGbEdges() {
     return gb()->_x;
 }
 
@@ -657,13 +690,13 @@ bool NeuralPso::loadStatefromString(const string &psoState) {
 
     std::string nParamString = subStringByToken(cleanString, "NeuralNetParameters", it);
     if (nParamString.size() == 0) return false;
-    NeuralNetParameters newNParams = nParametersFromString(nParamString);
+    NeuralNet::NeuralNetParameters newNParams = nParametersFromString(nParamString);
     _neuralNet->initialize(newNParams);
 
     std::string gbString = subStringByToken(cleanString, "_gb", it);
     if (gbString.size() == 0) return false;
 
-    Particle<NeuralNet::EdgeType> gb =
+    Particle<NeuralNet::CombEdgeType> gb =
             particleFromString(gbString);
     _gb = gb;
 

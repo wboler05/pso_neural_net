@@ -9,7 +9,7 @@
  * @param exponent - Integer value of the exponent
  * @return Raised value of the base.
  */
-double CustomMath::pow(double base, int exponent) {
+real CustomMath::pow(real base, int exponent) {
     if (base == 0) return 0;
     else if (exponent == 0) return 1;
     else if (exponent > 0) {
@@ -25,16 +25,16 @@ double CustomMath::pow(double base, int exponent) {
  *  - Order of coeffs wrt exponents: [ order, order-1, order-2, ...., 1, 0 ]
  * @warning User must guard against passing a buffer not consistent with
  *  the order of the function.  coeffs[order + 1] is the expected size.
- * @param input - Double value of 'x' input
+ * @param input - real value of 'x' input
  * @param coeffs - Array of N coefficients, where N = order + 1.
  * @param order - Order of the polynomial equation
- * @return Polynomial function output (double).
+ * @return Polynomial function output (real).
  */
-double CustomMath::poly(double input, double *coeffs, int order) {
+real CustomMath::poly(real input, real *coeffs, int order) {
     if (coeffs == nullptr) return qQNaN();
 
     // coeffs[order+1] = { Nth order, Nth-1 order, .... , 0th order }
-    double output = 0;
+    real output = 0;
 //    for (int i = 0; i < order + 1; i++) {
 //        output += coeffs[i] * CustomMath::pow(input, order - i);
 //    }
@@ -47,11 +47,11 @@ double CustomMath::poly(double input, double *coeffs, int order) {
     return output;
 } // end poly()
 
-double CustomMath::poly(double input, QVector<double> coeffs, int order) {
+real CustomMath::poly(real input, QVector<real> coeffs, int order) {
     if (coeffs.count() < order - 1 || coeffs.count() == 0) {
         return qQNaN();
     }
-    double output = 0;
+    real output = 0;
     /*
     for (int i = 0; i < order + 1; i++) {
         output += coeffs.at(i) * CustomMath::pow(input, order - i);
@@ -75,11 +75,11 @@ double CustomMath::poly(double input, QVector<double> coeffs, int order) {
  * @param t
  * @param b
  * @param intZero
- * @return QVector<Double> result
+ * @return QVector<real> result
  * TODO: UPDATE TO ANY POLY
  */
-QVector<double> CustomMath::bestFitLine(const QVector<double> &t, const QVector<double> &b, bool intZero) {
-    QVector<double> result;
+QVector<real> CustomMath::bestFitLine(const QVector<real> &t, const QVector<real> &b, bool intZero) {
+    QVector<real> result;
     uint n = t.count();
     if (t.count() == 0) return result;
     if (b.count() == 0) return result;
@@ -87,8 +87,8 @@ QVector<double> CustomMath::bestFitLine(const QVector<double> &t, const QVector<
 
     if (intZero) {
         // Best fit line for intercept at zero
-        double dotProd = 0;
-        double t_sqr = 0;
+        real dotProd = 0;
+        real t_sqr = 0;
         for (unsigned int i = 0; i < n; i++) {
             dotProd += t.at(i)*b.at(i);
             t_sqr += t.at(i)*t.at(i);
@@ -97,17 +97,17 @@ QVector<double> CustomMath::bestFitLine(const QVector<double> &t, const QVector<
             // Break if dividing by zero
             return result; // Result size 0
         } else {
-            double c = dotProd / t_sqr;
+            real c = dotProd / t_sqr;
             result.append(c);
             result.append(0);
             return result; // Result size 1
         }
     } else {
         // Best fit line with C*t + D
-        double sum_t = 0;
-        double t_sqr = 0;
-        double alpha = 0;
-        double C = 0, D = 0;
+        real sum_t = 0;
+        real t_sqr = 0;
+        real alpha = 0;
+        real C = 0, D = 0;
         for (unsigned  int i = 0; i < n; i++) {
             sum_t += t.at(i);
             t_sqr += t.at(i)*t.at(i);

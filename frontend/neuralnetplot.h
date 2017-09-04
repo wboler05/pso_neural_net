@@ -16,7 +16,7 @@ class NeuralNetPlot : public QwtPlot
 public:
     NeuralNetPlot(QWidget *parent=nullptr);
 
-    void setEdges(NeuralNet::EdgeType *edges);
+    void setEdges(NeuralNet::CombEdgeType *edges);
 
 public slots:
     void updateNodes();

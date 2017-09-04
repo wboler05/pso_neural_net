@@ -7,6 +7,7 @@
 #include <vector>
 #include <cmath>
 #include <ctime>
+#include <random>
 using namespace std;
 
 #include "custommath.h"
@@ -21,19 +22,21 @@ using namespace std;
 #define uint uint32_t
 #define byte uint8_t
 
-//#define EdgeType std::vector<std::vector<std::vector<double>>>
-
-struct NeuralNetParameters {
-    int inputs=0;               // Input nodes
-    int innerNets=0;            // Total inner layers
-    vector<int> innerNetNodes;  // Number of nodes for each layer
-    int outputs=0;              // Output nodes
-    int testIterations=20;      // Number of inputs to check per training iteration
-};
-
 class NeuralNet {
 public:
-    typedef std::vector<std::vector<std::vector<double>>> EdgeType;
+    typedef std::vector<std::vector<std::vector<real>>> EdgeType;
+    typedef std::vector<std::vector<real>> RecEdgeType;
+    typedef std::vector<std::vector<std::vector<real>>> CombEdgeType;
+    enum Type { Feedforward = 0, Recurrent };
+
+    struct NeuralNetParameters {
+        int inputs=0;               // Input nodes
+        int innerNets=0;            // Total inner layers
+        vector<int> innerNetNodes;  // Number of nodes for each layer
+        int outputs=0;              // Output nodes
+        int testIterations=20;      // Number of inputs to check per training iteration
+        NeuralNet::Type type = Feedforward;
+    };
 
     NeuralNet(const NeuralNetParameters &params);
     NeuralNet(const NeuralNetParameters &p, const EdgeType & n);
@@ -58,16 +61,22 @@ public:
     size_t totalOutputs() { return _outputNodes.size(); }
 
     bool setWeights(const EdgeType &w);
-    EdgeType & getWeights() {return _edges; }
+    bool setRecWeights(const RecEdgeType & w);
+    bool setCombinedWeights(const EdgeType & w);
 
-    void loadInput(double in, uint i);
-    void setOutputs(vector<double> out);
-    const vector<double> & process();
+    static bool splitCombinedWeights(const CombEdgeType & c, EdgeType & e, RecEdgeType & r);
+
+    EdgeType & getWeights() {return _edges; }
+    RecEdgeType & getRecWeights() { return _recEdges; }
+
+    void loadInput(real in, uint i);
+    void setOutputs(vector<real> out);
+    const vector<real> &process();
 
     bool buildNets();
 
-    static double activation(double in);
-    static double getSign(const double & in);
+    static real activation(real in);
+    static real getSign(const real & in);
 
     NeuralNetParameters * nParams() { return &_nParams; }
 
@@ -75,11 +84,13 @@ public:
 
 private:
     // Weights and Data
-    vector<double> _inputNodes;
-    vector<vector<double>> _innerNodes;  /// columns / node
-    vector<double> _outputNodes;
+    vector<real> _inputNodes;
+    vector<vector<real>> _innerNodes;  /// columns / node
+    vector<real> _outputNodes;
 
     EdgeType _edges;  ///TODO: Make _edges a pointer and pass edge pointers from PSO.
+    RecEdgeType _recEdges;
+    RecEdgeType _recBuffer;
     bool _localEdgesFlag;
 
     NeuralNetParameters _nParams;

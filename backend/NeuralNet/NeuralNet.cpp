@@ -136,6 +136,9 @@ bool NeuralNet::buildNets() {
     return false;
   }
 
+  std::default_random_engine gen;
+  std::uniform_real_distribution<real> dist(-1,1);
+
   // Connect the input to the inner nodes
   for (uint i = 0; i < _edges.size(); i++) {
     if (i == 0) { // Input to inner
@@ -165,34 +168,46 @@ bool NeuralNet::buildNets() {
   for (uint i = 0; i < _edges.size(); i++) {
     for (uint j = 0; j < _edges[i].size(); j++) {
       for (uint k = 0; k < _edges[i][j].size(); k++) {
-        _edges[i][j][k] = (double) (rand() % 10000) / 10000.0;
+        //_edges[i][j][k] = (real) (rand() % 10000) / 10000.0;
+        _edges[i][j][k] = dist(gen);
       }
     }
+  }
+
+  _recEdges.resize(_innerNodes.size());
+  _recBuffer.resize(_innerNodes.size());
+  for (size_t i = 0; i < _innerNodes.size(); i++) {
+      _recEdges[i].resize(_innerNodes[i].size());
+      _recBuffer[i].resize(_innerNodes[i].size());
+      for (size_t j = 0; j < _innerNodes[i].size(); j++) {
+          _recEdges[i][j] = dist(gen);
+          _recBuffer[i][j] = 0;
+      }
   }
 
   return true;
 }
 
-void NeuralNet::loadInput(double in, uint i) {
+void NeuralNet::loadInput(real in, uint i) {
   if (i >= 0 && i < _inputNodes.capacity()) {
     _inputNodes[i] = in;
   }
 }
 
-double NeuralNet::activation(double in) {
-  //double act = in / (1 + abs(in));  // Softsign
-  //double act = 1 / (1 + exp(-in));  // Logistics
-//  double mean = 1.0;
-  //double act = exp(-pow((in - mean)/sigma, 2));      // Gaussian
-  //double act = 4 * in * in - 4 * in + 1;
+real NeuralNet::activation(real in) {
+  //real act = in / (1 + abs(in));  // Softsign
+  //real act = 1 / (1 + exp(-in));  // Logistics
+//  real mean = 1.0;
+  //real act = exp(-pow((in - mean)/sigma, 2));      // Gaussian
+  //real act = 4 * in * in - 4 * in + 1;
 
-//    double sigma = 0.35;
-//    double act = getSign(in) * (1 - exp(-pow(in / sigma, 2)));
+//    real sigma = 0.35;
+//    real act = getSign(in) * (1 - exp(-pow(in / sigma, 2)));
 
 
     /**
     // 9th order approximation to tanh
-    static double coeffs[10] = {
+    static real coeffs[10] = {
         4.42727699125780,
         -2.78592124641418e-14,
         -12.3878821958288,
@@ -205,15 +220,15 @@ double NeuralNet::activation(double in) {
         -5.55537460355953e-17
     };
 
-    //double act = tanh(in * M_PI);
+    //real act = tanh(in * M_PI);
     // Faster than tanh function
-    double act = CustomMath::poly(in * M_PI, coeffs, 9);
-    act = max(min(act, (double)1.0), (double)-1);
+    real act = CustomMath::poly(in * M_PI, coeffs, 9);
+    act = max(min(act, (real)1.0), (real)-1);
     **/
 
 
     // 9th order approximation of logistic sigmoid
-    static double coeffs[10] = {
+    static real coeffs[10] = {
         0.938400463413615,
         -1.32105382144212e-14,
         -2.77909962352499,
@@ -225,14 +240,14 @@ double NeuralNet::activation(double in) {
         1.23541839801387,
         0.500000000000000
     };
-    double act = CustomMath::poly(in, coeffs, 9);
-    act = max(min(act, (double)1.0), (double) 0);
+    real act = CustomMath::poly(in, coeffs, 9);
+    act = max(min(act, (real)1.0), (real) 0);
 
 
   return act;
 }
 
-double NeuralNet::getSign(const double &in) {
+real NeuralNet::getSign(const real &in) {
     if (in < 0) {
         return -1;
     } else {
@@ -240,15 +255,29 @@ double NeuralNet::getSign(const double &in) {
     }
 }
 
-const vector<double> & NeuralNet::process() {
-
-  resetInnerNodes();
+const vector<real> & NeuralNet::process() {
 
   // If the edges aren't built, it's broke
-  if (_edges.capacity() == 0)
+  if (_edges.size() == 0)
     return _outputNodes;
 
 //  cout << _inputNodes.size() << "\t" << _innerNodes.size();
+
+  if (_nParams.type == Recurrent) {
+      for (uint i = 0; i < _innerNodes.size(); i++) {
+          for (uint j = 0; j < _innerNodes[i].size(); j++) {
+              _recBuffer[i][j] = _recEdges[i][j] * activation(_innerNodes[i][j]);
+          }
+      }
+      for (uint i = 0; i < _innerNodes.size(); i++) {
+          for (uint j = 0; j < _innerNodes[i].size(); j++) {
+              _innerNodes[i][j] = _recBuffer[i][j];
+          }
+      }
+  } else if (_nParams.type == Feedforward){
+      resetInnerNodes();
+  }
+
 
   // Handle the input to the inner
   for (uint i = 0; i < _inputNodes.size(); i++) {
@@ -257,7 +286,7 @@ const vector<double> & NeuralNet::process() {
     }
   }
 
-  // Handle the rest of the inner nodes
+    // Handle the rest of the inner nodes
   for (uint i = 0; i < _innerNodes.size()-1; i++) {
     for (uint j = 0; j < _innerNodes[i].size(); j ++) {
       for (uint k = 0; k < _innerNodes[i+1].size(); k++) {
@@ -311,6 +340,60 @@ bool NeuralNet::setWeights(const EdgeType & w) {
     }
   }
   return true;
+}
+
+bool NeuralNet::setRecWeights(const RecEdgeType & w) {
+    if (_recEdges.size() != w.size()) {
+        return false;
+    }
+    for (uint i = 0; i < _recEdges.size(); i++) {
+        for (uint j = 0; j < _recEdges[i].size(); j++) {
+            _recEdges[i][j] = w[i][j];
+        }
+    }
+}
+
+bool NeuralNet::setCombinedWeights(const EdgeType & w) {
+    if (_edges.size() == 0) return false;
+    if (_edges.size() + 1 != w.size()) {
+        return false;
+    }
+    if (_recEdges.size() != w.at(w.size()-1).size()) {
+        return false;
+    }
+
+    for (uint i = 0; i < _edges.size(); i++) {
+        if (w[i].size() != _edges[i].size()) {
+            return false;
+        }
+        for (uint j = 0; j < _edges[i].size(); j++) {
+            if (w[i][j].size() != _edges[i][j].size()) {
+                return false;
+            }
+            for (uint k = 0; k < _edges[i][j].size(); k++) {
+                _edges[i][j][k] = w[i][j][k];
+            }
+        }
+    }
+
+    int it = _recEdges.size() - 1;
+    for (uint j = 0; j < _recEdges.size(); j++) {
+        for (uint k = 0; k < _recEdges[j].size(); k++) {
+            _recEdges[j][k] = w[it][j][k];
+        }
+    }
+}
+
+bool NeuralNet::splitCombinedWeights(const CombEdgeType &c, EdgeType & e, RecEdgeType & r) {
+    if (c.size() <= 1) {
+        return false;
+    }
+
+    r = c[c.size()-1];
+    e = c;
+    e.pop_back();
+
+    return true;
 }
 
 void NeuralNet::printEdges() {
