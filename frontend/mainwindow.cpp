@@ -576,7 +576,7 @@ void MainWindow::tryInjectGB() {
 
 void MainWindow::updatePlot() {
     if (_neuralPsoTrainer != nullptr) {
-        NeuralNet::EdgeType * edge = &(_neuralPsoTrainer->gb()->_x);
+        NeuralNet::CombEdgeType * edge = &(_neuralPsoTrainer->gb()->_x);
         ui->neuralNetPlot->setEdges(edge);
         updateConfusionMatrix();
 

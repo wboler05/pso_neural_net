@@ -39,7 +39,7 @@ public:
     };
 
     NeuralNet(const NeuralNetParameters &params);
-    NeuralNet(const NeuralNetParameters &p, const EdgeType & n);
+    NeuralNet(const NeuralNetParameters &p, const CombEdgeType &n);
     NeuralNet(const NeuralNet & n);
     NeuralNet(NeuralNet && n);
     NeuralNet & operator= (const NeuralNet & n);

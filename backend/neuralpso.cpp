@@ -625,7 +625,7 @@ void NeuralPso::setToPrintGBNet() {
 }
 
 std::unique_ptr<NeuralNet> NeuralPso::buildNeuralNetFromGb() {
-    NeuralNet::EdgeType & gbEdges = getGbEdges();
+    NeuralNet::CombEdgeType & gbEdges = getGbEdges();
     std::unique_ptr<NeuralNet> n = std::make_unique<NeuralNet>(*neuralNet()->nParams(), gbEdges);
     return n;
 }

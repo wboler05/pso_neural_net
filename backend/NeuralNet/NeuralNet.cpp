@@ -6,11 +6,11 @@ NeuralNet::NeuralNet(const NeuralNetParameters & p) :
     initialize(p);
 }
 
-NeuralNet::NeuralNet(const NeuralNetParameters &p, const EdgeType & n) :
+NeuralNet::NeuralNet(const NeuralNetParameters &p, const CombEdgeType & n) :
     _nParams(p)
 {
     initialize(p);
-    setWeights(n);
+    setCombinedWeights(n);
 }
 
 NeuralNet::NeuralNet(const NeuralNet &n) {
@@ -351,6 +351,7 @@ bool NeuralNet::setRecWeights(const RecEdgeType & w) {
             _recEdges[i][j] = w[i][j];
         }
     }
+    return true;
 }
 
 bool NeuralNet::setCombinedWeights(const EdgeType & w) {
@@ -382,6 +383,7 @@ bool NeuralNet::setCombinedWeights(const EdgeType & w) {
             _recEdges[j][k] = w[it][j][k];
         }
     }
+    return true;
 }
 
 bool NeuralNet::splitCombinedWeights(const CombEdgeType &c, EdgeType & e, RecEdgeType & r) {
