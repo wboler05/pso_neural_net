@@ -96,6 +96,7 @@ MainWindow::~MainWindow()
 void MainWindow::closeEvent(QCloseEvent *event) {
     qDebug() << "MainWindow: Terminating program.";
     Logger::terminate();
+    stopPso();
     qDebug() << "MainWindow: Terminated successfully.";
     QMainWindow::closeEvent(event);
 }
@@ -486,6 +487,7 @@ void MainWindow::runNeuralPso() {
   enableParameterInput(false);
 
   // Make sure that parameters are ready
+  //!FIXME Not actually updaing parameters.
   applyParameterChanges();
   tellParameters();
 
@@ -529,6 +531,7 @@ void MainWindow::on_resetAndRun_btn_clicked() {
 
     switch(choice) {
     case QMessageBox::Yes:
+        applyParameterChanges();
         clearPSOState();
         runNeuralPso();
         break;
@@ -577,7 +580,7 @@ void MainWindow::tryInjectGB() {
 void MainWindow::updatePlot() {
     if (_neuralPsoTrainer != nullptr) {
         NeuralNet::CombEdgeType * edge = &(_neuralPsoTrainer->gb()->_x);
-        ui->neuralNetPlot->setEdges(edge);
+        ui->neuralNetPlot->setEdges(edge, _params.np.type);
         updateConfusionMatrix();
 
         if (_runPso) {

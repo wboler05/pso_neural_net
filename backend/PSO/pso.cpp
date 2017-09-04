@@ -33,6 +33,8 @@ void Pso<T>::run() {
 
   std::vector<real> history;
 
+  resetProcess();
+
   do {
 
     _iterations = ++iterations; // On purpose.
