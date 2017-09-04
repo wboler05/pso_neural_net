@@ -211,7 +211,7 @@ double StatObject::var() {
     variance /= _events - 1;
     */
 
-    variance = abs(_valuesTotalSqr - ((_valuesTotal * _valuesTotal)) / (double) _events);
+    variance = std::abs(_valuesTotalSqr - ((_valuesTotal * _valuesTotal)) / (double) _events);
     variance /= (double) (_events - 1);
     _valuesVariance = variance;
 
@@ -224,7 +224,7 @@ double StatObject::var() {
  * @details Calculates the standard deviation by taking the square root of the variance.
  */
 double StatObject::std_dev() {
-    return sqrt(var());
+    return std::sqrt(var());
 }
 
 /**
