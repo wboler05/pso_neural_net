@@ -145,7 +145,8 @@ win32-msvc* {
 INCLUDEPATH += \
     backend \
     frontend \
-    utils
+    utils \
+    Trainer
 
 QWT_LOCATION = $$(QWT_ROOT)
 message(Qwt Defined: $$QWT_LOCATION)
@@ -162,10 +163,11 @@ SOURCES += \
     backend/teststatistics.cpp \
     utils/custommath.cpp \
     frontend/aboutconfusionmatrixdialog.cpp \
-    andtrainer.cpp \
     utils/logger.cpp \
     utils/util.cpp \
-    neuralpsostream.cpp
+    backend/neuralpsostream.cpp \
+    frontend/Trainer/andtrainer.cpp \
+    utils/statobject.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -178,10 +180,11 @@ HEADERS += \
     backend/teststatistics.h \
     utils/custommath.h \
     frontend/aboutconfusionmatrixdialog.h \
-    andtrainer.h \
     utils/logger.h \
     utils/util.h \
-    neuralpsostream.h
+    backend/neuralpsostream.h \
+    frontend/Trainer/andtrainer.h \
+    utils/statobject.h
 
 FORMS += \
     frontend/mainwindow.ui \

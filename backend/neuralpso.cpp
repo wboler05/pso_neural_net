@@ -176,7 +176,7 @@ void NeuralPso::fly() {
             // For each edge (left side) of that inner net
 
             #pragma omp parallel for
-            for (int left_edge = 0; left_edge < p->_v[inner_net].size(); left_edge++) {
+            for (int left_edge = 0; left_edge < (int)p->_v[inner_net].size(); left_edge++) {
                 // For each edge (right side) of that inner net
                 for (uint right_edge = 0; right_edge < p->_v[inner_net][left_edge].size(); right_edge++) {
                     /// Concept based on Genetic Algorithms, idea based on Alex

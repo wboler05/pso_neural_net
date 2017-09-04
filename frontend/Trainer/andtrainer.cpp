@@ -1,5 +1,7 @@
 #include "andtrainer.h"
 
+#include "PSO/pso.cpp"
+
 ANDTrainer::ANDTrainer(const TrainingParameters & pe) :
     NeuralPso(pe.pp, pe.np, pe.fp),
     _input(nullptr),

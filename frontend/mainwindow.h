@@ -15,14 +15,12 @@
 #include <ctime>
 #include <random>
 
-#include <andtrainer.h>
+#include "Trainer/andtrainer.h"
 #include "backend/neuralpso.h"
 #include "backend/NeuralNet/NeuralNet.h"
 #include "backend/PSO/pso.h"
 #include "logger.h"
 #include "frontend/innernetnodesinput.h"
-
-//#include "fnnpsogsa.h"
 
 #include "aboutconfusionmatrixdialog.h"
 

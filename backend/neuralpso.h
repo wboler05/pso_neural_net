@@ -21,8 +21,8 @@
 #endif
 
 class NeuralNet;
-template class Pso<NeuralNet::EdgeType>;
-template struct Particle<NeuralNet::EdgeType>;
+//template class Pso<NeuralNet::CombEdgeType>;
+template struct Particle<NeuralNet::CombEdgeType>;
 
 struct FitnessParameters {
     real mse_weight;
