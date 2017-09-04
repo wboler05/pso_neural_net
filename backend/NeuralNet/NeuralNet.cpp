@@ -377,9 +377,10 @@ bool NeuralNet::setCombinedWeights(const EdgeType & w) {
         }
     }
 
-    int it = _recEdges.size() - 1;
-    for (uint j = 0; j < _recEdges.size(); j++) {
-        for (uint k = 0; k < _recEdges[j].size(); k++) {
+    int it = w.size() - 1;
+    for (uint j = 0; j < w[it].size(); j++) {
+        for (uint k = 0; k < w[it][j].size(); k++) {
+
             _recEdges[j][k] = w[it][j][k];
         }
     }
