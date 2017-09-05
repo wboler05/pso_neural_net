@@ -183,8 +183,7 @@ SOURCES += \
     utils/util.cpp \
     backend/neuralpsostream.cpp \
     utils/statobject.cpp \
-    frontend/Trainer/OutageTrainer.cpp \
-    frontend/Trainer/outagedataitem.cpp
+    frontend/Trainer/andtrainer.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -201,8 +200,7 @@ HEADERS += \
     utils/util.h \
     backend/neuralpsostream.h \
     utils/statobject.h \
-    frontend/Trainer/OutageTrainer.h \
-    frontend/Trainer/outagedataitem.h
+    frontend/Trainer/andtrainer.h
 
 FORMS += \
     frontend/mainwindow.ui \
