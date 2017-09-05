@@ -1,4 +1,4 @@
-#include "andtrainer.h"
+#include "OutageTrainer.h"
 
 #include "PSO/pso.cpp"
 
