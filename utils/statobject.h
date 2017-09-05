@@ -3,6 +3,7 @@
 
 #include <QQueue>
 #include <QList>
+#include <cmath>
 
 #define STAT_DEFAULT_MAX 100000
 /**

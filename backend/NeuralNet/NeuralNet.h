@@ -3,11 +3,19 @@
 
 #include <iostream>
 #include <cstdlib>
-#include <cinttypes>
 #include <vector>
 #include <cmath>
 #include <ctime>
+
+//#ifdef USE_MAC
+//#include <tr1/cinttypes>
+//#include <tr1/random>
+//#include
+//#else
+#include <cinttypes>
 #include <random>
+//#endif
+
 using namespace std;
 
 #include "custommath.h"
