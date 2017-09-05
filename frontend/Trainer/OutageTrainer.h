@@ -1,7 +1,8 @@
-#ifndef PETRAINER_H
-#define PETRAINER_H
+#ifndef OUTAGETRAINER_H
+#define OUTAGETRAINER_H
 
 #include "neuralpso.h"
+#include "outagedataitem.h"
 
 struct TrainingParameters {
     PsoParams pp;
@@ -9,16 +10,12 @@ struct TrainingParameters {
     FitnessParameters fp;
 };
 
-class ANDTrainer : public NeuralPso
+class OutageTrainer : public NeuralPso
 {
 
 public:
-    struct InputCache {
-        bool a;
-        bool b;
-    };
 
-    ANDTrainer(const TrainingParameters & pe);
+    OutageTrainer(const TrainingParameters & pe);
 
     void build(std::vector<std::vector<real>> &input, std::vector<real> &output);
 
@@ -57,4 +54,4 @@ private:
 
 };
 
-#endif // PETRAINER_H
+#endif // OUTAGETRAINER_H
