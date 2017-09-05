@@ -5,6 +5,7 @@
 #include <string>
 
 #include "util.h"
+#include "custommath.h"
 
 #define N_Accuracy(tp, tn, fp, fn) ((tp + tn) / (tp + tn + fp + fn))
 #define N_Precision(tp, fp) (tp / (tp + fp + 1.0f))
@@ -18,32 +19,32 @@ public:
     TestStatistics();
 
     struct TestStruct {
-        double trueNegative=0;
-        double truePositive=0;
-        double falseNegative=0;
-        double falsePositive=0;
+        real trueNegative=0;
+        real truePositive=0;
+        real falseNegative=0;
+        real falsePositive=0;
     };
 
     struct ClassificationError {
-        double accuracy;
-        double precision;
-        double sensitivity;
-        double specificity;
-        double f_score;
+        real accuracy;
+        real precision;
+        real sensitivity;
+        real specificity;
+        real f_score;
     };
 
     const TestStruct & testStruct() { return _test; }
     TestStruct testStruct_norm();
 
-    const double & tn() { return _test.trueNegative; }
-    const double & tp() { return _test.truePositive; }
-    const double & fn() { return _test.falseNegative; }
-    const double & fp() { return _test.falsePositive; }
+    const real & tn() { return _test.trueNegative; }
+    const real & tp() { return _test.truePositive; }
+    const real & fn() { return _test.falseNegative; }
+    const real & fp() { return _test.falsePositive; }
 
-    double tn_norm() { return _test.trueNegative / (double) _population; }
-    double tp_norm() { return _test.truePositive / (double) _population; }
-    double fn_norm() { return _test.falseNegative / (double) _population; }
-    double fp_norm() { return _test.falsePositive / (double) _population; }
+    real tn_norm() { return _test.trueNegative / (real) _population; }
+    real tp_norm() { return _test.truePositive / (real) _population; }
+    real fn_norm() { return _test.falseNegative / (real) _population; }
+    real fp_norm() { return _test.falsePositive / (real) _population; }
 
     void addTn() { _test.trueNegative++; _population++; }
     void addTp() { _test.truePositive++; _population++; }

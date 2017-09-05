@@ -22,8 +22,8 @@ void NeuralNetPlot::updateNodes() {
     float minY = 0, maxY = 1;
 
     // Plot Nodes
-    maxX = _edges->size();
-    for (size_t i = 0; i < _edges->size(); i++) {
+    maxX = _edges->size()-1;
+    for (size_t i = 0; i < _edges->size() - 1; i++) {
 
         double y_offset = 1.0f / (double) _edges->at(i).size();
         //maxY = std::max(maxY, (float)_edges->at(i).size());
@@ -57,7 +57,7 @@ void NeuralNetPlot::updateNodes() {
             }
         }
 
-        if (i == _edges->size() - 1) {
+        if (i == _edges->size() - 2) {
 
             y_offset = 1.0f / (double) _edges->at(i).at(0).size();
 //            maxY = std::max(maxY, (float)_edges->at(i).size());
@@ -68,6 +68,43 @@ void NeuralNetPlot::updateNodes() {
             }
         }
     }
+
+    // Draw Recurrent Loops
+    if (_netType == NeuralNet::Recurrent) {
+        int it = _edges->size() - 1;
+        const qreal rx = 0.05;
+        const qreal ry = 0.03;
+        const qreal rad_res = 360;
+        qreal radStep = 360.0 / (2.0 * M_PI * rad_res);
+        qreal maxArc = (2.0 * M_PI) * ( 300.0 / 360.0 );
+
+        for (int j = 0; j < _edges->at(it).size(); j++) {
+
+            double y_offset = 1.0f / (double) _edges->at(it)[j].size();
+
+            for (int k = 0; k < _edges->at(it)[j].size(); k++) {
+                qreal x = j+1;
+                qreal y = y_offset * (double) k;
+
+                QVector<QPointF> edgeData;
+                QwtPlotCurve * newCurve = new QwtPlotCurve();
+                QColor curveColor = edgeColor(_edges->at(it)[j][k]);
+                double lt = lineThickness * qAbs(_edges->at(it)[j][k]);
+                newCurve->setPen(curveColor, lt);
+
+                for (qreal rad = 0; rad < maxArc; rad += radStep) {
+                    qreal x_i = -rx * cos(rad) + x;
+                    qreal y_i =  ry * (sin(rad) + 1) + y;
+
+                    edgeData.append(QPointF(x_i, y_i));
+                }
+
+                newCurve->setSamples(edgeData);
+                newCurve->attach(this);
+            }
+        }
+    }
+
     setAxisScale(xBottom, minX-0.25, maxX+0.25);
     setAxisScale(yLeft, minY-0.05, maxY+0.05);
 }
@@ -90,8 +127,9 @@ QwtPlotMarker * NeuralNetPlot::getNodeMarker(const QPointF & pos) {
     return mark;
 }
 
-void NeuralNetPlot::setEdges(NeuralNet::EdgeType * edges) {
+void NeuralNetPlot::setEdges(NeuralNet::CombEdgeType * edges, NeuralNet::Type t) {
     _edges = edges;
+    _netType = t;
     updateNodes();
     replot();
 }

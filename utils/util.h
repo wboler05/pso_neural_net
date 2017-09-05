@@ -16,6 +16,7 @@
 #include <mutex>
 
 #include "util.h"
+#include "custommath.h"
 
 template <class T>
 std::string stringPut(T s) {
@@ -33,6 +34,6 @@ T numberFromString(const std::string & s) {
     return ss >> result ? result : 0;
 }
 
-std::vector<double> cdfUniform(std::vector<double> nonNormalPdf);
+std::vector<real> cdfUniform(std::vector<real> nonNormalPdf);
 
 #endif // UTIL_H

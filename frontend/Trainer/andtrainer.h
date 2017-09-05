@@ -5,7 +5,7 @@
 
 struct TrainingParameters {
     PsoParams pp;
-    NeuralNetParameters np;
+    NeuralNet::NeuralNetParameters np;
     FitnessParameters fp;
 };
 
@@ -20,9 +20,9 @@ public:
 
     ANDTrainer(const TrainingParameters & pe);
 
-    void build(std::vector<std::vector<double>> &input, std::vector<double> &output);
+    void build(std::vector<std::vector<real>> &input, std::vector<real> &output);
 
-    double testRun(double &correctRatio, uint &totalCount, double &confidence);
+    real testRun(real &correctRatio, uint &totalCount, real &confidence);
     void testGB();
 
     int randomizeTestInputs();
@@ -33,25 +33,25 @@ public:
     void classError(TestStatistics::ClassificationError * ce);
     TestStatistics & testStats() { return _testStats; }
 
-    static bool convertOutput(const double & output);
-    static double convertInput(const bool & b);
+    static bool convertOutput(const real & output);
+    static real convertInput(const bool & b);
 
     void setFunctionMsg(std::string s) { _functionMsg = s; }
     std::string functionMsg() { return _functionMsg; }
 
 private:
     TestStatistics _testStats;
-    std::vector<std::vector<double> > *_input;
-    std::vector<double> *_output;
-    std::vector<double> *_outputCount;
+    std::vector<std::vector<real> > *_input;
+    std::vector<real> *_output;
+    std::vector<real> *_outputCount;
     std::vector<std::vector<uint>> _outputIterators;
 
     std::string _functionMsg;
 
     bool validateOutput(
-            const std::vector<double> & outputs,
-            const std::vector<double> &expectedResult,
-            std::vector<double> & outputError,
+            const std::vector<real> & outputs,
+            const std::vector<real> &expectedResult,
+            std::vector<real> & outputError,
             TestStatistics & testStats,
             bool & correctOutput);
 

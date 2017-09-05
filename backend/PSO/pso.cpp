@@ -31,7 +31,9 @@ template <class T>
 void Pso<T>::run() {
   uint32_t iterations = 0;
 
-  std::vector<double> history;
+  std::vector<real> history;
+
+  resetProcess();
 
   do {
 
@@ -39,9 +41,9 @@ void Pso<T>::run() {
 
     processEvents();
     fly();
-    double cost = getCost();
-    double lowCost = std::numeric_limits<double>::max();
-    double highCost = cost;
+    real cost = getCost();
+    real lowCost = std::numeric_limits<real>::max();
+    real highCost = cost;
     for (size_t i = 0; i < history.size() && _psoParams.termDeltaFlag; i++) {
         lowCost = std::min(lowCost, history[i]);
         highCost = std::max(highCost, history[i]);
@@ -51,7 +53,7 @@ void Pso<T>::run() {
         history.erase(history.begin());
     }
 
-    double dif = (highCost - lowCost);
+    real dif = (highCost - lowCost);
 
     if ((dif < _psoParams.delta && _psoParams.termDeltaFlag)
             && (history.size() == _psoParams.window))
@@ -70,7 +72,7 @@ void Pso<T>::fly() {
 }
 
 template <class T>
-double Pso<T>::getCost() {
+real Pso<T>::getCost() {
     return 0;
 }
 

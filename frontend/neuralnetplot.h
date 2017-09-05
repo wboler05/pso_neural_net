@@ -16,13 +16,14 @@ class NeuralNetPlot : public QwtPlot
 public:
     NeuralNetPlot(QWidget *parent=nullptr);
 
-    void setEdges(NeuralNet::EdgeType *edges);
+    void setEdges(NeuralNet::CombEdgeType *edges, NeuralNet::Type t);
 
 public slots:
     void updateNodes();
 
 private:
     NeuralNet::EdgeType * _edges=nullptr;
+    NeuralNet::Type _netType = NeuralNet::Feedforward;
 
     QColor edgeColor(double val);
     QwtPlotMarker * getNodeMarker(const QPointF & pos);

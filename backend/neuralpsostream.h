@@ -8,6 +8,7 @@
 #include "NeuralNet/NeuralNet.h"
 #include "PSO/pso.h"
 #include "utils/util.h"
+#include "custommath.h"
 
 class NeuralPso;
 //struct TrainingParameters;
@@ -31,22 +32,26 @@ namespace NeuralPsoStream {
     // Get string definition of edges
     std::string stringifyEdges(const NeuralNet::EdgeType & edges, const std::string & token);
     std::string stringifyEdges(const NeuralNet::EdgeType & edges);
-    std::string stringifyPParams(const PsoParams & p);
-    std::string stringifyNParams(const NeuralNetParameters & p);
+    std::string stringifyRecEdges(const NeuralNet::RecEdgeType & edges, const std::string & token);
+    std::string stringifyRecEdges(const NeuralNet::RecEdgeType & edges);
 
+    std::string stringifyPParams(const PsoParams & p);
+    std::string stringifyNParams(const NeuralNet::NeuralNetParameters & p);
 
     // Create parameter file from string
 //    TrainingParameters parametersFromString(const std::string & pString);
     // Create PsoParameter from substring
     PsoParams psoParametersFromString(const std::string & ps);
     // Create NNParameters from substring
-    NeuralNetParameters nParametersFromString(const std::string & ps);
+    NeuralNet::NeuralNetParameters nParametersFromString(const std::string & ps);
     // Create a particle from string
     Particle<NeuralNet::EdgeType> particleFromString(const std::string & particleState);
     // Create all particles from sub string
     std::vector<Particle<NeuralNet::EdgeType>> readParticlesFromString(const std::string & partSubString);
     // Create edges from string
     NeuralNet::EdgeType edgesFromString(const std::string & edgeString);
+
+    NeuralNet::RecEdgeType recEdgesFromString(const std::string & edgeString);
 
     // Get the token name between <> brackets and determine if open/closed, advance iterator
     std::string getTokenLabelFromString(const string &s, int &it, bool & isClose);

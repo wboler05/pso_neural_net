@@ -1,7 +1,7 @@
 #include "innernetnodesinput.h"
 #include "ui_innernetnodesinput.h"
 
-InnerNetNodesInput::InnerNetNodesInput(NeuralNetParameters & n, QWidget *parent) :
+InnerNetNodesInput::InnerNetNodesInput(NeuralNet::NeuralNetParameters & n, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::InnerNetNodesInput),
     _nParams(n)

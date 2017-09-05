@@ -11,13 +11,15 @@
 #include <thread>
 #include <mutex>
 
+#include "custommath.h"
+
 struct PsoParams {
   uint32_t particles=50;
   uint32_t neighbors=5;
   uint32_t iterations=100;
-  double delta=5E-3;
-  double vDelta=5E-20;
-  double vLimit = 0.5;
+  real delta=5E-3;
+  real vDelta=5E-20;
+  real vLimit = 0.5;
   uint32_t window = 50;
 
   bool termIterationFlag;
@@ -45,7 +47,7 @@ public:
 
   void run();
   virtual void fly();           // Fly particles
-  virtual double getCost();       // Calculate fitness
+  virtual real getCost();       // Calculate fitness
   virtual void processEvents(); // Process events
 
   std::vector<Particle<T> > * particles() { return &_particles; }
