@@ -15,7 +15,7 @@
 #include <ctime>
 #include <random>
 
-#include "Trainer/andtrainer.h"
+#include "Trainer/OutageTrainer.h"
 #include "backend/neuralpso.h"
 #include "backend/NeuralNet/NeuralNet.h"
 #include "backend/PSO/pso.h"
@@ -78,7 +78,7 @@ protected slots:
 
 private:
     Ui::MainWindow *ui;
-    ANDTrainer *_neuralPsoTrainer = nullptr;
+    OutageTrainer *_neuralPsoTrainer = nullptr;
     std::unique_ptr<NeuralNet> _trainedNeuralNet;
     TrainingParameters _params;
     NeuralNet::EdgeType _gb;
@@ -86,7 +86,7 @@ private:
     QTime _runTimer;
 
     // Input Data
-    ANDTrainer::InputCache _inputCache;
+//    OutageDataCache _inputCache;
     std::vector<int> _inputskips;
 
     bool _runPso = false;

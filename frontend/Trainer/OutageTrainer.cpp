@@ -2,7 +2,7 @@
 
 #include "PSO/pso.cpp"
 
-ANDTrainer::ANDTrainer(const TrainingParameters & pe) :
+OutageTrainer::OutageTrainer(const TrainingParameters & pe) :
     NeuralPso(pe.pp, pe.np, pe.fp),
     _input(nullptr),
     _output(nullptr),
@@ -11,7 +11,7 @@ ANDTrainer::ANDTrainer(const TrainingParameters & pe) :
 
 }
 
-void ANDTrainer::build(vector<vector<real>> &input, vector<real> &output) {
+void OutageTrainer::build(vector<vector<real>> &input, vector<real> &output) {
   srand(time(NULL));
   _input = &input;
   _output = &output;
@@ -39,7 +39,7 @@ void ANDTrainer::build(vector<vector<real>> &input, vector<real> &output) {
   buildPso();
 }
 
-void ANDTrainer::testGB() {
+void OutageTrainer::testGB() {
   _neuralNet->setWeights(_gb._x);
   int I = randomizeTestInputs();
 
@@ -83,7 +83,7 @@ void ANDTrainer::testGB() {
 /// Correct ratio gives the ratio of correct runs.
 /// Total Count gives the total runs that were executed.
 /// Confidence returns how confident the net believes its answer is.
-real ANDTrainer::testRun(real &correctRatio, uint &totalCount, real &confidence) {
+real OutageTrainer::testRun(real &correctRatio, uint &totalCount, real &confidence) {
 
     real mse = 0;
     uint outputNodes = _neuralNet->nParams()->outputs;
@@ -212,7 +212,7 @@ real ANDTrainer::testRun(real &correctRatio, uint &totalCount, real &confidence)
   */
 }
 
-bool ANDTrainer::validateOutput(
+bool OutageTrainer::validateOutput(
         const std::vector<real> &outputs,
         const std::vector<real> & expectedResult,
         std::vector<real> & outputError,
@@ -257,7 +257,7 @@ bool ANDTrainer::validateOutput(
     return true;
 }
 
-int ANDTrainer::randomizeTestInputs() {
+int OutageTrainer::randomizeTestInputs() {
   _neuralNet->resetInputs();
 
   int uniformOutputIt = rand() % _outputIterators.size();
@@ -273,7 +273,7 @@ int ANDTrainer::randomizeTestInputs() {
   return I;
 }
 
-void ANDTrainer::loadTestInput(uint I) {
+void OutageTrainer::loadTestInput(uint I) {
   if (I >= _input->size()) return;
 
   _neuralNet->resetInputs();
@@ -283,11 +283,11 @@ void ANDTrainer::loadTestInput(uint I) {
   }
 }
 
-void ANDTrainer::loadValidationInput(size_t I) {
+void OutageTrainer::loadValidationInput(size_t I) {
     //todo
 }
 
-void ANDTrainer::runTrainer() {
+void OutageTrainer::runTrainer() {
 
   run();
 
@@ -296,7 +296,7 @@ void ANDTrainer::runTrainer() {
   _neuralNet->setWeights(gb()->_x);
 }
 
-void ANDTrainer::classError(TestStatistics::ClassificationError *ce) {
+void OutageTrainer::classError(TestStatistics::ClassificationError *ce) {
   _testStats.clear();
 
   size_t clampMax = _neuralNet->nParams()->testIterations;
@@ -342,7 +342,7 @@ void ANDTrainer::classError(TestStatistics::ClassificationError *ce) {
 
 }
 
-bool ANDTrainer::convertOutput(const real & output) {
+bool OutageTrainer::convertOutput(const real & output) {
     // Specific for the definition that below 0.5 is a negative result
     // above 0.5 is a positive result
     if (output < 0.5) {
@@ -352,7 +352,7 @@ bool ANDTrainer::convertOutput(const real & output) {
     }
 }
 
-real ANDTrainer::convertInput(const bool & b) {
+real OutageTrainer::convertInput(const bool & b) {
     if (b) {
         return 1.0;
     } else {

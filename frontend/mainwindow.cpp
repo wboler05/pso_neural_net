@@ -205,32 +205,6 @@ void MainWindow::initializeData() {
     setInputsForTrainedNetFromGui();
 }
 
-void MainWindow::generateAndLabels() {
-
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> dist(0, 1);
-
-    _inputData.resize(TOTAL_GENERATED_LABELS);
-    _labelsData.resize(TOTAL_GENERATED_LABELS);
-
-    for (size_t i = 0; i < TOTAL_GENERATED_LABELS; i++) {
-        _inputData[i].resize(2);
-
-        double A = dist(gen);
-        double B = dist(gen);
-        double result =
-                ANDTrainer::convertInput(
-                    ANDTrainer::convertOutput(A) &&
-                    ANDTrainer::convertOutput(B)
-                );
-
-        _inputData[i][0] = A;
-        _inputData[i][1] = B;
-        _labelsData[i] = result;
-    }
-}
-
 void MainWindow::keyPressEvent(QKeyEvent * e) {
     if (e->key() == Qt::Key_C) {
         cout << "Ending process.  Please wait. " << endl;
