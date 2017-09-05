@@ -128,8 +128,8 @@ win32-msvc* {
     QMAKE_CXXFLAGS_DEBUG += -Od
 
     # OpenMP
-    #QMAKE_CXXFLAGS+= /openmp
-    #QMAKE_LFLAGS +=  /openmp
+    QMAKE_CXXFLAGS+= /openmp
+    QMAKE_LFLAGS +=  /openmp
 } else {
     message (None MSVC)
     CONFIG += c++14
@@ -138,8 +138,24 @@ win32-msvc* {
     QMAKE_CXXFLAGS_DEBUG += -Og
 
     # OpenMP
-    QMAKE_CXXFLAGS+= -fopenmp
-    QMAKE_LFLAGS +=  -fopenmp
+    #QMAKE_CXXFLAGS+= -fopenmp
+    #QMAKE_LFLAGS +=  -fopenmp
+}
+
+macx-g++ {
+    message('You re on a mac, dude...')
+    DEFINES += USE_MAC
+    QMAKE_CXXFLAGS -= -fopenmp
+    QMAKE_LFLAGS -= -fopenmp
+
+    QMAKE_CXXFLAGS += -stdlib=libc++
+    #QMAKE_CXXFLAGS += -stdlib=libstdc++
+    QMAKE_CXXFLAGS += -std=c++11
+    QMAKE_CXXFLAGS += -mmacosx-version-min=10.9
+    QMAKE_LFLAGS += -mmacosx-version-min=10.9
+
+    QMAKE_CXXFLAGS_DEBUG -= -Og
+    QMAKE_CXXFLAGS_DEBUG += -O0
 }
 
 INCLUDEPATH += \
@@ -166,8 +182,9 @@ SOURCES += \
     utils/logger.cpp \
     utils/util.cpp \
     backend/neuralpsostream.cpp \
-    frontend/Trainer/andtrainer.cpp \
-    utils/statobject.cpp
+    utils/statobject.cpp \
+    frontend/Trainer/OutageTrainer.cpp \
+    frontend/Trainer/outagedataitem.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -183,8 +200,9 @@ HEADERS += \
     utils/logger.h \
     utils/util.h \
     backend/neuralpsostream.h \
-    frontend/Trainer/andtrainer.h \
-    utils/statobject.h
+    utils/statobject.h \
+    frontend/Trainer/OutageTrainer.h \
+    frontend/Trainer/outagedataitem.h
 
 FORMS += \
     frontend/mainwindow.ui \

@@ -452,7 +452,7 @@ std::string subStringByToken(const string &fullstring, const string token, int &
 
     bool isClosed = false;
     if (!findNextToken(fullstring, it)) {
-        return false;
+        return std::string();
     }
     std::string openToken = getTokenLabelFromString(fullstring, it, isClosed);
     if (isClosed || openToken != token) {
