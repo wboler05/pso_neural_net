@@ -183,7 +183,8 @@ SOURCES += \
     utils/util.cpp \
     backend/neuralpsostream.cpp \
     utils/statobject.cpp \
-    frontend/Trainer/andtrainer.cpp
+    frontend/Trainer/andtrainer.cpp \
+    frontend/fitnessplotter.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -200,9 +201,11 @@ HEADERS += \
     utils/util.h \
     backend/neuralpsostream.h \
     utils/statobject.h \
-    frontend/Trainer/andtrainer.h
+    frontend/Trainer/andtrainer.h \
+    frontend/fitnessplotter.h
 
 FORMS += \
     frontend/mainwindow.ui \
     frontend/innernetnodesinput.ui \
-    frontend/aboutconfusionmatrixdialog.ui
+    frontend/aboutconfusionmatrixdialog.ui \
+    frontend/fitnessplotter.ui
