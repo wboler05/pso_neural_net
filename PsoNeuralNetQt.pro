@@ -186,6 +186,7 @@ SOURCES += \
     frontend/Trainer/OutageTrainer.cpp \
     frontend/Trainer/outagedataitem.cpp \
     frontend/Trainer/outagedatawrapper.cpp
+    frontend/fitnessplotter.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -205,8 +206,10 @@ HEADERS += \
     frontend/Trainer/OutageTrainer.h \
     frontend/Trainer/outagedataitem.h \
     frontend/Trainer/outagedatawrapper.h
+    frontend/fitnessplotter.h
 
 FORMS += \
     frontend/mainwindow.ui \
     frontend/innernetnodesinput.ui \
-    frontend/aboutconfusionmatrixdialog.ui
+    frontend/aboutconfusionmatrixdialog.ui \
+    frontend/fitnessplotter.ui

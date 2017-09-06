@@ -75,6 +75,7 @@ protected slots:
     void on_actionLoad_PSO_State_triggered();
     void on_resetAndRun_btn_clicked();
     void on_clearState_btn_clicked();
+    void updateFitnessPlot();
 
 private:
     Ui::MainWindow *ui;

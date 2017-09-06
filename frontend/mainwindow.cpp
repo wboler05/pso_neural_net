@@ -451,6 +451,12 @@ void MainWindow::setOutputLabel(const QString & s) {
     ui->output_lbl->setText(s);
 }
 
+void MainWindow::updateFitnessPlot() {
+    if (_neuralPsoTrainer) {
+        ui->fitnessPlot->plotHistory(_neuralPsoTrainer->historyFromLastRun());
+    }
+}
+
 void MainWindow::runNeuralPso() {
   if (_runPso) {
       return;
@@ -458,6 +464,11 @@ void MainWindow::runNeuralPso() {
 
   _runTimer.restart();
   _runPso = true;
+
+  QTimer * fitnessPlotTimer = new QTimer(this);
+  fitnessPlotTimer->setInterval(67);
+  connect(fitnessPlotTimer, SIGNAL(timeout()), this, SLOT(updateFitnessPlot()));
+  fitnessPlotTimer->start();
 
   setOutputLabel("Training running.");
   enableParameterInput(false);
@@ -494,6 +505,9 @@ void MainWindow::runNeuralPso() {
   setOutputLabel(completionMsg);
 
   _gb = _neuralPsoTrainer->getGbEdges();
+
+  disconnect(fitnessPlotTimer, SIGNAL(timeout()), this, SLOT(updateFitnessPlot()));
+  fitnessPlotTimer->deleteLater();
 
   qApp->alert(this);
 }
