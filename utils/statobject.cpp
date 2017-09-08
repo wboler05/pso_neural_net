@@ -239,20 +239,55 @@ double StatObject::median() {
     // - Options: Could track an array of element positions in a queue and keep actual
     //            values in a sorted list.
 
-    QList<double> sortedList;
+    QList<double> sortedList = sortIncreasingValue();
 
-    double value;
-    foreach(value, *_values) {
-        int i = 0;
-        for (; i < sortedList.size(); i++) {
-            if (sortedList.at(i) > value) {
-                break;
-            }
-        }
-        sortedList.insert(i, value);
-    }
     int midway = sortedList.size() / 2;
     return sortedList.at(midway);
+}
+
+/**
+ * @brief QObject::sortIncreasingValue
+ * @details Returns a sorted list.  Costly to sort and return the list.
+ * @return QList<double> sorted list of values
+ */
+QList<double> StatObject::sortIncreasingValue() {
+    QList<double> a;
+    for (size_t i = 0; i < _values->size(); i++) {
+        a.push_back(_values->at(i));
+    }
+    qs_sort(a, 0, a.size()-1);
+    return a;
+}
+
+void StatObject::qs_sort(QList<double> &a, const int &lo, const int &hi) {
+    // QuickSort from Wikipedia
+    if (hi >= a.size()) return;
+    if (lo <  hi) {
+        int p = qs_partition(a, lo, hi);
+        qs_sort(a, lo, p);
+        qs_sort(a, p+1, hi);
+    }
+}
+
+int StatObject::qs_partition(QList<double> &a, const int &lo, const int &hi) {
+    // QuickSort Partition from Wikipedia
+    const double & p = (a.at(hi) + a.at(lo)) / 2.0;
+    int i = lo;
+    int j = hi;
+    for (;;) {
+        while (a[i] < p) {
+            i++;
+        }
+        while (a[j] > p) {
+            j--;
+        }
+        if (i >= j) {
+            return j;
+        }
+        std::swap(a[i], a[j]);
+    }
+    //!TODO i and j gets optimized out. Fix it.
+    j = i; // This prevents the optimizer from killing i and j
 }
 
 /**

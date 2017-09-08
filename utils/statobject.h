@@ -54,6 +54,7 @@ public:
     double var();                                   // Return the statistical variance
     double std_dev();                               // Return the statistical standard deviation
     double median();                                // Return the median
+    double mode();                                  // Return the mode
     const QQueue<double> * val() { return _values; }
 
     void add_val(double val);                       // Add a new event to the data
@@ -67,6 +68,8 @@ public:
     static uint stat_object_count() { return _stat_object_count; }  // Static count of StatObjects
 
     StatObject::SnapShot * getSnapShot();
+
+    QList<double> sortIncreasingValue();            // Returns a sorted list of the queue
 
 protected:
     QString _name;              // Name of StatObject
@@ -82,6 +85,9 @@ protected:
 private:
     static uint _stat_object_count;     // StatObject static count
     static uint _snapShots; // Number of snapshots created
+
+    void qs_sort(QList<double> &a, const int &lo, const int &hi);
+    int qs_partition(QList<double> & a, const int & lo, const int & hi);
 
 };
 
