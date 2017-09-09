@@ -149,15 +149,14 @@ void NeuralPso::fly() {
                 p->_fit_pb = 0;
                 p->_fit_lb = 0;
                 p->_points = _psoParams.startPoints;
-                /*
+
                 std::string callWeak;
                 callWeak += "Switching particle ";
                 callWeak += stringPut(i);
                 callWeak += " with option ";
                 callWeak += stringPut(choice);
-                callWeak += "\n";
+
                 Logger::write(callWeak);
-                */
 
             } else {
                 worstFlag = false;
@@ -182,15 +181,21 @@ void NeuralPso::fly() {
                     /// Concept based on Genetic Algorithms, idea based on Alex
                     /// Find the worst of the particles and reset it.
                     if (worstFlag) { // Reset the worst one
+                        std::string callWeak;
                         if (choice < cdf[0]) {
+                            callWeak.append(": Random Assignment\n");
                             p->_x[inner_net][left_edge][right_edge] = negPosRange(gen);
                         } else if (choice < cdf[1]) {
+                            callWeak.append(": Personal Best\n");
                             p->_x[inner_net][left_edge][right_edge] = p->_x_pb[inner_net][left_edge][right_edge];
                         } else if (choice < cdf[2]) {
+                            callWeak.append(": Local Best\n");
                             p->_x[inner_net][left_edge][right_edge] = p->_x_lb[inner_net][left_edge][right_edge];
                         } else {
+                            callWeak.append(": Global Best\n");
                             p->_x[inner_net][left_edge][right_edge] = _gb._x[inner_net][left_edge][right_edge];
                         }
+                        Logger::write(callWeak);
                         p->_v[inner_net][left_edge][right_edge] = negPosRange(gen);
                         continue;
                     }

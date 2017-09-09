@@ -26,11 +26,11 @@ public:
     };
 
     struct ClassificationError {
-        real accuracy;
-        real precision;
-        real sensitivity;
-        real specificity;
-        real f_score;
+        volatile real accuracy;
+        volatile real precision;
+        volatile real sensitivity;
+        volatile real specificity;
+        volatile real f_score;
     };
 
     const TestStruct & testStruct() { return _test; }

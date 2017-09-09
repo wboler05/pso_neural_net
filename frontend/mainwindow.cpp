@@ -221,8 +221,8 @@ void MainWindow::generateAndLabels() {
         double B = dist(gen);
         double result =
                 ANDTrainer::convertInput(
-                    ANDTrainer::convertOutput(A) &&
-                    ANDTrainer::convertOutput(B)
+                    (ANDTrainer::convertOutput(A) && ANDTrainer::convertOutput(B)) ||
+                    (!ANDTrainer::convertOutput(A) && !ANDTrainer::convertOutput(B))
                 );
 
         _inputData[i][0] = A;
