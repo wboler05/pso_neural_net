@@ -36,7 +36,7 @@ struct PsoParams {
   int lbPoints = 5000;
   int gbPoints = 10000;
   int weakPoints = 1; // Points to lose for being the weakest
-  int decayPoints = 1;
+  int decayPoints = 50;
 
 };
 

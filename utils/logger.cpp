@@ -56,16 +56,21 @@ void Logger::LoggingConsummer() {
 
                 // Write to TextBrowser
                 if (_enableTbFlag) {
+                    std::unique_lock<std::mutex> lock2(_textBrowserMtx, std::defer_lock);
+                    lock2.lock();
+
                     if (_outputBrowser != nullptr) {
 
                         _outputBrowser->append(s);
 
                         if (_scrollToBottomFlag) {
+                            qApp->processEvents();
                             _outputBrowser->verticalScrollBar()->setValue(
                                         _outputBrowser->verticalScrollBar()->maximum());
                             _outputBrowser->verticalScrollBar()->update();
                         }
                     }
+                    lock2.unlock();
                 }
 
                 // Write to Console
@@ -124,3 +129,4 @@ void Logger::setEnableTextBrowser(const bool &b) {
     _enableTbFlag = b;
     lock1.unlock();
 }
+
