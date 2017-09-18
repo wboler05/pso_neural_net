@@ -232,22 +232,23 @@ bool ANDTrainer::validateOutput(
     correctOutput = true;
 
     for (size_t i = 0; i < outputs.size(); i++) {
-        real result = outputs.at(0);
+        bool result = convertOutput(outputs.at(0));
+        bool expRes = convertOutput(expectedResult[i]);
 
         // Collect stats
-        if (result == 1) {
-            if (expectedResult[i] == 1) {
-                testStats.addTn();
+        if (result) {
+            if (expRes) {
+                testStats.addTp();
             } else {
                 correctOutput = false;
                 testStats.addFp();
             }
         } else {
-            if (expectedResult[i] == 1) {
+            if (expRes) {
                 correctOutput = false;
                 testStats.addFn();
             } else {
-                testStats.addTp();
+                testStats.addTn();
             }
         }
 

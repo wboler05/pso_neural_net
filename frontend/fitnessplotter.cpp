@@ -27,6 +27,14 @@ void FitnessPlotter::setMarkerColor(const QColor & c) {
 
 void FitnessPlotter::plotHistory(const std::vector<real> &history) {
 
+    static bool entry = false;
+
+    if (entry) {
+        return;
+    } else {
+        entry = true;
+    }
+
     detachItems();
 
     QVector<QPointF> plotPoints;
@@ -68,6 +76,8 @@ void FitnessPlotter::plotHistory(const std::vector<real> &history) {
     setAxisScale(yLeft, minY * 0.9995, maxY * 1.0005);
 
     replot();
+
+    entry = false;
 }
 
 

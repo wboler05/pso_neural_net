@@ -83,7 +83,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->actionConfusion_Matrix, SIGNAL(triggered(bool)), this, SLOT(showConfusionMatrixHelpBox()));
 
-    QTimer * updateTimer = new QTimer();
+    QTimer * updateTimer = new QTimer(this);
     connect(updateTimer, SIGNAL(timeout()), this, SLOT(updatePlot()));
     updateTimer->start(500);
 
@@ -194,7 +194,8 @@ void MainWindow::on_actionLoad_PSO_State_triggered() {
 void MainWindow::setCurrentNet() {
     if (_neuralPsoTrainer != nullptr) {
         _trainedNeuralNet = _neuralPsoTrainer->buildNeuralNetFromGb();
-        qDebug() << "Test me baby: " << _trainedNeuralNet->getWeights().size();
+        //qDebug() << "Test me baby: " << _trainedNeuralNet->getWeights().size();
+        qDebug() << "Updated new neural net.";
     }
 }
 
@@ -492,7 +493,7 @@ void MainWindow::runNeuralPso() {
   _runPso = true;
 
   QTimer * fitnessPlotTimer = new QTimer(this);
-  fitnessPlotTimer->setInterval(67);
+  fitnessPlotTimer->setInterval(200);
   connect(fitnessPlotTimer, SIGNAL(timeout()), this, SLOT(updateFitnessPlot()));
   fitnessPlotTimer->start();
 

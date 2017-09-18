@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 
+#include <QCoreApplication>
 #include <QDebug>
 #include <QTextStream>
 #include <QTextBrowser>
