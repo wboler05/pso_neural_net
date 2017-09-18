@@ -185,7 +185,10 @@ SOURCES += \
     utils/statobject.cpp \
     frontend/Trainer/OutageTrainer.cpp \
     frontend/Trainer/outagedataitem.cpp \
-    frontend/Trainer/outagedatawrapper.cpp
+    frontend/Trainer/outagedatawrapper.cpp \
+    frontend/Trainer/latlongobject.cpp \
+    frontend/Trainer/datasnip.cpp \
+    frontend/Trainer/windsnip.cpp
     frontend/fitnessplotter.cpp
 
 HEADERS += \
@@ -205,7 +208,10 @@ HEADERS += \
     utils/statobject.h \
     frontend/Trainer/OutageTrainer.h \
     frontend/Trainer/outagedataitem.h \
-    frontend/Trainer/outagedatawrapper.h
+    frontend/Trainer/outagedatawrapper.h \
+    frontend/Trainer/latlongobject.h \
+    frontend/Trainer/datasnip.h \
+    frontend/Trainer/windsnip.h
     frontend/fitnessplotter.h
 
 FORMS += \
