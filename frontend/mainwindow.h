@@ -15,7 +15,7 @@
 #include <ctime>
 #include <random>
 
-#include "Trainer/andtrainer.h"
+#include "Trainer/OutageTrainer.h"
 #include "backend/neuralpso.h"
 #include "backend/NeuralNet/NeuralNet.h"
 #include "backend/PSO/pso.h"
@@ -52,7 +52,7 @@ protected:
 
     void setOutputLabel(const QString & s);
 
-    void generateAndLabels();
+//    void generateAndLabels();
     void tellParameters();
 
 protected slots:
@@ -75,10 +75,11 @@ protected slots:
     void on_actionLoad_PSO_State_triggered();
     void on_resetAndRun_btn_clicked();
     void on_clearState_btn_clicked();
+    void updateFitnessPlot();
 
 private:
     Ui::MainWindow *ui;
-    ANDTrainer *_neuralPsoTrainer = nullptr;
+    OutageTrainer *_neuralPsoTrainer = nullptr;
     std::unique_ptr<NeuralNet> _trainedNeuralNet;
     TrainingParameters _params;
     NeuralNet::EdgeType _gb;
@@ -86,7 +87,7 @@ private:
     QTime _runTimer;
 
     // Input Data
-    ANDTrainer::InputCache _inputCache;
+//    OutageDataCache _inputCache;
     std::vector<int> _inputskips;
 
     bool _runPso = false;

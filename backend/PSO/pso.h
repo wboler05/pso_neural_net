@@ -12,6 +12,7 @@
 #include <mutex>
 
 #include "custommath.h"
+#include "util.h"
 
 struct PsoParams {
   uint32_t particles=50;
@@ -35,7 +36,7 @@ struct PsoParams {
   int lbPoints = 5000;
   int gbPoints = 10000;
   int weakPoints = 1; // Points to lose for being the weakest
-  int decayPoints = 1;
+  int decayPoints = 50;
 
 };
 
@@ -64,6 +65,8 @@ public:
 
   const PsoParams & psoParams() { return _psoParams; }
 
+  const std::vector<real> & historyFromLastRun() { return _history; }
+
 protected:
   std::vector<Particle<T> > _particles;
   Particle<T> _gb;
@@ -72,6 +75,7 @@ protected:
 
 private:
   uint32_t _iterations=0;
+  std::vector<real> _history;
 
   static bool _overideTermFlag;
   static std::mutex stopProcessMtx;

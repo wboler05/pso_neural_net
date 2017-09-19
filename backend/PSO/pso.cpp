@@ -29,42 +29,59 @@ Pso<T>::~Pso() {
 
 template <class T>
 void Pso<T>::run() {
-  uint32_t iterations = 0;
-
-  std::vector<real> history;
+  size_t iterations = 0;
+  real lowCost = 0;
+  real highCost = 0;
 
   resetProcess();
+  _history.clear();
 
   do {
 
-    _iterations = ++iterations; // On purpose.
+    _iterations = ++iterations;                         // Count the iterations
 
-    processEvents();
-    fly();
-    real cost = getCost();
-    real lowCost = std::numeric_limits<real>::max();
-    real highCost = cost;
-    for (size_t i = 0; i < history.size() && _psoParams.termDeltaFlag; i++) {
-        lowCost = std::min(lowCost, history[i]);
-        highCost = std::max(highCost, history[i]);
-    }
-    history.push_back(cost);
-    if (history.size() > _psoParams.window) {
-        history.erase(history.begin());
+    processEvents();                                    // Virtual function for GUI updates
+    fly();                                              // Fly the particles
+    real cost = getCost();                              // Get the cost of GB
+
+    // Init low and hi vals
+    lowCost = std::numeric_limits<real>::max();
+    highCost = cost;
+
+    // Get the iteration for the beginning of the window
+    size_t minWindowIt = _history.size() <= _psoParams.window
+            ? 0 : _history.size() - _psoParams.window - 1;
+
+    // Find the low and hi within the history
+    for (size_t i = minWindowIt; i < _history.size() && _psoParams.termDeltaFlag; i++) {
+        lowCost = std::min(lowCost, _history[i]);
+        highCost = std::max(highCost, _history[i]);
     }
 
+    // Push current cost to history
+    try {
+        _history.push_back(cost);
+    } catch (const std::bad_alloc &e) {
+        Logger::write("Error, bad allocation: Pso::run()\n");
+        break;
+    }
+
+    // Get the delta
     real dif = (highCost - lowCost);
 
+    // If delta is less than the setting and flag is set, break
     if ((dif < _psoParams.delta && _psoParams.termDeltaFlag)
-            && (history.size() == _psoParams.window))
+            && (_history.size() >= _psoParams.window))
         break;
 
+    // If iterations surpassed and flag is set, break
     if ((_psoParams.termIterationFlag) && (iterations >= _psoParams.iterations))
         break;
 
-  } while (!checkTermProcess());
-  interruptProcess();
-  cout << "Ending PSO Run.";
+  } while (!checkTermProcess());  // Check for user interrupt
+  interruptProcess();   // Reset the interrupt flag
+
+  Logger::write("Ending PSO Run.\n");
 }
 
 template <class T>

@@ -3,6 +3,7 @@ logs/
 debug/
 release/
 run*
+*.app
 
 # C++ objects and libs
 

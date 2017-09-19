@@ -162,7 +162,10 @@ INCLUDEPATH += \
     backend \
     frontend \
     utils \
-    Trainer
+    Trainer \
+    frontend/Trainer/Containers \
+    frontend/Trainer/DataTypes \
+    frontend/Trainer/Cache
 
 QWT_LOCATION = $$(QWT_ROOT)
 message(Qwt Defined: $$QWT_LOCATION)
@@ -182,8 +185,17 @@ SOURCES += \
     utils/logger.cpp \
     utils/util.cpp \
     backend/neuralpsostream.cpp \
-    frontend/Trainer/andtrainer.cpp \
-    utils/statobject.cpp
+    utils/statobject.cpp \
+    frontend/Trainer/OutageTrainer.cpp \
+    frontend/Trainer/Containers/outagedataitem.cpp \
+    frontend/Trainer/Containers/outagedatawrapper.cpp \
+    frontend/Trainer/DataTypes/latlongobject.cpp \
+    frontend/Trainer/DataTypes/datasnip.cpp \
+    frontend/Trainer/DataTypes/windsnip.cpp \
+    frontend/Trainer/DataTypes/datesnip.cpp \
+    frontend/fitnessplotter.cpp \
+    frontend/Trainer/Cache/cacheslice.cpp \
+    frontend/Trainer/Cache/inputcache.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -199,10 +211,20 @@ HEADERS += \
     utils/logger.h \
     utils/util.h \
     backend/neuralpsostream.h \
-    frontend/Trainer/andtrainer.h \
-    utils/statobject.h
+    utils/statobject.h \
+    frontend/Trainer/OutageTrainer.h \
+    frontend/Trainer/Containers/outagedataitem.h \
+    frontend/Trainer/Containers/outagedatawrapper.h \
+    frontend/Trainer/DataTypes/latlongobject.h \
+    frontend/Trainer/DataTypes/datasnip.h \
+    frontend/Trainer/DataTypes/windsnip.h \
+    frontend/Trainer/DataTypes/datesnip.h \
+    frontend/fitnessplotter.h \
+    frontend/Trainer/Cache/cacheslice.h \
+    frontend/Trainer/Cache/inputcache.h
 
 FORMS += \
     frontend/mainwindow.ui \
     frontend/innernetnodesinput.ui \
-    frontend/aboutconfusionmatrixdialog.ui
+    frontend/aboutconfusionmatrixdialog.ui \
+    frontend/fitnessplotter.ui

@@ -7,16 +7,16 @@
     <x>0</x>
     <y>0</y>
     <width>1178</width>
-    <height>780</height>
+    <height>818</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout_14">
+   <layout class="QVBoxLayout" name="verticalLayout_21">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="5,10,2">
+     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="5,10,0,2">
       <item>
        <widget class="QGroupBox" name="groupBox_2">
         <property name="styleSheet">
@@ -579,6 +579,18 @@
        </widget>
       </item>
       <item>
+       <widget class="QGroupBox" name="groupBox_3">
+        <property name="title">
+         <string>GroupBox</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_8">
+         <item>
+          <widget class="FitnessPlotter" name="fitnessPlot" native="true"/>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
        <widget class="QGroupBox" name="param_gb">
         <property name="title">
          <string>Parameters</string>
@@ -991,45 +1003,439 @@
      </layout>
     </item>
     <item>
-     <widget class="QGroupBox" name="groupBox">
+     <widget class="QGroupBox" name="OutageInputBox">
       <property name="title">
-       <string>AND Input</string>
+       <string>Outage Test Input</string>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="20,1,2">
        <item>
-        <layout class="QGridLayout" name="gridLayout_3">
-         <item row="0" column="1">
-          <widget class="QCheckBox" name="a_cb">
-           <property name="layoutDirection">
-            <enum>Qt::RightToLeft</enum>
-           </property>
-           <property name="text">
-            <string>A</string>
-           </property>
-          </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_8">
+           <item>
+            <widget class="QLabel" name="label_16">
+             <property name="text">
+              <string>Date</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDateEdit" name="inputDate">
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+             <property name="dateTime">
+              <datetime>
+               <hour>0</hour>
+               <minute>0</minute>
+               <second>0</second>
+               <year>2009</year>
+               <month>1</month>
+               <day>1</day>
+              </datetime>
+             </property>
+             <property name="maximumDateTime">
+              <datetime>
+               <hour>23</hour>
+               <minute>59</minute>
+               <second>59</second>
+               <year>2015</year>
+               <month>12</month>
+               <day>31</day>
+              </datetime>
+             </property>
+             <property name="minimumDate">
+              <date>
+               <year>2009</year>
+               <month>1</month>
+               <day>1</day>
+              </date>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
-         <item row="0" column="2">
-          <widget class="QCheckBox" name="b_cb">
-           <property name="layoutDirection">
-            <enum>Qt::RightToLeft</enum>
-           </property>
-           <property name="text">
-            <string>B</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <spacer name="horizontalSpacer_3">
+         <item>
+          <widget class="Line" name="line_6">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Vertical</enum>
            </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
+          </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_14">
+           <item>
+            <widget class="QLabel" name="label_15">
+             <property name="text">
+              <string>City</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="inputCity_cb">
+             <item>
+              <property name="text">
+               <string>Angola</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Crown Point</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Gary</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Goshen</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Hammond</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Laporte</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Monticello</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Plymouth</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Valparaiso</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_15">
+           <item>
+            <widget class="QLabel" name="label_17">
+             <property name="text">
+              <string>County</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="inputCount_cb">
+             <item>
+              <property name="text">
+               <string>Elkhart</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>La Porte</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Lake</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Marshall</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Porter</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Steuben</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>White</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="Line" name="line_7">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
            </property>
-          </spacer>
+          </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_16">
+           <item>
+            <widget class="QLabel" name="label_18">
+             <property name="text">
+              <string>Reported Event</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="reportedEvent_cb">
+             <item>
+              <property name="text">
+               <string>No Cause</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>210 - Tree Fell - Naturally</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>211 - Tree Fell - Storm</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>220 - Tree Grow - Naturally</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>230 - Unknown</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>291 - Weather</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>320 - Snow</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>340 - Tornado</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>310 - Lightning</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_17">
+           <item>
+            <widget class="QLabel" name="label_20">
+             <property name="text">
+              <string>Storm</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="storm_cb">
+             <item>
+              <property name="text">
+               <string>No Conditions</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Blizzard</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Coastal Flood</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Dense Fog</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Dust Devil</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Excessive Heat</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Extreme Cold/wind Chill</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Flash Flood</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Flood</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Funnel Cloud</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Hail</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Heavy Rain</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Heavy Snow</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>High Wind</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Ice Storm</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Lake-effect Snow</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Lightning</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Rip Current</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Strong Winds</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Thunderstorm Wind</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Winter Storm</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Winter Weather</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="Line" name="line_13">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_18">
+           <item>
+            <widget class="QLabel" name="label_25">
+             <property name="text">
+              <string>Precipitation</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDoubleSpinBox" name="precipitation_dsb"/>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_19">
+           <item>
+            <widget class="QLabel" name="label_26">
+             <property name="text">
+              <string>Low Temp</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDoubleSpinBox" name="lo_temp_dsb"/>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_20">
+           <item>
+            <widget class="QLabel" name="label_27">
+             <property name="text">
+              <string>High Temp</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDoubleSpinBox" name="hi_temp_dsb"/>
+           </item>
+          </layout>
          </item>
         </layout>
        </item>
@@ -1065,6 +1471,13 @@
            </property>
            <property name="text">
             <string>Test Input</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton">
+           <property name="text">
+            <string>Next Test Set</string>
            </property>
           </widget>
          </item>
@@ -1321,6 +1734,12 @@
    <header>frontend/neuralnetplot.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>FitnessPlotter</class>
+   <extends>QWidget</extends>
+   <header>fitnessplotter.h</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>totalParticles_sb</tabstop>
@@ -1346,8 +1765,6 @@
   <tabstop>fscore_floor_dsb</tabstop>
   <tabstop>resetParams_btn</tabstop>
   <tabstop>applyParams_btn</tabstop>
-  <tabstop>a_cb</tabstop>
-  <tabstop>b_cb</tabstop>
   <tabstop>testInput_btn</tabstop>
   <tabstop>output_tb</tabstop>
   <tabstop>run_btn</tabstop>

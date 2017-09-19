@@ -66,7 +66,7 @@ void NeuralPso::buildPso() {
           _gb._x[j][k].resize(edges[j][k].size());
         }
         for (uint m = 0; m < edges[j][k].size(); m++) {
-          _particles[i]._x[j][k][m] = (real) (rand() % 10000) / 10000.0;
+          _particles[i]._x[j][k][m] = dist(gen);
           _particles[i]._v[j][k][m] = 0;
           _particles[i]._x_pb[j][k][m] = 0;
           _particles[i]._x_lb[j][k][m] = 0;
@@ -96,7 +96,7 @@ void NeuralPso::buildPso() {
             _gb._x[recEdgeIt][j].resize(rEdges[j].size());
         }
         for (uint k = 0; k < rEdges[j].size(); k++) {
-             _particles[i]._x[recEdgeIt][j][k] = (real) (rand() & 10000) / 10000.0;
+             _particles[i]._x[recEdgeIt][j][k] = dist(gen);
              _particles[i]._v[recEdgeIt][j][k] = 0;
              _particles[i]._x_pb[recEdgeIt][j][k] = 0;
              _particles[i]._x_lb[recEdgeIt][j][k] = 0;
@@ -123,7 +123,7 @@ void NeuralPso::fly() {
     real choice;
     bool worstFlag;
 
-    const real C1 = 2.495, C2 = 2.495, C3 = 0.5;
+    const real C1 = 2.495, C2 = 2.495, C3 = 0.05;
     real dt = 1;
     real vLimit = _psoParams.vLimit;
 
@@ -355,6 +355,9 @@ real NeuralPso::getCost() {
     }
 
     p->_points -= _psoParams.decayPoints;
+    if (p->_points < 0) {
+        p->_worstFlag = true;
+    }
 
     // Find personal best
     if (fit > p->_fit_pb) {

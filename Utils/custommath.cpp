@@ -156,3 +156,8 @@ double CustomMath::arcDistanceFromLatLong(const double &lat1,
    return distanceKm;
 }
 
+int CustomMath::ceilDiv(int a, int b) {
+    int ret = (a % b) ? a / b + 1 : a / b;
+    return ret;
+}
+
