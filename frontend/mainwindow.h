@@ -52,7 +52,7 @@ protected:
 
     void setOutputLabel(const QString & s);
 
-    void generateAndLabels();
+//    void generateAndLabels();
     void tellParameters();
 
 protected slots:

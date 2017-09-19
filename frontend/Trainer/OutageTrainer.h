@@ -4,6 +4,8 @@
 #include "neuralpso.h"
 #include "outagedataitem.h"
 
+#include "inputcache.h"
+
 struct TrainingParameters {
     PsoParams pp;
     NeuralNet::NeuralNetParameters np;

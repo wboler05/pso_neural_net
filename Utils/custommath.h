@@ -25,6 +25,8 @@ namespace CustomMath
                                   const double &long1,
                                   const double &lat2,
                                   const double &long2);
+
+    int ceilDiv(int a, int b);
 }
 
 #endif // CUSTOMMATH_H

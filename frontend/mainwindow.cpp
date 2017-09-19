@@ -20,6 +20,54 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // Test some stuff
+
+    LatLongObject * newObject = new LatLongObject(45, -128);
+    LatLongObject someGuy = *newObject;
+    someGuy.latitude(15);
+    someGuy.longitude(400);
+
+    LatLongObject someOtherGuy;
+    someOtherGuy.latitude(14);
+    someOtherGuy.longitude(1972);
+
+    LatLongObject * hisDad = new LatLongObject(someOtherGuy);
+
+    qDebug() << "New Object: " << (double) newObject->latitude() << ", " << (double) newObject->longitude();
+    qDebug() << "Some Guy: " << (double) someGuy.latitude() << ", " << (double) someGuy.longitude();
+    qDebug() << "Some Other Guy: " << (double) someOtherGuy.latitude() << ", " << (double) someOtherGuy.longitude();
+    qDebug() << "His Dad: " << (double) hisDad->latitude() << ", " << (double) hisDad->longitude();
+
+    delete newObject;
+    delete hisDad;
+
+    qDebug() << "LatLongObject Objects:: " << LatLongObject::totalObjects();
+    qDebug() << "Size of someGuy: " << sizeof(someGuy);
+    qDebug() << "Size of LatLongObject: " << sizeof(LatLongObject);
+
+    int mBytes = 128;
+    int totalCrap = mBytes * 1024 * 1024 / sizeof(LatLongObject);
+
+    std::vector<LatLongObject> someStuff;
+    someStuff.resize(totalCrap);
+
+    for(int i = 0; i < someStuff.size(); i++) {
+        someStuff[i] = someGuy;
+    }
+
+    qDebug() << "Size of some stuff: " << sizeof(LatLongObject)*someStuff.size();
+    qDebug() << "Total of them: " << someStuff.size();
+    qDebug() << "Total LatLongObjects: " << LatLongObject::totalObjects();
+
+    QString fileName("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\test\\10_Hammond_CrownPoint_Lake.csv");
+    unsigned long maxBytes = 128*1024;
+    size_t totalSlices = 8;
+    size_t headerSize = 2;
+    InputCache testCache(fileName, maxBytes, totalSlices, headerSize);
+
+
+    // End that testing
+
     srand(time(NULL));
     _runTimer.start();
 
@@ -78,8 +126,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->testInput_btn, SIGNAL(clicked(bool)), this, SLOT(testTrainedNetWithInput()));
     connect(ui->scrollToBottom_cb, SIGNAL(toggled(bool)), this, SLOT(scrollToBottom_toggled()));
 
-    connect(ui->a_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
-    connect(ui->b_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
+//    connect(ui->a_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
+//    connect(ui->b_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
 
     connect(ui->actionConfusion_Matrix, SIGNAL(triggered(bool)), this, SLOT(showConfusionMatrixHelpBox()));
 
@@ -201,7 +249,7 @@ void MainWindow::setCurrentNet() {
 
 void MainWindow::initializeData() {
     //loadFile_btn();
-    generateAndLabels();
+//    generateAndLabels();
     setParameterDefaults();
     setInputsForTrainedNetFromGui();
 }
@@ -351,8 +399,8 @@ void MainWindow::setParameterDefaults() {
 }
 
 void MainWindow::setInputsForTrainedNetFromGui() {
-    _inputCache.a = ui->a_cb->isChecked();
-    _inputCache.b = ui->b_cb->isChecked();
+    //_inputCache.a = ui->a_cb->isChecked();
+    //_inputCache.b = ui->b_cb->isChecked();
 }
 
 void MainWindow::updateConfusionMatrix() {
@@ -396,8 +444,8 @@ void MainWindow::testTrainedNetWithInput() {
         std::vector<real> newInput;
         //std::vector<real> curInput = _inputCache.inputize();
         std::vector<real> curInput;
-        curInput.push_back(ANDTrainer::convertInput(_inputCache.a));
-        curInput.push_back(ANDTrainer::convertInput(_inputCache.b));
+//        curInput.push_back(OutageTrainer::convertInput(_inputCache.a));
+//        curInput.push_back(OutageTrainer::convertInput(_inputCache.b));
         for (size_t i = 0; i < curInput.size(); i++) {
             // Remember, skips include PE as the first index, so subtract 1
             bool skipPos=false;
@@ -431,12 +479,12 @@ void MainWindow::testTrainedNetWithInput() {
             ui->testInput_output->setText("UNK Output");
             return;
         } else {
-            bool result = ANDTrainer::convertOutput(output[0]);
-            if (result) {
-                ui->testInput_output->setText("Statement is True");
-            } else {
-                ui->testInput_output->setText("Statement is False");
-            }
+//            bool result = ANDTrainer::convertOutput(output[0]);
+//            if (result) {
+//                ui->testInput_output->setText("Statement is True");
+//            } else {
+//                ui->testInput_output->setText("Statement is False");
+//            }
         }
     }
 }
@@ -552,7 +600,7 @@ void MainWindow::clearPSOState() {
         delete _neuralPsoTrainer;
     }
 
-    _neuralPsoTrainer = new ANDTrainer(_params);
+    _neuralPsoTrainer = new OutageTrainer(_params);
     _neuralPsoTrainer->build(_inputData, _labelsData);
     _neuralPsoTrainer->setFunctionMsg("AND");
 }

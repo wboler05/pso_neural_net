@@ -24,10 +24,14 @@ public:
     void avg(const real & a) { _avg = a; }
     void hi(const real & h) { _hi = h; }
 
+    static const unsigned long & totalObjects() { return _totalObjects; }
+
 private:
     real _lo;
     real _avg;
     real _hi;
+
+    static unsigned long _totalObjects;
 };
 
 #endif // DATASNIP_H

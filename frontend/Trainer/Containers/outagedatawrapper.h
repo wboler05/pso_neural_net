@@ -6,6 +6,7 @@
 class OutageDataWrapper : public OutageDataItem
 {
 public:
+    OutageDataWrapper();
     OutageDataWrapper(OutageDataItem && r);
     OutageDataWrapper(OutageDataWrapper && r);
     OutageDataWrapper & operator = (OutageDataItem && r);
@@ -28,8 +29,16 @@ public:
 
     static OutageDataItem copy(const OutageDataItem & l);
 
+    static real MSE(const std::vector<std::vector<real>> &results,
+                    const std::vector<std::vector<real>> & expecteds);
+    static real MSE(const std::vector<real> &result,
+                    const std::vector<real> &expected);
+
+    bool empty() { return _empty; }
+
 private:
-    OutageDataWrapper() = delete;
+    bool _empty=false;
+
 };
 
 #endif // OUTAGEDATAWRAPPER_H

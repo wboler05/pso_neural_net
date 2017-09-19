@@ -6,6 +6,11 @@
 #include <string>
 #include <locale>
 
+#include "datasnip.h"
+#include "datesnip.h"
+#include "latlongobject.h"
+#include "windsnip.h"
+
 class OutageDataItem
 {
 public:
@@ -15,22 +20,25 @@ public:
     OutageDataItem & operator=(OutageDataItem && r);
 
     // Inputs
-    uint _year=0;
-    uint _month=0;
-    uint _day=0;
-    std::string _city=0;
-    std::string _county=0;
-    std::string _reported_event=0;
-    std::string _storm=0;
-    real _precipitation=0;
-    real _lo_temp=0;
-    real _hi_temp=0;
-    real _latitude=0;
-    real _longitude=0;
+    LatLongObject _latlong;
+    DateSnip _date;
+    DataSnip _temp;
+    DataSnip _dew;
+    DataSnip _humidity;
+    DataSnip _pressure;
+    DataSnip _visibility;
+    WindSnip _wind;
+    real _precipitation;
+    std::string _city;
+    std::string _county;
+    std::string _reported_event;
+    std::string _storm_event;
 
     // Labels
     bool _outage=false;
     int _affectedCustomers=0;
+
+    size_t byteSize() { return sizeof(*this); }
 
     const size_t & id() { return _id; }
     static const size_t & totalObjects() { _total_objects; }
