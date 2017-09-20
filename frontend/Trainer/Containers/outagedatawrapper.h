@@ -8,9 +8,12 @@ class OutageDataWrapper : public OutageDataItem
 public:
     OutageDataWrapper();
     OutageDataWrapper(OutageDataItem && r);
+    OutageDataWrapper(const OutageDataItem & l);
     OutageDataWrapper(OutageDataWrapper && r);
     OutageDataWrapper & operator = (OutageDataItem && r);
     OutageDataWrapper & operator = (OutageDataWrapper && r);
+
+    static OutageDataItem parseInputString(const QString & line);
 
     std::vector<real> inputize();
     std::vector<real> outputize();

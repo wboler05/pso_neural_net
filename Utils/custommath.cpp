@@ -157,7 +157,11 @@ double CustomMath::arcDistanceFromLatLong(const double &lat1,
 }
 
 int CustomMath::ceilDiv(int a, int b) {
-    int ret = (a % b) ? a / b + 1 : a / b;
-    return ret;
+    if (b != 0) {
+        int ret = (a % b) ? a / b + 1 : a / b;
+        return ret;
+    } else {
+        return std::numeric_limits<real>::infinity();
+    }
 }
 

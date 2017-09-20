@@ -9,7 +9,7 @@ public:
     CacheSlice();
 
     std::vector<OutageDataItem> _slice;
-    size_t _sliceId=0;
+    size_t _sliceId;
 };
 
 #endif // CACHESLICE_H

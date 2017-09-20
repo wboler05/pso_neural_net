@@ -32,6 +32,11 @@ public:
     const size_t & itemsPerSlice() { return _itemsPerSlice; }
     const size_t & totalInputItemsInFile() { return _totalInputItemsInFile; }
     const size_t & totalColumns() { return _totalColumns; }
+    const size_t & sliceSize() { return _sliceSize; }
+
+    size_t cacheId(const size_t itemIndex);
+    size_t sliceId(const size_t itemIndex);
+    size_t sliceIndex(const size_t itemIndex);
 
 private:
     InputCache(const InputCache & l)=delete;
@@ -40,7 +45,7 @@ private:
     QString _inputFileName;
     bool _validFile;
     size_t _headerSize;
-    std::vector<QPair<size_t, CacheSlice>> _cacheSlices;
+    std::vector<CacheSlice> _cacheSlices;
 
     unsigned long _maxBytes;
     size_t _totalSlicesPerCache;
@@ -48,9 +53,11 @@ private:
     size_t _itemsPerSlice;
     size_t _totalInputItemsInFile;
     size_t _totalColumns;
+    size_t _sliceSize;
 
     bool verifyInputFile();
     void updateCache();
+    bool reloadCacheSlice(const size_t & itemIndex);
 };
 
 #endif // INPUTCACHE_H

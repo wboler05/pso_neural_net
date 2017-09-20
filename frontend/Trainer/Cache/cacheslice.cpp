@@ -1,6 +1,7 @@
 #include "cacheslice.h"
 
-CacheSlice::CacheSlice()
+CacheSlice::CacheSlice() :
+    _sliceId(-1)
 {
 
 }

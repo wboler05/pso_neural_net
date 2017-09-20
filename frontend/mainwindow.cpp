@@ -64,8 +64,12 @@ MainWindow::MainWindow(QWidget *parent) :
     size_t totalSlices = 8;
     size_t headerSize = 2;
     InputCache testCache(fileName, maxBytes, totalSlices, headerSize);
+    OutageDataItem & index2 = testCache[2];
+    OutageDataItem & index30 = testCache[30];
+    OutageDataItem & index55 = testCache[55];
+    OutageDataItem & index425 = testCache[425];
 
-
+//PROGRAM BREAKS AFTER THIS POINT SO DON'T RUN IT
     // End that testing
 
     srand(time(NULL));

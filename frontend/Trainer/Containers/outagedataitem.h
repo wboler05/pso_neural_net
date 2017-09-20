@@ -18,6 +18,8 @@ public:
     ~OutageDataItem();
     OutageDataItem(OutageDataItem && r);
     OutageDataItem & operator=(OutageDataItem && r);
+    OutageDataItem(const OutageDataItem &l);
+    OutageDataItem & operator=(const OutageDataItem &l);
 
     // Inputs
     LatLongObject _latlong;
@@ -46,9 +48,6 @@ public:
 private:
     size_t _id;
     static size_t _total_objects;
-
-    OutageDataItem(const OutageDataItem &l) = delete;
-    OutageDataItem & operator=(const OutageDataItem &l) = delete;
 
 };
 

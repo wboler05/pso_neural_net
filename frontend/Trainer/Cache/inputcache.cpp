@@ -23,31 +23,6 @@ InputCache::~InputCache() {
     _cacheSlices.clear();
 }
 
-OutageDataWrapper & InputCache::operator[](size_t index) {
-    OutageDataWrapper nullObject;
-
-    if (_cacheSlices.size() == 0 || _maxBytes == 0 || _totalSlicesPerCache == 0 || _validFile == false) {
-        return nullObject;
-    }
-    if (index >= _maxBytes) {
-        return nullObject;
-    }
-
-    // For now, lets load consecutive chunks of data
-    size_t sliceIndex = index / _totalSlicesPerCache;
-    if (sliceIndex > _cacheSlices.size()) {
-        return nullObject;
-    }
-
-    QPair<size_t, CacheSlice> & cacheSlicePair = _cacheSlices.at(sliceIndex);
-
-    if (cacheSlicePair.first != index) {
-        //reloadCacheSlice(sliceIndex);
-        return nullObject;
-    }
-
-}
-
 void InputCache::setMaxBytes(const unsigned long &maxBytes) {
     //!TODO: Find max of system
     if (_maxBytes < DEFAULT_MAX_BYTES) {
@@ -74,6 +49,7 @@ void InputCache::setTotalSlicesPerCache(const unsigned int &slices) {
 }
 
 bool InputCache::verifyInputFile() {
+    _validFile = false;
     if (_inputFileName.isEmpty()) {
         qWarning() << "InputCache: Error, input file name is empty.";
         return false;
@@ -97,6 +73,8 @@ bool InputCache::verifyInputFile() {
     } while (!line.isNull());
     _totalInputItemsInFile--;
 
+    inFile.close();
+
     if (_totalInputItemsInFile >= _headerSize) {
         _totalInputItemsInFile -= _headerSize;
     } else {
@@ -110,6 +88,7 @@ bool InputCache::verifyInputFile() {
         qWarning() << "InputCache: Error, empty columns in input file.";
         return false;
     } else {
+        _validFile = true;
         return true;
     }
 }
@@ -118,6 +97,118 @@ void InputCache::updateCache() {
     using namespace CustomMath;
     qDebug() << "OutageDataItem Size: " << sizeof(OutageDataItem);
     _cacheSlices.resize(_totalSlicesPerCache);
-    _itemsPerSlice = ceilDiv(ceilDiv(_maxBytes, _totalSlicesPerCache), sizeof(OutageDataItem));
+    _itemsPerSlice = ceilDiv(_maxBytes, (_totalSlicesPerCache * sizeof(OutageDataItem)));
+    _sliceSize = _itemsPerSlice * sizeof(OutageDataItem);
     _totalSlicesInFile = ceilDiv(_totalInputItemsInFile, _itemsPerSlice);
+
+    //TEST
+//    qDebug() << "Test cacheId";
+//    for (size_t i = 0; i < _totalInputItemsInFile; i++) {
+//        if (i % _itemsPerSlice == 0 || i+1 == _totalInputItemsInFile)
+//            qDebug() << "Index(" << i << "): " << cacheId(i);
+//    }
+//    qDebug() << "End test cacheId";
+}
+
+size_t InputCache::cacheId(const size_t itemIndex) {
+    if (itemIndex < _totalInputItemsInFile && _validFile) {
+        return sliceId(itemIndex) % _totalSlicesPerCache;
+    } else {
+        return 0;
+    }
+}
+
+size_t InputCache::sliceId(const size_t itemIndex) {
+    if (itemIndex < _totalInputItemsInFile && _validFile) {
+        return itemIndex / _totalSlicesInFile;
+    } else {
+        return 0;
+    }
+}
+
+size_t InputCache::sliceIndex(const size_t itemIndex) {
+    if (itemIndex < _totalInputItemsInFile && _validFile) {
+        return itemIndex % _totalSlicesInFile;
+    }
+}
+
+OutageDataWrapper & InputCache::operator[](size_t index) {
+    OutageDataWrapper nullObject;
+
+    if (_cacheSlices.size() == 0 || _maxBytes == 0 || _totalSlicesPerCache == 0 || _validFile == false) {
+        return nullObject;
+    }
+    if (index >= _maxBytes) {
+        return nullObject;
+    }
+
+    // For now, lets load consecutive chunks of data
+    size_t cacheIndex = cacheId(index);
+    if (cacheIndex > _cacheSlices.size()) {
+        return nullObject;
+    }
+
+    CacheSlice & cacheSlice = _cacheSlices[cacheIndex];
+    size_t sliceId_ = sliceId(index);
+    if (sliceId_ != cacheSlice._sliceId) {
+        if (reloadCacheSlice(index)) {
+            return OutageDataWrapper(cacheSlice._slice.at(sliceIndex(index)));
+        } else {
+            return nullObject;
+        }
+    } else {
+        return OutageDataWrapper(cacheSlice._slice.at(sliceIndex(index)));
+    }
+
+}
+
+bool InputCache::reloadCacheSlice(const size_t &itemIndex) {
+    if (itemIndex >= _totalInputItemsInFile) {
+        qWarning() << "InputCache::reloadCacheSlice: Error, stack overflow.";
+        return false;
+    }
+
+    if (!_validFile) {
+        qWarning() << "InputCache::reloadCacheSlice: Error, file is invalid.";
+        return false;
+    }
+    QFile inputFile(_inputFileName);
+    if (!inputFile.open(QFile::ReadOnly)) {
+        qWarning() << "InputCache::reloadCacheSlice: Error, cannot open file.";
+        return false;
+    }
+
+    QTextStream input(&inputFile);
+
+    size_t startIndex = (itemIndex / _itemsPerSlice) * _itemsPerSlice + _headerSize;
+    size_t endIndex = startIndex + _itemsPerSlice;
+
+    for (size_t i = 0; i < startIndex; i++) {
+        if (input.readLine().isEmpty()) {
+            qWarning() << "InputCache::reloadCacheSlice: Error, end of file.";
+            return false;
+        }
+    }
+
+    CacheSlice & cacheSlice = _cacheSlices.at(cacheId(itemIndex));
+    cacheSlice._slice.clear();
+    cacheSlice._sliceId = sliceId(itemIndex);
+
+    for (size_t i = 0; i < _itemsPerSlice; i++) {
+        QString line = input.readLine();
+        if (line.isEmpty()) {
+            break;
+        } else {
+            OutageDataItem newItem = OutageDataWrapper::parseInputString(line);
+            cacheSlice._slice.push_back(newItem);
+        }
+    }
+
+    if (cacheSlice._slice.size() > 0) {
+        return true;
+    } else {
+        qWarning() << "InputCache::reloadCacheSlice: Loaded empty slice.";
+        return false;
+    }
+
 }

@@ -27,6 +27,28 @@ OutageDataWrapper::OutageDataWrapper(OutageDataItem && r) :
     _affectedCustomers = std::move(r._affectedCustomers);
 }
 
+OutageDataWrapper::OutageDataWrapper(const OutageDataItem &r) :
+    OutageDataItem(r)
+{
+    /*
+    _latlong = r._latlong;
+    _date = r._date;
+    _temp = r._temp;
+    _dew = r._dew;
+    _humidity = r._humidity;
+    _pressure = r._pressure;
+    _visibility = r._visibility;
+    _wind = r._wind;
+    _precipitation = r._precipitation;
+    _city = r._city;
+    _county = r._county;
+    _reported_event = r._reported_event;
+    _storm_event = r._storm_event;
+    _outage = r._outage;
+    _affectedCustomers = r._affectedCustomers;
+    */
+}
+
 OutageDataWrapper::OutageDataWrapper(OutageDataWrapper && r) {
     _latlong = std::move(r._latlong);
     _date = std::move(r._date);
@@ -83,6 +105,51 @@ OutageDataWrapper & OutageDataWrapper::operator = (OutageDataWrapper && r) {
     _affectedCustomers = std::move(r._affectedCustomers);
 
     return *this;
+}
+
+OutageDataItem OutageDataWrapper::parseInputString(const QString & line) {
+
+    // TODO: Return a pointer to a new object???
+    OutageDataItem newItem;
+
+    QStringList lineList = line.split(",");
+    if (lineList.length() < 22) {
+        return newItem;
+    }
+    bool ok;
+    newItem._date.year(lineList[0].toInt(&ok));
+    newItem._date.month(lineList[1].toInt(&ok));
+    newItem._date.day(lineList[2].toInt(&ok));
+
+    newItem._temp.hi(lineList[3].toDouble(&ok));
+    newItem._temp.avg(lineList[4].toDouble(&ok));
+    newItem._temp.lo(lineList[5].toDouble(&ok));
+
+    newItem._dew.hi(lineList[6].toDouble(&ok));
+    newItem._dew.avg(lineList[7].toDouble(&ok));
+    newItem._dew.lo(lineList[8].toDouble(&ok));
+
+    newItem._humidity.hi(lineList[9].toDouble(&ok));
+    newItem._humidity.avg(lineList[10].toDouble(&ok));
+    newItem._humidity.lo(lineList[11].toDouble(&ok));
+
+    newItem._pressure.hi(lineList[12].toDouble(&ok));
+    newItem._pressure.avg(lineList[13].toDouble(&ok));
+    newItem._pressure.lo(lineList[14].toDouble(&ok));
+
+    newItem._visibility.hi(lineList[15].toDouble(&ok));
+    newItem._visibility.avg(lineList[16].toDouble(&ok));
+    newItem._visibility.lo(lineList[17].toDouble(&ok));
+
+    newItem._wind.hi(lineList[18].toDouble(&ok));
+    newItem._wind.avg(lineList[19].toDouble(&ok));
+    newItem._wind.gust(lineList[20].toDouble(&ok));
+
+    newItem._precipitation = lineList[21].toDouble(&ok);
+
+    newItem._storm_event = ((QString)lineList[22]).toStdString();
+
+    return newItem;
 }
 
 std::vector<real> OutageDataWrapper::inputize() {
