@@ -60,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << "Total LatLongObjects: " << LatLongObject::totalObjects();
 
     QString fileName("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\test\\10_Hammond_CrownPoint_Lake.csv");
-    unsigned long maxBytes = 128*1024;
+    unsigned long maxBytes = 512*1024*1024;
     size_t totalSlices = 8;
     size_t headerSize = 2;
     InputCache testCache(fileName, maxBytes, totalSlices, headerSize);
@@ -68,6 +68,18 @@ MainWindow::MainWindow(QWidget *parent) :
     OutageDataItem & index30 = testCache[30];
     OutageDataItem & index55 = testCache[55];
     OutageDataItem & index425 = testCache[425];
+
+    for (int i = 0; i < testCache.totalInputItemsInFile(); i++) {
+        OutageDataItem & index = testCache[i];
+        qDebug() <<
+            "(" << i << "): date(" <<
+            index._date.day() << "/" <<
+            index._date.month() << "/" <<
+            index._date.year() << ") Temp(" <<
+            (double) index._temp.hi() << "," <<
+            (double) index._temp.avg() << "," <<
+            (double) index._temp.lo() << ")";
+    }
 
 //PROGRAM BREAKS AFTER THIS POINT SO DON'T RUN IT
     // End that testing

@@ -16,9 +16,9 @@ public:
     DateSnip & operator=(const DateSnip & l);
     DateSnip & operator=(DateSnip && r);
 
-    const int & day() { return _day; }
-    const int & month() { return _month; }
-    const int & year() { return _year; }
+    const int & day(void) { return _day; }
+    const int & month(void) { return _month; }
+    const int & year(void) { return _year; }
 
     void day(const int & day) { _day = day; }
     void month(const int & month) { _month = month; }
