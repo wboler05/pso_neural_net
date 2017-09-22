@@ -6,6 +6,8 @@ InputCache::InputCache(const QString &inputFileName,
                        const size_t & headerSize) :
     _inputFileName(inputFileName),
     _maxBytes(DEFAULT_MAX_BYTES),
+    _effectiveMaxBytes(0),
+    _fileEffectiveBytes(0),
     _totalSlicesPerCache(1),
     _validFile(false),
     _headerSize(headerSize)
@@ -31,11 +33,17 @@ void InputCache::setMaxBytes(const unsigned long &maxBytes) {
     } else {
         _maxBytes = maxBytes;
     }
+
+    if (_fileEffectiveBytes < maxBytes){
+        _effectiveMaxBytes = _fileEffectiveBytes;
+    } else {
+        _effectiveMaxBytes = maxBytes;
+    }
     updateCache();
 }
 
 void InputCache::setTotalSlicesPerCache(const unsigned int &slices) {
-    unsigned int maxCacheSliceNum = _maxBytes / sizeof(CacheSlice);
+    unsigned int maxCacheSliceNum = _effectiveMaxBytes / sizeof(CacheSlice);
 
     if (slices == 0) {
         qWarning() << "InputCache: Error, cannot set cache slice to zero.";
@@ -62,6 +70,7 @@ bool InputCache::verifyInputFile() {
     }
 
     _totalInputItemsInFile = 0;
+    _fileEffectiveBytes = 0;
     QTextStream input(&inFile);
     QString line;
     do {
@@ -81,6 +90,8 @@ bool InputCache::verifyInputFile() {
         _totalInputItemsInFile = 0;
     }
 
+    _fileEffectiveBytes = _totalInputItemsInFile * sizeof(OutageDataItem);
+
     if (_totalInputItemsInFile == 0 || _totalColumns == 0) {
         qWarning() << "InputCache: Error, empty lines in input file.";
         return false;
@@ -97,9 +108,10 @@ void InputCache::updateCache() {
     using namespace CustomMath;
     qDebug() << "OutageDataItem Size: " << sizeof(OutageDataItem);
     _cacheSlices.resize(_totalSlicesPerCache);
-    _itemsPerSlice = ceilDiv(_maxBytes, (_totalSlicesPerCache * sizeof(OutageDataItem)));
+    _itemsPerSlice = ceilDiv(_effectiveMaxBytes, (_totalSlicesPerCache * sizeof(OutageDataItem)));
     _sliceSize = _itemsPerSlice * sizeof(OutageDataItem);
     _totalSlicesInFile = ceilDiv(_totalInputItemsInFile, _itemsPerSlice);
+    _totalGroups = ceilDiv(_totalSlicesInFile, _totalSlicesPerCache);
 
     //TEST
 //    qDebug() << "Test cacheId";
@@ -110,54 +122,80 @@ void InputCache::updateCache() {
 //    qDebug() << "End test cacheId";
 }
 
-size_t InputCache::cacheId(const size_t itemIndex) {
-    if (itemIndex < _totalInputItemsInFile && _validFile) {
+size_t InputCache::groupId(const size_t & itemIndex) {
+    if (itemIndex < _totalInputItemsInFile
+            && _validFile
+            && _totalSlicesPerCache != 0) {
+        return sliceId(itemIndex) / _totalSlicesPerCache;
+        //return (itemIndex / _totalSlicesInFile) % _totalSlicesPerCache;
+        //return sliceId(itemIndex) % _totalSlicesPerCache;
+    } else {
+        return 0;
+    }
+}
+
+size_t InputCache::sliceId(const size_t & itemIndex) {
+    if (itemIndex < _totalInputItemsInFile
+            && _validFile
+            && _itemsPerSlice != 0) {
+        return itemIndex / _itemsPerSlice;
+        //return (itemIndex / _totalSlicesInFile) / _itemsPerSlice;
+    } else {
+        return 0;
+    }
+}
+
+size_t InputCache::sliceIndex(const size_t & itemIndex) {
+    if (itemIndex < _totalInputItemsInFile
+            && _validFile
+            && _itemsPerSlice != 0) {
+        return itemIndex % _itemsPerSlice;
+    } else {
+        return 0;
+    }
+}
+
+size_t InputCache::cacheIndex(const size_t & itemIndex) {
+    if (itemIndex < _totalInputItemsInFile
+            && _validFile
+            && _totalSlicesPerCache != 0) {
         return sliceId(itemIndex) % _totalSlicesPerCache;
     } else {
         return 0;
     }
 }
 
-size_t InputCache::sliceId(const size_t itemIndex) {
-    if (itemIndex < _totalInputItemsInFile && _validFile) {
-        return itemIndex / _totalSlicesInFile;
-    } else {
-        return 0;
-    }
-}
-
-size_t InputCache::sliceIndex(const size_t itemIndex) {
-    if (itemIndex < _totalInputItemsInFile && _validFile) {
-        return itemIndex % _totalSlicesInFile;
-    }
-}
-
 OutageDataWrapper & InputCache::operator[](size_t index) {
     OutageDataWrapper nullObject;
 
-    if (_cacheSlices.size() == 0 || _maxBytes == 0 || _totalSlicesPerCache == 0 || _validFile == false) {
+    if (_cacheSlices.size() == 0
+            || _effectiveMaxBytes == 0
+            || _totalSlicesPerCache == 0
+            || _validFile == false) {
         return nullObject;
     }
-    if (index >= _maxBytes) {
+    if (index >= _effectiveMaxBytes) {
         return nullObject;
     }
 
     // For now, lets load consecutive chunks of data
-    size_t cacheIndex = cacheId(index);
-    if (cacheIndex > _cacheSlices.size()) {
+    size_t cacheIndex_ = cacheIndex(index);
+    if (cacheIndex_ > _cacheSlices.size()) {
         return nullObject;
     }
 
-    CacheSlice & cacheSlice = _cacheSlices[cacheIndex];
-    size_t sliceId_ = sliceId(index);
-    if (sliceId_ != cacheSlice._sliceId) {
+    CacheSlice & cacheSlice = _cacheSlices[cacheIndex_];
+    size_t groupId_ = groupId(index);
+    if (groupId_ != cacheSlice._groupId) {
         if (reloadCacheSlice(index)) {
-            return OutageDataWrapper(cacheSlice._slice.at(sliceIndex(index)));
+            size_t sliceIndex_ = sliceIndex(index);
+            return OutageDataWrapper(cacheSlice._slice.at(sliceIndex_));
         } else {
             return nullObject;
         }
     } else {
-        return OutageDataWrapper(cacheSlice._slice.at(sliceIndex(index)));
+        size_t sliceIndex_ = sliceIndex(index);
+        return OutageDataWrapper(cacheSlice._slice.at(sliceIndex_));
     }
 
 }
@@ -175,13 +213,14 @@ bool InputCache::reloadCacheSlice(const size_t &itemIndex) {
     QFile inputFile(_inputFileName);
     if (!inputFile.open(QFile::ReadOnly)) {
         qWarning() << "InputCache::reloadCacheSlice: Error, cannot open file.";
+        _validFile = false;
         return false;
     }
 
     QTextStream input(&inputFile);
 
     size_t startIndex = (itemIndex / _itemsPerSlice) * _itemsPerSlice + _headerSize;
-    size_t endIndex = startIndex + _itemsPerSlice;
+    //size_t endIndex = startIndex + _itemsPerSlice;
 
     for (size_t i = 0; i < startIndex; i++) {
         if (input.readLine().isEmpty()) {
@@ -190,9 +229,9 @@ bool InputCache::reloadCacheSlice(const size_t &itemIndex) {
         }
     }
 
-    CacheSlice & cacheSlice = _cacheSlices.at(cacheId(itemIndex));
+    CacheSlice & cacheSlice = _cacheSlices.at(cacheIndex(itemIndex));
     cacheSlice._slice.clear();
-    cacheSlice._sliceId = sliceId(itemIndex);
+    cacheSlice._groupId = groupId(itemIndex);
 
     for (size_t i = 0; i < _itemsPerSlice; i++) {
         QString line = input.readLine();

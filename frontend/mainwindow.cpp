@@ -60,17 +60,17 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << "Total LatLongObjects: " << LatLongObject::totalObjects();
 
     QString fileName("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\test\\10_Hammond_CrownPoint_Lake.csv");
-    unsigned long maxBytes = 512*1024*1024;
+    unsigned long maxBytes = 128*1024;
     size_t totalSlices = 8;
     size_t headerSize = 2;
-    InputCache testCache(fileName, maxBytes, totalSlices, headerSize);
-    OutageDataItem & index2 = testCache[2];
-    OutageDataItem & index30 = testCache[30];
-    OutageDataItem & index55 = testCache[55];
-    OutageDataItem & index425 = testCache[425];
+    InputCache * testCache = new InputCache(fileName, maxBytes, totalSlices, headerSize);
+//    OutageDataItem & index2 = testCache[2];
+//    OutageDataItem & index30 = testCache[30];
+//    OutageDataItem & index55 = testCache[55];
+//    OutageDataItem & index425 = testCache[425];
 
-    for (int i = 0; i < testCache.totalInputItemsInFile(); i++) {
-        OutageDataItem & index = testCache[i];
+    for (int i = 0; i < testCache->totalInputItemsInFile(); i++) {
+        OutageDataItem & index = (*testCache)[i];
         qDebug() <<
             "(" << i << "): date(" <<
             index._date.day() << "/" <<
@@ -80,6 +80,23 @@ MainWindow::MainWindow(QWidget *parent) :
             (double) index._temp.avg() << "," <<
             (double) index._temp.lo() << ")";
     }
+
+    maxBytes = 512*1024*1024;
+    delete testCache;
+
+    testCache = new InputCache(fileName, maxBytes, totalSlices, headerSize);
+    for (int i = 0; i < testCache->totalInputItemsInFile(); i++) {
+        OutageDataItem & index = (*testCache)[i];
+        qDebug() <<
+            "(" << i << "): date(" <<
+            index._date.day() << "/" <<
+            index._date.month() << "/" <<
+            index._date.year() << ") Temp(" <<
+            (double) index._temp.hi() << "," <<
+            (double) index._temp.avg() << "," <<
+            (double) index._temp.lo() << ")";
+    }
+    delete testCache;
 
 //PROGRAM BREAKS AFTER THIS POINT SO DON'T RUN IT
     // End that testing

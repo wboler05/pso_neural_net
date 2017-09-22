@@ -1,7 +1,7 @@
 #include "cacheslice.h"
 
 CacheSlice::CacheSlice() :
-    _sliceId(-1)
+    _groupId(-1)
 {
 
 }
