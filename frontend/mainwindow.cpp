@@ -59,11 +59,12 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << "Total of them: " << someStuff.size();
     qDebug() << "Total LatLongObjects: " << LatLongObject::totalObjects();
 
-    QString fileName("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\test\\10_Hammond_CrownPoint_Lake.csv");
-    unsigned long maxBytes = 128*1024;
-    size_t totalSlices = 8;
-    size_t headerSize = 2;
-    InputCache * testCache = new InputCache(fileName, maxBytes, totalSlices, headerSize);
+    CacheParameters c;
+    c.inputFileName = QString ("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\test\\10_Hammond_CrownPoint_Lake.csv");
+    c.maxBytes = 128*1024;
+    c.totalSlicesPerCache = 8;
+    c.headerSize = 2;
+    InputCache * testCache = new InputCache(c);
 //    OutageDataItem & index2 = testCache[2];
 //    OutageDataItem & index30 = testCache[30];
 //    OutageDataItem & index55 = testCache[55];
@@ -81,10 +82,10 @@ MainWindow::MainWindow(QWidget *parent) :
             (double) index._temp.lo() << ")";
     }
 
-    maxBytes = 512*1024*1024;
+    c.maxBytes = 512*1024*1024;
     delete testCache;
 
-    testCache = new InputCache(fileName, maxBytes, totalSlices, headerSize);
+    testCache = new InputCache(c);
     for (int i = 0; i < testCache->totalInputItemsInFile(); i++) {
         OutageDataItem & index = (*testCache)[i];
         qDebug() <<
@@ -194,6 +195,44 @@ void MainWindow::on_actionEnable_Output_toggled(bool b) {
     ui->txtBrowser_gb->setEnabled(b);
     ui->txtBrowser_gb->setVisible(b);
     Logger::setEnableTextBrowser(b);
+}
+
+void MainWindow::on_actionLoad_Input_File_triggered() {
+    /**TEST**/
+    QDir curDir(qApp->applicationDirPath());
+    QString filename = QFileDialog::getOpenFileName(this, "Open input file:", curDir.absolutePath(), "CSV (*.csv)");
+    if (filename != "") {
+        _cacheParams = filename;
+        _inputCache = std::make_unique<InputCache> (_cacheParams);
+    }
+}
+
+void MainWindow::on_actionMax_Memory_triggered() {
+    /**TEST**/
+    MaxMemoryDialog * mDialog = new MaxMemoryDialog(_cacheParams.maxBytes);
+    connect(mDialog, SIGNAL(maxBytesUpdated(int)), this, SLOT(updateCacheMaxBytes(int)));
+}
+
+void MainWindow::updateCacheMaxBytes(const int & bytes) {
+    /**TEST**/
+    _cacheParams.maxBytes = bytes;
+    if (_inputCache) {
+        ((InputCache *)_inputCache)->setMaxBytes(bytes);
+    }
+}
+
+void MainWindow::on_actionSlices_Per_Cache_triggered() {
+    /**TEST**/
+    SliceNumberDialog * sDialog = new SliceNumberDialog(_cacheParams.totalSlicesPerCache, this);
+    connect(sDialog, SIGNAL(slicesUpdated(int)), this, SLOT(updateSlicesPerCache(int)));
+}
+
+void MainWindow::updateSlicesPerCache(const int & slices) {
+    /**TEST**/
+    _cacheParams.totalSlicesPerCache = slices;
+    if (_inputCache) {
+        ((InputCache *)_inputCache)->setTotalSlicesPerCache(slices);
+    }
 }
 
 void MainWindow::on_actionSave_PSO_State_triggered() {
@@ -328,35 +367,35 @@ void MainWindow::applyParameterChanges() {
 }
 
 void MainWindow::updateParameterGui() {
-    ui->totalParticles_sb->setValue(_params.pp.particles);
-    ui->totalNeighbors_sb->setValue(_params.pp.neighbors);
-    ui->totalIterations_sb->setValue(_params.pp.iterations);
-    ui->window_sb->setValue(_params.pp.window);
-    ui->delta_dsb->setValue(_params.pp.delta);
-    ui->enableIteration_cb->setChecked(_params.pp.termIterationFlag);
-    ui->enableDelta_cb->setChecked(_params.pp.termDeltaFlag);
+    ui->totalParticles_sb->setValue(_params->pp.particles);
+    ui->totalNeighbors_sb->setValue(_params->pp.neighbors);
+    ui->totalIterations_sb->setValue(_params->pp.iterations);
+    ui->window_sb->setValue(_params->pp.window);
+    ui->delta_dsb->setValue(_params->pp.delta);
+    ui->enableIteration_cb->setChecked(_params->pp.termIterationFlag);
+    ui->enableDelta_cb->setChecked(_params->pp.termDeltaFlag);
 
-    ui->testIt_sb->setValue(_params.np.testIterations);
+    ui->testIt_sb->setValue(_params->np.testIterations);
 
-    ui->mse_floor_dsb->setValue(_params.fp.mse_floor);
-    ui->acc_floor_dsb->setValue(_params.fp.floors.accuracy);
-    ui->pre_floor_dsb->setValue(_params.fp.floors.precision);
-    ui->sen_floor_dsb->setValue(_params.fp.floors.sensitivity);
-    ui->spe_floor_dsb->setValue(_params.fp.floors.specificity);
-    ui->fscore_floor_dsb->setValue(_params.fp.floors.f_score);
+    ui->mse_floor_dsb->setValue(_params->fp.mse_floor);
+    ui->acc_floor_dsb->setValue(_params->fp.floors.accuracy);
+    ui->pre_floor_dsb->setValue(_params->fp.floors.precision);
+    ui->sen_floor_dsb->setValue(_params->fp.floors.sensitivity);
+    ui->spe_floor_dsb->setValue(_params->fp.floors.specificity);
+    ui->fscore_floor_dsb->setValue(_params->fp.floors.f_score);
 
-    ui->mse_weight_dsb->setValue(_params.fp.mse_weight);
-    ui->acc_weight_dsb->setValue(_params.fp.weights.accuracy);
-    ui->pre_weight_dsb->setValue(_params.fp.weights.precision);
-    ui->sen_weight_dsb->setValue(_params.fp.weights.sensitivity);
-    ui->spe_weight_dsb->setValue(_params.fp.weights.specificity);
-    ui->fscore_weight_dsb->setValue(_params.fp.weights.f_score);
+    ui->mse_weight_dsb->setValue(_params->fp.mse_weight);
+    ui->acc_weight_dsb->setValue(_params->fp.weights.accuracy);
+    ui->pre_weight_dsb->setValue(_params->fp.weights.precision);
+    ui->sen_weight_dsb->setValue(_params->fp.weights.sensitivity);
+    ui->spe_weight_dsb->setValue(_params->fp.weights.specificity);
+    ui->fscore_weight_dsb->setValue(_params->fp.weights.f_score);
 
     ui->netType_cb->setCurrentIndex(getNetTypeCBIndex());
 }
 
 int MainWindow::getNetTypeCBIndex() {
-    switch (_params.np.type) {
+    switch (_params->np.type) {
     case NeuralNet::Feedforward:
         return 0;
         break;
@@ -384,18 +423,22 @@ void MainWindow::setNetTypeByIndex(const int & i) {
 }
 
 void MainWindow::setInnerNetNodesFromGui() {
-    InnerNetNodesInput * dialog = new InnerNetNodesInput(_params.np);
+    InnerNetNodesInput * dialog = new InnerNetNodesInput(_params->np);
 }
 
 void MainWindow::setParameterDefaults() {
-    _params.pp.particles = 50; // 50
-    _params.pp.neighbors = 13; // 10
-    _params.pp.iterations = 1000;
-    _params.pp.delta = 5E-8;
-    _params.pp.vDelta = 5E-200;
-    _params.pp.termIterationFlag = false;
-    _params.pp.termDeltaFlag = true;
-    _params.pp.window = 500;
+    if (!_params) {
+        _params = std::make_shared<TrainingParameters>();
+    }
+
+    _params->pp.particles = 50; // 50
+    _params->pp.neighbors = 13; // 10
+    _params->pp.iterations = 1000;
+    _params->pp.delta = 5E-8;
+    _params->pp.vDelta = 5E-200;
+    _params->pp.termIterationFlag = false;
+    _params->pp.termDeltaFlag = true;
+    _params->pp.window = 500;
 
     /*
     NeuralNetParameters nParams;
@@ -405,28 +448,33 @@ void MainWindow::setParameterDefaults() {
     //nParams.innerNetNodes.push_back(50);
     nParams.outputs = 10;
     */
-    _params.np.inputs = _inputData[0].size();
-    _params.np.innerNetNodes.clear();
-    _params.np.innerNetNodes.push_back(4);
-    _params.np.innerNetNodes.push_back(4);
-    _params.np.innerNetNodes.push_back(4);
-    _params.np.innerNets = _params.np.innerNetNodes.size();
-    _params.np.outputs = 1;
-    _params.np.testIterations = 500; //500
+    _params->np.inputs = _inputData[0].size();
+    _params->np.innerNetNodes.clear();
+    _params->np.innerNetNodes.push_back(4);
+    _params->np.innerNetNodes.push_back(4);
+    _params->np.innerNetNodes.push_back(4);
+    _params->np.innerNets = _params.np.innerNetNodes.size();
+    _params->np.outputs = 1;
+    _params->np.testIterations = 500; //500
 
-    _params.fp.floors.accuracy = .05;
-    _params.fp.floors.precision = 0.05;
-    _params.fp.floors.sensitivity = 0.05;
-    _params.fp.floors.specificity = .05;
-    _params.fp.floors.f_score = 0.05;
-    _params.fp.mse_floor = 0;
+    _params->fp.floors.accuracy = .05;
+    _params->fp.floors.precision = 0.05;
+    _params->fp.floors.sensitivity = 0.05;
+    _params->fp.floors.specificity = .05;
+    _params->fp.floors.f_score = 0.05;
+    _params->fp.mse_floor = 0;
 
-    _params.fp.mse_weight = 1;
-    _params.fp.weights.accuracy = 0.0;
-    _params.fp.weights.precision = 0.0;
-    _params.fp.weights.sensitivity = 0.0;
-    _params.fp.weights.specificity = 0.0;
-    _params.fp.weights.f_score = 0.0;
+    _params->fp.mse_weight = 1;
+    _params->fp.weights.accuracy = 0.0;
+    _params->fp.weights.precision = 0.0;
+    _params->fp.weights.sensitivity = 0.0;
+    _params->fp.weights.specificity = 0.0;
+    _params->fp.weights.f_score = 0.0;
+
+    _params->cp.inputFileName = QString ("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\test\\10_Hammond_CrownPoint_Lake.csv");
+    _params->cp.headerSize = 2;
+    _params->cp.maxBytes = 512*1024*1024;
+    _params->cp.totalSlicesPerCache = 8;
 
     updateParameterGui();
 }
@@ -629,13 +677,9 @@ void MainWindow::on_clearState_btn_clicked() {
 }
 
 void MainWindow::clearPSOState() {
-    if (_neuralPsoTrainer != nullptr) {
-        delete _neuralPsoTrainer;
-    }
-
-    _neuralPsoTrainer = new OutageTrainer(_params);
-    _neuralPsoTrainer->build(_inputData, _labelsData);
-    _neuralPsoTrainer->setFunctionMsg("AND");
+    _neuralPsoTrainer = std::make_unique<OutageTrainer>(_params);
+    //_neuralPsoTrainer->build(_inputData, _labelsData);
+    _neuralPsoTrainer->setFunctionMsg("Outage Data");
 }
 
 void MainWindow::tryInjectGB() {

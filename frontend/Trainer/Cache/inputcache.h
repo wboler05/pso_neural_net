@@ -6,13 +6,17 @@
 
 #include <QFile>
 
+struct CacheParameters {
+    QString inputFileName;
+    unsigned long maxBytes=0;
+    size_t totalSlicesPerCache=0;
+    size_t headerSize=0;
+};
+
 class InputCache
 {
 public:
-    explicit InputCache(const QString &inputFileName,
-               const unsigned long & maxBytes,
-               const size_t &totalSlicesPerCache,
-               const size_t & headerSize=0);
+    explicit InputCache(const CacheParameters & c);
     ~InputCache();
 
     OutageDataWrapper & operator[](size_t index);
@@ -22,10 +26,10 @@ public:
     const bool & validFile() { return _validFile; }
 
     void setMaxBytes(const unsigned long & maxBytes);
-    const unsigned long & maxBytes() { return _maxBytes; }
+    const unsigned long & maxBytes() { return _cacheParams.maxBytes; }
     const unsigned long & effectiveMaxBytes() { return _effectiveMaxBytes; }
     const unsigned long & fileEffectiveBytes() { return _fileEffectiveBytes; }
-    double maxKBytes() { return (double) _maxBytes * 1024.0; }
+    double maxKBytes() { return (double) _cacheParams.maxBytes * 1024.0; }
     double maxMBytes() { return maxKBytes() * 1024.0; }
     double effectiveMaxKBytes() { return (double) _effectiveMaxBytes * 1024.0; }
     double effectiveMaxMBytes() { return effectiveMaxKBytes() * 1024.0; }
@@ -46,16 +50,17 @@ public:
     size_t sliceId(const size_t & itemIndex);
     size_t sliceIndex(const size_t & itemIndex);
 
+    void clearCache();
+    const size_t & length() { return _totalInputItemsInFile; }
+
 private:
     InputCache(const InputCache & l)=delete;
     InputCache & operator=(const InputCache & l)=delete;
 
-    QString _inputFileName;
+    CacheParameters _cacheParams;
     bool _validFile;
-    size_t _headerSize;
     std::vector<CacheSlice> _cacheSlices;
 
-    unsigned long _maxBytes;
     unsigned long _effectiveMaxBytes;
     unsigned long _fileEffectiveBytes;
     size_t _totalSlicesPerCache;

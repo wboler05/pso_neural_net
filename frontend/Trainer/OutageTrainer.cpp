@@ -2,46 +2,86 @@
 
 #include "PSO/pso.cpp"
 
-OutageTrainer::OutageTrainer(const TrainingParameters & pe) :
+OutageTrainer::OutageTrainer(const std::shared_ptr<TrainingParameters> & pe) :
     NeuralPso(pe.pp, pe.np, pe.fp),
-    _input(nullptr),
-    _output(nullptr),
+    _params(pe),
     _outputCount(nullptr)
 {
-
+    build();
 }
 
-void OutageTrainer::build(vector<vector<real>> &input, vector<real> &output) {
-  srand(time(NULL));
-  _input = &input;
-  _output = &output;
+void OutageTrainer::build() {
+    /** TEST **/
+    srand(time(NULL));
+    _inputCache = std::make_shared<InputCache>(_params->cp);
 
-  if (_outputCount != nullptr) {
-      delete _outputCount;
-  }
-  _outputCount = new vector<real>();
+    // Split between training, testing, and validation sets
+    randomlyDistributeData();
 
-  int totalCount = 2 * _neuralNet->nParams()->outputs;
-  _outputCount->resize(totalCount);
-  _outputIterators.resize(totalCount);
-  for(int i = 0; i < totalCount; i++) {
-    (*_outputCount)[i] = 0;
-  }
+    // Setup bias for rare events
+    biasAgainstOutputs();
 
-  //! TODO Make general for any size output nodes
-  for (uint i = 0; i < _output->size(); i++) {
-    int it = convertOutput(_output->at(i));
-      (*_outputCount)[it]++;
-    _outputIterators[it].push_back(i);
-  }
+    buildPso();
+}
 
+void OutageTrainer::randomlyDistributeData() {
+    /** TEST **/
 
-  buildPso();
+    std::vector<double> splitPdf = {0.7225, .1275, .15};    // Setup PDF
+    std::vector<double> splitCdf = cdfUniform(splitPdf);    // Calculate CDF
+
+    std::default_random_engine gen;
+    std::uniform_real_distribution<double> dist(0, 1);
+
+    const size_t & inputSize = _inputCache->length();       // Get total inputs
+    _trainingInputs.clear();                                // Clear input lists
+    _testInputs.clear();
+    _validationInputs.clear();
+    for (size_t i = 0; i < inputSize; i++) {
+        double randChoice = dist(gen);                      // Separate data
+        if (randChoice < splitCdf[0]) {
+            _trainingInputs.push_back(i);
+        } else if (randChoice < splitCdf[1]) {
+            _testInputs.push_back(i);
+        } else {
+            _validationInputs.push_back(i);
+        }
+    }
+}
+
+void OutageTrainer::biasAgainstOutputs() {
+    /** TEST **/
+    if (_outputCount != nullptr) {
+        delete _outputCount;
+    }
+
+    _outputCount.resize(2, 0);
+    _outputIterators.resize(2);
+
+    // Run through the training inputs
+    for (size_t i = 0; i < _trainingInputs.size(); i++) {
+        size_t it = _trainingInputs.at(i);
+        const OutageDataWrapper & dataItem = _inputCache[it];
+        if (dataItem.empty()) {
+            continue;
+        }
+
+        // Count the true and false outages
+        bool outage = confirmOutage(dataItem.outputize());
+        if (outage) {
+            _outputCount[1]++;
+            _outputIterators[1].push_back(it);
+        } else {
+            _outputCount[0]++;
+            _outputIterators[0].push_back(it);
+        }
+    }
 }
 
 void OutageTrainer::testGB() {
   _neuralNet->setWeights(_gb._x);
   int I = randomizeTestInputs();
+  size_t it = _testInputs[I];
 
   vector<real> res = _neuralNet->process();
   cout << _functionMsg << endl;
@@ -258,34 +298,57 @@ bool OutageTrainer::validateOutput(
     return true;
 }
 
+/**
+ * @brief OutageTrainer::randomizeTestInputs
+ * @return Iterator for testInput list
+ */
 int OutageTrainer::randomizeTestInputs() {
-  _neuralNet->resetInputs();
+    _neuralNet->resetInputs();
 
-  int uniformOutputIt = rand() % _outputIterators.size();
-  int I = rand() % _outputIterators[uniformOutputIt].size();
-  I = _outputIterators[uniformOutputIt][I];
+    int uniformOutputIt = rand() % _outputIterators.size();
+    int I = rand() % _outputIterators[uniformOutputIt].size();
+    I = _outputIterators[uniformOutputIt][I];
 
-//  int I = rand() % _input->size();
+    size_t it = _testInputs[I];
 
-  for (uint i = 0; i < (*_input)[I].size(); i++) {
-    _neuralNet->loadInput((*_input)[I][i], i);
-  }
+    const OutageDataWrapper & item = _inputCache[it];
+    std::vector<real> inputItems = item.inputize();
 
-  return I;
+    for (uint i = 0; i < inputItems.size(); i++) {
+        _neuralNet->loadInput(inputItems[i], i);
+    }
+
+    return I;
 }
 
-void OutageTrainer::loadTestInput(uint I) {
-  if (I >= _input->size()) return;
+void OutageTrainer::loadTestInput(const size_t & I) {
+  if (I >= _testInputs.size())
+      return;
+    size_t it = _testInputs[I];
 
   _neuralNet->resetInputs();
 
-  for (uint i = 0; i < (*_input)[I].size(); i++) {
-    _neuralNet->loadInput((*_input)[I][i], i);
+  const OutageDataWrapper & item = _inputCache[it];
+  std::vector<real> inputItems = item.inputize();
+
+  for (uint i = 0; i < inputItems.size(); i++) {
+    _neuralNet->loadInput(inputItems[i], i);
   }
 }
 
 void OutageTrainer::loadValidationInput(size_t I) {
-    //todo
+    if (I >= _validationInputs.size())
+        return;
+    size_t it = _validationInputs[I];
+
+    _neuralNet->resetInputs();
+
+    const OutageDataWrapper & item = _inputCache[it];
+    std::vector<real> inputItems = item.inputize();
+
+    for (uint i = 0; i < inputItems.size(); i++) {
+      _neuralNet->loadInput(inputItems[i], i);
+    }
 }
 
 void OutageTrainer::runTrainer() {
@@ -298,7 +361,8 @@ void OutageTrainer::runTrainer() {
 }
 
 void OutageTrainer::classError(TestStatistics::ClassificationError *ce) {
-  _testStats.clear();
+  //LEAVEOFFHERE
+    _testStats.clear();
 
   size_t clampMax = _neuralNet->nParams()->testIterations;
   size_t inputSize = _input->size();
@@ -343,20 +407,14 @@ void OutageTrainer::classError(TestStatistics::ClassificationError *ce) {
 
 }
 
-bool OutageTrainer::convertOutput(const real & output) {
-    // Specific for the definition that below 0.5 is a negative result
-    // above 0.5 is a positive result
-    if (output < 0.5) {
+bool OutageTrainer::confirmOutage(const std::vector<real> & output) {
+    if (output.size() < 2) {
+        qWarning()<< "Error, wrong vector size for output.";
+        return false;
+    }
+    if (output[0] < 0.5) {
         return false;
     } else {
         return true;
-    }
-}
-
-real OutageTrainer::convertInput(const bool & b) {
-    if (b) {
-        return 1.0;
-    } else {
-        return 0.0;
     }
 }

@@ -1,23 +1,21 @@
 #include "inputcache.h"
 
-InputCache::InputCache(const QString &inputFileName,
-                       const unsigned long & maxBytes,
-                       const size_t & totalSlicesPerCache,
-                       const size_t & headerSize) :
-    _inputFileName(inputFileName),
-    _maxBytes(DEFAULT_MAX_BYTES),
+InputCache::InputCache(const CacheParameters &c) :
     _effectiveMaxBytes(0),
     _fileEffectiveBytes(0),
     _totalSlicesPerCache(1),
-    _validFile(false),
-    _headerSize(headerSize)
+    _validFile(false)
 {
+    _cacheParams.maxBytes = DEFAULT_MAX_BYTES;
+    _cacheParams.inputFileName = c.inputFileName;
+    _cacheParams.headerSize = c.headerSize;
+
     if (!verifyInputFile()) {
         qWarning() << "Error: could not open input file.";
     }
 
-    setMaxBytes(maxBytes);
-    setTotalSlicesPerCache(totalSlicesPerCache);
+    setMaxBytes(c.maxBytes);
+    setTotalSlicesPerCache(c.totalSlicesPerCache);
 
 }
 
@@ -27,11 +25,11 @@ InputCache::~InputCache() {
 
 void InputCache::setMaxBytes(const unsigned long &maxBytes) {
     //!TODO: Find max of system
-    if (_maxBytes < DEFAULT_MAX_BYTES) {
+    if (_cacheParams.maxBytes < DEFAULT_MAX_BYTES) {
         qWarning() << "InputCache: Warning, too small of value for maximum bytes. Set to default (64MB).";
-        _maxBytes = DEFAULT_MAX_BYTES;
+        _cacheParams.maxBytes = DEFAULT_MAX_BYTES;
     } else {
-        _maxBytes = maxBytes;
+        _cacheParams.maxBytes = maxBytes;
     }
 
     if (_fileEffectiveBytes < maxBytes){
@@ -58,14 +56,14 @@ void InputCache::setTotalSlicesPerCache(const unsigned int &slices) {
 
 bool InputCache::verifyInputFile() {
     _validFile = false;
-    if (_inputFileName.isEmpty()) {
+    if (_cacheParams.inputFileName.isEmpty()) {
         qWarning() << "InputCache: Error, input file name is empty.";
         return false;
     }
 
-    QFile inFile (_inputFileName);
+    QFile inFile (_cacheParams.inputFileName);
     if (!inFile.open(QFile::ReadOnly)) {
-        qWarning() << "InputCache: Unable to open file: " << _inputFileName;
+        qWarning() << "InputCache: Unable to open file: " << _cacheParams.inputFileName;
         return false;
     }
 
@@ -84,8 +82,8 @@ bool InputCache::verifyInputFile() {
 
     inFile.close();
 
-    if (_totalInputItemsInFile >= _headerSize) {
-        _totalInputItemsInFile -= _headerSize;
+    if (_totalInputItemsInFile >= _cacheParams.headerSize) {
+        _totalInputItemsInFile -= _cacheParams.headerSize;
     } else {
         _totalInputItemsInFile = 0;
     }
@@ -107,6 +105,7 @@ bool InputCache::verifyInputFile() {
 void InputCache::updateCache() {
     using namespace CustomMath;
     qDebug() << "OutageDataItem Size: " << sizeof(OutageDataItem);
+    _cacheSlices.clear();
     _cacheSlices.resize(_totalSlicesPerCache);
     _itemsPerSlice = ceilDiv(_effectiveMaxBytes, (_totalSlicesPerCache * sizeof(OutageDataItem)));
     _sliceSize = _itemsPerSlice * sizeof(OutageDataItem);
@@ -210,7 +209,7 @@ bool InputCache::reloadCacheSlice(const size_t &itemIndex) {
         qWarning() << "InputCache::reloadCacheSlice: Error, file is invalid.";
         return false;
     }
-    QFile inputFile(_inputFileName);
+    QFile inputFile(_cacheParams.inputFileName);
     if (!inputFile.open(QFile::ReadOnly)) {
         qWarning() << "InputCache::reloadCacheSlice: Error, cannot open file.";
         _validFile = false;
@@ -219,7 +218,8 @@ bool InputCache::reloadCacheSlice(const size_t &itemIndex) {
 
     QTextStream input(&inputFile);
 
-    size_t startIndex = (itemIndex / _itemsPerSlice) * _itemsPerSlice + _headerSize;
+    size_t startIndex = (itemIndex / _itemsPerSlice) *
+            _itemsPerSlice + _cacheParams.headerSize;
     //size_t endIndex = startIndex + _itemsPerSlice;
 
     for (size_t i = 0; i < startIndex; i++) {
@@ -250,4 +250,8 @@ bool InputCache::reloadCacheSlice(const size_t &itemIndex) {
         return false;
     }
 
+}
+
+void InputCache::clearCache() {
+    _cacheSlices.clear();
 }

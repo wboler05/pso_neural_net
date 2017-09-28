@@ -195,7 +195,9 @@ SOURCES += \
     frontend/Trainer/DataTypes/datesnip.cpp \
     frontend/fitnessplotter.cpp \
     frontend/Trainer/Cache/cacheslice.cpp \
-    frontend/Trainer/Cache/inputcache.cpp
+    frontend/Trainer/Cache/inputcache.cpp \
+    frontend/maxmemorydialog.cpp \
+    frontend/slicenumberdialog.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -221,10 +223,14 @@ HEADERS += \
     frontend/Trainer/DataTypes/datesnip.h \
     frontend/fitnessplotter.h \
     frontend/Trainer/Cache/cacheslice.h \
-    frontend/Trainer/Cache/inputcache.h
+    frontend/Trainer/Cache/inputcache.h \
+    frontend/maxmemorydialog.h \
+    frontend/slicenumberdialog.h
 
 FORMS += \
     frontend/mainwindow.ui \
     frontend/innernetnodesinput.ui \
     frontend/aboutconfusionmatrixdialog.ui \
-    frontend/fitnessplotter.ui
+    frontend/fitnessplotter.ui \
+    frontend/maxmemorydialog.ui \
+    frontend/slicenumberdialog.ui

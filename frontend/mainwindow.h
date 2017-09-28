@@ -21,6 +21,8 @@
 #include "backend/PSO/pso.h"
 #include "logger.h"
 #include "frontend/innernetnodesinput.h"
+#include "maxmemorydialog.h"
+#include "slicenumberdialog.h"
 
 #include "aboutconfusionmatrixdialog.h"
 
@@ -76,25 +78,24 @@ protected slots:
     void on_resetAndRun_btn_clicked();
     void on_clearState_btn_clicked();
     void updateFitnessPlot();
+    void on_actionLoad_Input_File_triggered();
+    void on_actionMax_Memory_triggered();
+    void on_actionSlices_Per_Cache_triggered();
 
 private:
     Ui::MainWindow *ui;
-    OutageTrainer *_neuralPsoTrainer = nullptr;
+    std::unique_ptr<OutageTrainer> _neuralPsoTrainer;
     std::unique_ptr<NeuralNet> _trainedNeuralNet;
-    TrainingParameters _params;
+    std::shared_ptr<TrainingParameters> _params;
     NeuralNet::EdgeType _gb;
 
     QTime _runTimer;
 
     // Input Data
-//    OutageDataCache _inputCache;
+    std::shared_ptr<InputCache> _inputCache;
     std::vector<int> _inputskips;
 
     bool _runPso = false;
-//    bool _fileLoaded = false;
-
-    vector<real> _labelsData;
-    vector<vector<real>> _inputData;
 
 #ifdef OPENCL_DEFINED
     std::vector<cl::Device> _cpuDevices;

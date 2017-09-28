@@ -1641,8 +1641,16 @@
     <property name="title">
      <string>Settings</string>
     </property>
+    <widget class="QMenu" name="menuCache_Settings">
+     <property name="title">
+      <string>Cache Settings</string>
+     </property>
+     <addaction name="actionMax_Memory"/>
+     <addaction name="actionSlices_Per_Cache"/>
+    </widget>
     <addaction name="actionInject_Global_Best"/>
     <addaction name="actionEnable_Output"/>
+    <addaction name="menuCache_Settings"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -1723,6 +1731,16 @@
   <action name="actionLoad_PSO_State">
    <property name="text">
     <string>Load PSO State</string>
+   </property>
+  </action>
+  <action name="actionMax_Memory">
+   <property name="text">
+    <string>Max Memory</string>
+   </property>
+  </action>
+  <action name="actionSlices_Per_Cache">
+   <property name="text">
+    <string>Slices Per Cache</string>
    </property>
   </action>
  </widget>

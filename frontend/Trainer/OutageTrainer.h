@@ -10,6 +10,7 @@ struct TrainingParameters {
     PsoParams pp;
     NeuralNet::NeuralNetParameters np;
     FitnessParameters fp;
+    CacheParameters cp;
 };
 
 class OutageTrainer : public NeuralPso
@@ -17,12 +18,14 @@ class OutageTrainer : public NeuralPso
 
 public:
 
-    OutageTrainer(const TrainingParameters & pe);
+    OutageTrainer(const std::shared_ptr<TrainingParameters> & pe);
 
-    void build(std::vector<std::vector<real>> &input, std::vector<real> &output);
+    void build();
+    void randomlyDistributeData();
 
     real testRun(real &correctRatio, uint &totalCount, real &confidence);
     void testGB();
+    void validateGB();
 
     int randomizeTestInputs();
     void runTrainer();
@@ -32,18 +35,21 @@ public:
     void classError(TestStatistics::ClassificationError * ce);
     TestStatistics & testStats() { return _testStats; }
 
-    static bool convertOutput(const real & output);
-    static real convertInput(const bool & b);
+    static bool confirmOutage(const std::vector<real> output);
 
     void setFunctionMsg(std::string s) { _functionMsg = s; }
     std::string functionMsg() { return _functionMsg; }
 
 private:
+    std::shared_ptr<TrainingParameters> _params;
     TestStatistics _testStats;
-    std::vector<std::vector<real> > *_input;
-    std::vector<real> *_output;
-    std::vector<real> *_outputCount;
-    std::vector<std::vector<uint>> _outputIterators;
+    TestStatistics _validationStats;
+    std::shared_ptr<InputCache> _inputCache;
+    std::vector<size_t> _trainingInputs;
+    std::vector<size_t> _testInputs;
+    std::vector<size_t> _validationInputs;
+    std::vector<real> _outputCount;
+    std::vector<std::vector<size_t>> _outputIterators;
 
     std::string _functionMsg;
 
