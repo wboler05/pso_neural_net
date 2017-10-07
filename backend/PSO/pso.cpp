@@ -13,7 +13,7 @@ template <class T>
 Pso<T>::Pso(PsoParams p) :
     _psoParams(p)
 {
-  _particles.resize(p.particles);
+  _particles.resize(p.population);
   // Initialize to true
   // Call "resetProcess()" from inheriting class.
   interruptProcess();
@@ -29,34 +29,19 @@ Pso<T>::~Pso() {
 
 template <class T>
 void Pso<T>::run() {
-  size_t iterations = 0;
-  real lowCost = 0;
-  real highCost = 0;
+  size_t epochs = 0;
 
   resetProcess();
   _history.clear();
 
   do {
 
-    _iterations = ++iterations;                         // Count the iterations
+    _epochs = ++epochs;     // Count the iterations
 
-    processEvents();                                    // Virtual function for GUI updates
-    fly();                                              // Fly the particles
-    real cost = getCost();                              // Get the cost of GB
-
-    // Init low and hi vals
-    lowCost = std::numeric_limits<real>::max();
-    highCost = cost;
-
-    // Get the iteration for the beginning of the window
-    size_t minWindowIt = _history.size() <= _psoParams.window
-            ? 0 : _history.size() - _psoParams.window - 1;
-
-    // Find the low and hi within the history
-    for (size_t i = minWindowIt; i < _history.size() && _psoParams.termDeltaFlag; i++) {
-        lowCost = std::min(lowCost, _history[i]);
-        highCost = std::max(highCost, _history[i]);
-    }
+    processEvents();        // Virtual function for GUI updates
+    fly();                  // Fly the particles
+    getCost();              // Establish particle cost
+    real cost = evaluate(); // Evaluate pb, lb, gb
 
     // Push current cost to history
     try {
@@ -66,16 +51,15 @@ void Pso<T>::run() {
         break;
     }
 
-    // Get the delta
-    real dif = (highCost - lowCost);
+    // Terminate based on delta
+    if (epochs >= _psoParams.minEpochs && _psoParams.termDeltaFlag) {
+        // If delta is less than the setting and flag is set, break
+        if (getDelta() < _psoParams.delta)
+            break;
+    }
 
-    // If delta is less than the setting and flag is set, break
-    if ((dif < _psoParams.delta && _psoParams.termDeltaFlag)
-            && (_history.size() >= _psoParams.window))
-        break;
-
-    // If iterations surpassed and flag is set, break
-    if ((_psoParams.termIterationFlag) && (iterations >= _psoParams.iterations))
+    // Terminate based on maxEpochs
+    if ((_psoParams.termIterationFlag) && (epochs >= _psoParams.maxEpochs))
         break;
 
   } while (!checkTermProcess());  // Check for user interrupt
@@ -85,11 +69,32 @@ void Pso<T>::run() {
 }
 
 template <class T>
+void Pso::getDelta() {
+    real lowCost = std::numeric_limits<real>::max();
+    real highCost = -std::numeric_limits<real>::max();
+
+    // Get the iteration for the beginning of the window
+    size_t minWindowIt = _history.size() <= _psoParams.window
+            ? 0 : _history.size() - _psoParams.windowSize - 1;
+
+    // Find the low and hi within the history
+    for (size_t i = minWindowIt; i < _history.size() && _psoParams.termDeltaFlag; i++) {
+        lowCost = std::min(lowCost, _history[i]);
+        highCost = std::max(highCost, _history[i]);
+    }
+    return highCost - lowCost;
+}
+
+template <class T>
 void Pso<T>::fly() {
 }
 
 template <class T>
-real Pso<T>::getCost() {
+void Pso<T>::getCost() {
+}
+
+template <class T>
+void Pso<T>::evaluate() {
     return 0;
 }
 

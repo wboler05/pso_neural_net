@@ -14,6 +14,8 @@ public:
     OutageDataWrapper & operator = (OutageDataWrapper && r);
 
     static OutageDataItem parseInputString(const QString & line);
+    static void parseStormEvents(const QStringList & events,
+                                 const size_t & bIt, OutageDataItem & item);
 
     std::vector<real> inputize();
     std::vector<real> outputize();

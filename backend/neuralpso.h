@@ -43,10 +43,11 @@ public:
   void build(std::vector<std::vector<std::vector<byte> > > &images, std::vector<byte> &labels);
   void build(std::vector<std::vector<real>> &input, std::vector<real> &output);
   void fly();
-  real getCost();
+  void getCost();
+  real evaluate();
   void processEvents();
 
-  virtual real testRun(real &correctRatio, uint &totalCount, real &confidence);
+  virtual real trainingRun(real &correctRatio, uint &totalCount, real &confidence);
   virtual void testGB();
 
   NeuralNet * neuralNet() { return _neuralNet; }

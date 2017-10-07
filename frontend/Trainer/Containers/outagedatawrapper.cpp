@@ -8,8 +8,9 @@ OutageDataWrapper::OutageDataWrapper() :
 }
 
 OutageDataWrapper::OutageDataWrapper(OutageDataItem && r) :
-    OutageDataItem()
+    OutageDataItem(r)
 {
+    /*
     _latlong = std::move(r._latlong);
     _date = std::move(r._date);
     _temp = std::move(r._temp);
@@ -21,10 +22,15 @@ OutageDataWrapper::OutageDataWrapper(OutageDataItem && r) :
     _precipitation = std::move(r._precipitation);
     _city = std::move(r._city);
     _county = std::move(r._county);
-    _reported_event = std::move(r._reported_event);
-    _storm_event = std::move(r._storm_event);
+//    _reported_event = std::move(r._reported_event);
+//    _storm_event = std::move(r._storm_event);
+    _fog = std::move(r._fog);
+    _rain = std::move(r._rain);
+    _snow = std::move(r._snow);
+    _thunderstorm = std::move(r._thunderstorm);
     _outage = std::move(r._outage);
     _affectedCustomers = std::move(r._affectedCustomers);
+    */
 }
 
 OutageDataWrapper::OutageDataWrapper(const OutageDataItem &r) :
@@ -61,8 +67,12 @@ OutageDataWrapper::OutageDataWrapper(OutageDataWrapper && r) {
     _precipitation = std::move(r._precipitation);
     _city = std::move(r._city);
     _county = std::move(r._county);
-    _reported_event = std::move(r._reported_event);
-    _storm_event = std::move(r._storm_event);
+//    _reported_event = std::move(r._reported_event);
+//    _storm_event = std::move(r._storm_event);
+    _fog = std::move(r._fog);
+    _rain = std::move(r._rain);
+    _snow = std::move(r._snow);
+    _thunderstorm = std::move(r._thunderstorm);
     _outage = std::move(r._outage);
     _affectedCustomers = std::move(r._affectedCustomers);
 }
@@ -79,8 +89,12 @@ OutageDataWrapper & OutageDataWrapper::operator = (OutageDataItem && r) {
     _precipitation = std::move(r._precipitation);
     _city = std::move(r._city);
     _county = std::move(r._county);
-    _reported_event = std::move(r._reported_event);
-    _storm_event = std::move(r._storm_event);
+    //_reported_event = std::move(r._reported_event);
+    //_storm_event = std::move(r._storm_event);
+    _fog = std::move(r._fog);
+    _rain = std::move(r._rain);
+    _snow = std::move(r._snow);
+    _thunderstorm = std::move(r._thunderstorm);
     _outage = std::move(r._outage);
     _affectedCustomers = std::move(r._affectedCustomers);
 
@@ -99,8 +113,12 @@ OutageDataWrapper & OutageDataWrapper::operator = (OutageDataWrapper && r) {
     _precipitation = std::move(r._precipitation);
     _city = std::move(r._city);
     _county = std::move(r._county);
-    _reported_event = std::move(r._reported_event);
-    _storm_event = std::move(r._storm_event);
+    //_reported_event = std::move(r._reported_event);
+    //_storm_event = std::move(r._storm_event);
+    _fog = std::move(r._fog);
+    _rain = std::move(r._rain);
+    _snow = std::move(r._snow);
+    _thunderstorm = std::move(r._thunderstorm);
     _outage = std::move(r._outage);
     _affectedCustomers = std::move(r._affectedCustomers);
 
@@ -147,9 +165,24 @@ OutageDataItem OutageDataWrapper::parseInputString(const QString & line) {
 
     newItem._precipitation = lineList[21].toDouble(&ok);
 
-    newItem._storm_event = ((QString)lineList[22]).toStdString();
+//    newItem._storm_event = ((QString)lineList[22]).toStdString();
+    parseStormEvents(lineList, 22, newItem);
 
     return newItem;
+}
+
+void OutageDataWrapper::parseStormEvents(
+        const QStringList & events, const size_t & bIt, OutageDataItem & item)
+{
+    QStringList parsedEvents;
+    for (size_t i = bIt; i < events.size(); i++) {
+        parsedEvents.append(events.at(i));
+    }
+
+    item._fog = parsedEvents.contains("fog", Qt::CaseInsensitive);
+    item._rain = parsedEvents.contains("rain", Qt::CaseInsensitive);
+    item._snow = parsedEvents.contains("snow", Qt::CaseInsensitive);
+    item._thunderstorm = parsedEvents.contains("thunderstorm", Qt::CaseInsensitive);
 }
 
 std::vector<real> OutageDataWrapper::inputize() {
@@ -198,10 +231,14 @@ std::vector<real> OutageDataWrapper::inputize() {
     input.push_back(_precipitation);
 
     // Strings
-    input.push_back(cityToNumber(_city));
-    input.push_back(countyToNumber(_county));
-    input.push_back(reportedEventToNumber(_reported_event));
-    input.push_back(stormTypeToNumber(_storm_event));
+    //input.push_back(cityToNumber(_city));
+    //input.push_back(countyToNumber(_county));
+    //input.push_back(reportedEventToNumber(_reported_event));
+    //input.push_back(stormTypeToNumber(_storm_event));
+    input.push_back(bool2Double(_fog));
+    input.push_back(bool2Double(_rain));
+    input.push_back(bool2Double(_snow));
+    input.push_back(bool2Double(_thunderstorm));
 
     return input;
 }
@@ -404,9 +441,13 @@ OutageDataItem OutageDataWrapper::copy(const OutageDataItem & l) {
     r._precipitation = l._precipitation;
     r._city = l._city;
     r._county = l._county;
-    r._reported_event = l._reported_event;
-    r._storm_event = l._storm_event;
+//    r._reported_event = l._reported_event;
+//    r._storm_event = l._storm_event;
     r._precipitation = l._precipitation;
+    r._fog = l._fog;
+    r._rain = l._rain;
+    r._snow = l._snow;
+    r._thunderstorm = l._thunderstorm;
 
     r._outage = l._outage;
     r._affectedCustomers = l._affectedCustomers;

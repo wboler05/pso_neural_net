@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <locale>
+#include <memory>
 
 #include "datasnip.h"
 #include "datesnip.h"
@@ -33,8 +34,12 @@ public:
     real _precipitation;
     std::string _city;
     std::string _county;
-    std::string _reported_event;
-    std::string _storm_event;
+//    std::string _reported_event;
+//    std::string _storm_event;
+    bool _fog;
+    bool _rain;
+    bool _snow;
+    bool _thunderstorm;
 
     // Labels
     bool _outage=false;

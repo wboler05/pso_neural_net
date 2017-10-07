@@ -4,7 +4,7 @@
  *  @detail Returns the uniform CDF of the ordered probability sets in the form
  *        [ 1st limit, 2nd limit, ... , kth limit ]
 **/
-std::vector<real> cdfUniform(std::vector<real> n) {
+std::vector<real> cdfUniform(const std::vector<real> &n) {
   std::vector<real> cdf;
   real sum = 0;
   for (uint32_t i = 0; i < n.size(); i++) {

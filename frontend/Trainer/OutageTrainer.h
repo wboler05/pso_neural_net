@@ -5,6 +5,7 @@
 #include "outagedataitem.h"
 
 #include "inputcache.h"
+#include "util.h"
 
 struct TrainingParameters {
     PsoParams pp;
@@ -23,14 +24,17 @@ public:
     void build();
     void randomlyDistributeData();
 
-    real testRun(real &correctRatio, uint &totalCount, real &confidence);
+    void biasAgainstOutputs();
+    void biasAgainstLOA();
+
+    real trainingRun(real &correctRatio, uint &totalCount, real &confidence);
     void testGB();
     void validateGB();
 
     int randomizeTestInputs();
     void runTrainer();
-    void loadTestInput(uint32_t I);
-    void loadValidationInput(size_t I);
+    OutageDataWrapper & loadTestInput(const size_t & I);
+    OutageDataWrapper &loadValidationInput(const size_t &I);
 
     void classError(TestStatistics::ClassificationError * ce);
     TestStatistics & testStats() { return _testStats; }

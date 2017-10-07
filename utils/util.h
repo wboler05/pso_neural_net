@@ -34,6 +34,6 @@ T numberFromString(const std::string & s) {
     return ss >> result ? result : 0;
 }
 
-std::vector<real> cdfUniform(std::vector<real> nonNormalPdf);
+std::vector<real> cdfUniform(const std::vector<real> & nonNormalPdf);
 
 #endif // UTIL_H

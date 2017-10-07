@@ -15,13 +15,14 @@
 #include "util.h"
 
 struct PsoParams {
-  uint32_t particles=50;
-  uint32_t neighbors=5;
-  uint32_t iterations=100;
+  size_t population=50;
+  size_t neighbors=5;
+  size_t minEpochs = 10;
+  size_t maxEpochs=100;
   real delta=5E-3;
   real vDelta=5E-20;
   real vLimit = 0.5;
-  uint32_t window = 50;
+  size_t windowSize = 50;
 
   bool termIterationFlag;
   bool termDeltaFlag;
@@ -48,8 +49,11 @@ public:
 
   void run();
   virtual void fly();           // Fly particles
-  virtual real getCost();       // Calculate fitness
+  virtual void getCost();       // Calculate fitness
+  virtual real evaluate();
   virtual void processEvents(); // Process events
+
+  void getDelta();
 
   std::vector<Particle<T> > * particles() { return &_particles; }
   Particle<T> * gb() { return &_gb; }
@@ -74,7 +78,7 @@ protected:
   PsoParams _psoParams;
 
 private:
-  uint32_t _iterations=0;
+  uint32_t _epochs=0;
   std::vector<real> _history;
 
   static bool _overideTermFlag;
