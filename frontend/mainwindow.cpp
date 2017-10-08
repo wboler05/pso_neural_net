@@ -445,6 +445,24 @@ void MainWindow::updateConfusionMatrix() {
     ui->falseNegPerc_lbl->setText(QString::number(static_cast<double>(ts.fn_norm())));
 }
 
+void MainWindow::on_actionParticle_Plotter_triggered() {
+    if (_neuralPsoTrainer == nullptr) {
+        qDebug() << "Trainer does not exist.";
+        return;
+    }
+
+    if (_particlePlotWindow.length() > 0) {
+        _particlePlotWindow.clear();
+    }
+    if (_neuralPsoTrainer->particles() != nullptr) {
+        ParticlePlotWindow * newWindow = new ParticlePlotWindow(_neuralPsoTrainer->particles());
+        newWindow->show();
+        _particlePlotWindow.append(newWindow);
+    } else {
+        qDebug() << "Error, empty particle list.";
+    }
+}
+
 void MainWindow::testTrainedNetWithInput() {
     if (_trainedNeuralNet != nullptr) {
         std::vector<real> newInput;

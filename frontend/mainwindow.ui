@@ -1675,8 +1675,15 @@
     </property>
     <addaction name="actionConfusion_Matrix"/>
    </widget>
+   <widget class="QMenu" name="menuWindow">
+    <property name="title">
+     <string>Window</string>
+    </property>
+    <addaction name="actionParticle_Plotter"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSettings"/>
+   <addaction name="menuWindow"/>
    <addaction name="menuAbout"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -1758,6 +1765,11 @@
   <action name="actionSlices_Per_Cache">
    <property name="text">
     <string>Slices Per Cache</string>
+   </property>
+  </action>
+  <action name="actionParticle_Plotter">
+   <property name="text">
+    <string>Particle Plotter</string>
    </property>
   </action>
  </widget>

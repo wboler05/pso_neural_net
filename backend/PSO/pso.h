@@ -56,7 +56,7 @@ public:
 
   real getDelta();
 
-  std::vector<Particle<T> > * particles() { return &_particles; }
+  const std::shared_ptr<std::vector<Particle<T> > > & particles() { return _particles; }
   Particle<T> * gb() { return &_gb; }
 
   static void interruptProcess();
@@ -75,7 +75,7 @@ public:
   static RandomNumberEngine _randomEngine;
 
 protected:
-  std::vector<Particle<T> > _particles;
+  std::shared_ptr<std::vector<Particle<T> > > _particles;
   Particle<T> _gb;
 
   PsoParams _psoParams;

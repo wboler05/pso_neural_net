@@ -18,17 +18,17 @@ template <class T>
 Pso<T>::Pso(PsoParams p) :
     _psoParams(p)
 {
-  _particles.resize(p.population);
-  // Initialize to true
-  // Call "resetProcess()" from inheriting class.
-  interruptProcess();
-
+    _particles = std::make_shared<std::vector<Particle<T>> > ();
+    _particles->resize(p.population);
+    // Initialize to true
+    // Call "resetProcess()" from inheriting class.
+    interruptProcess();
 }
 
 template <class T>
 Pso<T>::~Pso() {
-  while (_particles.size() > 0) {
-    _particles.erase(_particles.begin());
+  while (_particles->size() > 0) {
+    _particles->erase(_particles->begin());
   }
 }
 

@@ -23,6 +23,7 @@
 #include "frontend/innernetnodesinput.h"
 #include "maxmemorydialog.h"
 #include "slicenumberdialog.h"
+#include "particleplotwindow.h"
 
 #include "aboutconfusionmatrixdialog.h"
 
@@ -83,6 +84,7 @@ protected slots:
     void on_actionSlices_Per_Cache_triggered();
     void updateCacheMaxBytes(const int & bytes);
     void updateSlicesPerCache(const int & slices);
+    void on_actionParticle_Plotter_triggered();
 
 private:
     Ui::MainWindow *ui;
@@ -90,6 +92,7 @@ private:
     std::unique_ptr<NeuralNet> _trainedNeuralNet;
     std::shared_ptr<TrainingParameters> _params;
     NeuralNet::EdgeType _gb;
+    QVector<ParticlePlotWindow *> _particlePlotWindow;
 
     QTime _runTimer;
 

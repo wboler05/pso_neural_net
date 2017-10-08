@@ -86,6 +86,7 @@ protected:
 private:
   static bool printGBFlag;
   static std::mutex printGBMtx;
+  static volatile bool stopProcessing;
 
   void flyIteration(size_t particle, size_t inner_net, size_t left_edge, size_t right_edge);
 
