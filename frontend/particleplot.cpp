@@ -12,6 +12,9 @@ void ParticlePlot::updatePlot(const size_t & firstDim, const size_t & secondDim,
 
     detachItems();
 
+    setAxisTitle(QwtPlot::xBottom, QString("Particle[i] Personal Best"));
+    setAxisTitle(QwtPlot::yLeft, QString("Particle Value"));
+
     for (size_t i = 0; i < _particles->size(); i++) {
         NeuralPso::NeuralParticle & p = (*_particles)[i];
         if (firstDim < p._x.size()) {

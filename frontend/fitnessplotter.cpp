@@ -10,6 +10,8 @@ FitnessPlotter::FitnessPlotter(QWidget *parent) :
     ui->setupUi(this);
 
     this->setTitle("Fitness Plot");
+    setAxisTitle(QwtPlot::xBottom, QString("Epochs"));
+    setAxisTitle(QwtPlot::yLeft, QString("Fitness"));
 }
 
 FitnessPlotter::~FitnessPlotter()

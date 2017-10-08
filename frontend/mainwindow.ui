@@ -581,7 +581,7 @@
       <item>
        <widget class="QGroupBox" name="groupBox_3">
         <property name="title">
-         <string>GroupBox</string>
+         <string>Fitness Plot</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_8">
          <item>
