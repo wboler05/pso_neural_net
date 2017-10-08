@@ -400,12 +400,12 @@ bool NeuralNet::splitCombinedWeights(const CombEdgeType &c, EdgeType & e, RecEdg
 }
 
 void NeuralNet::printEdges() {
-  cout << "An edge: " << endl;
+  qDebug() << "An edge: ";
   for (uint i = 0; i < _edges.size(); i++) {
-    cout << "  Inner Net " << i+1 << endl;
+    qDebug() << "  Inner Net " << i+1;
     for (uint j = 0; j < _edges[i].size(); j++) {
       for (uint k = 0; k < _edges[i][j].size(); k++) {
-        cout << "  -- " << j+1 << " : " << k+1 << " = " << _edges[i][j][k] << endl;
+        qDebug() << "  -- " << j+1 << " : " << k+1 << " = " << _edges[i][j][k];
       }
     }
   }

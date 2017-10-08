@@ -251,7 +251,7 @@ void MainWindow::initializeData() {
 void MainWindow::initializeCache() {
     CacheParameters c;
     c.inputFileName = QString ("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\test\\10_Hammond_CrownPoint_Lake.csv");
-    c.maxBytes = 128*1024;
+    c.maxBytes = 512*1024*1024;
     c.totalSlicesPerCache = 8;
     c.headerSize = 2;
     _inputCache = std::make_shared<InputCache>(c);
@@ -314,11 +314,6 @@ void MainWindow::setParameterDefaults() {
     _params->fp.weights.sensitivity = 0.0L;
     _params->fp.weights.specificity = 0.0L;
     _params->fp.weights.f_score = 0.0L;
-
-    _params->cp.inputFileName = QString ("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\test\\10_Hammond_CrownPoint_Lake.csv");
-    _params->cp.headerSize = 2;
-    _params->cp.maxBytes = 512*1024*1024;
-    _params->cp.totalSlicesPerCache = 8;
 
     updateParameterGui();
 }

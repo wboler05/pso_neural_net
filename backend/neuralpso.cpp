@@ -26,8 +26,8 @@ void NeuralPso::buildPso() {
     //std::uniform_real_distribution<real> infDist(-std::numeric_limits<real>::max(),
     //                                             std::numeric_limits<real>::max());
     std::vector<real> innerWeightRange = {-1, 1};
-    std::vector<real> infWeightRange = {-std::numeric_limits<real>::max()*.1L,
-                                        std::numeric_limits<real>::max()*.1L};
+    std::vector<real> infWeightRange = {-std::numeric_limits<real>::max()*.1,
+                                        std::numeric_limits<real>::max()*.1};
 
     _particles.empty();
     const NeuralNet::EdgeType &edges = _neuralNet->getWeights();
@@ -269,8 +269,8 @@ void NeuralPso::fly() {
 
                     *w_x += *w_v;
 
-                    *w_x = std::min(*w_x, *w_x_min);
-                    *w_x = std::max(*w_x, *w_x_max);
+                    *w_x = std::min(*w_x, *w_x_max);
+                    *w_x = std::max(*w_x, *w_x_min);
 
 //                    if (*w_x > fitnessParams()->edgeWeightMax) {
 //                        *w_x = fitnessParams()->edgeWeightMax;
@@ -412,6 +412,7 @@ real NeuralPso::evaluate() {
 
         // Handle logging
         if (printChange[i]) {
+            printChange[i] = false;
             std::string outputString;
             outputString += "Particle (";
             outputString += stringPut(i);
@@ -496,7 +497,7 @@ void NeuralPso::evaluatePoints(std::vector<bool> & printChange) {
     _particles[worstFitIt]._worstFlag = true;
 
     for (size_t i = 0; i < _particles.size(); i++) {
-        printChange[i] = _particles[i]._worstFlag;
+        //printChange[i] = _particles[i]._worstFlag;
     }
 }
 
@@ -549,7 +550,8 @@ void NeuralPso::findLocalBest(std::vector<bool> & printChange) {
             }
 
             NeuralParticle &p_n = _particles[static_cast<size_t>(it)];
-            if (p._fit_pb < p_n._fit_lb) {
+            if (p_n._fit_pb >= p._fit_lb) {
+                p._fit_lb = p_n._fit_pb;
                 bestNeighborIt = static_cast<size_t>(it);
             }
         }
@@ -582,7 +584,8 @@ void NeuralPso::findGlobalBest(std::vector<bool> & printChange) {
     size_t globalBestIt=0;
     for (size_t i = 0; i < _particles.size(); i++) {
         NeuralParticle & p = _particles[i];
-        if (p._fit_pb > _gb._fit_pb) {
+        if (p._fit_pb >= _gb._fit_pb) {
+            _gb._fit_pb = p._fit_pb;
             globalBestIt = i;
         } // End global best
     }

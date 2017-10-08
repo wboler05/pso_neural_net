@@ -5,7 +5,8 @@
 #include <QtMath>
 #include <QDebug>
 
-typedef long double real;
+//typedef long double real;
+typedef double real;
 
 /**
  * @brief The CustomMath namespace is implemented to store static methods for faster math functions.

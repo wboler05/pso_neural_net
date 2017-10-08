@@ -102,7 +102,9 @@ void OutageTrainer::runTrainer() {
 * @todo Need to swap iterators.  Train all particles on same dataset
 */
 real OutageTrainer::trainingRun() {
-
+QTime damit;
+damit.start();
+int ms =0;
     size_t outputNodes = static_cast<size_t>(_neuralNet->nParams()->outputs);
     std::vector<real> mse;
     mse.resize(outputNodes, 0);
@@ -118,6 +120,7 @@ real OutageTrainer::trainingRun() {
 
     // First, test each output and store to the vector of results;
     for (uint someSets = 0; someSets < totalSetsToRun; someSets++) {
+        qApp->processEvents();
         // Set a random input
         size_t I = randomizeTrainingInputs();
         //    real tConfidence = (real) outputNodes;
@@ -181,6 +184,8 @@ real OutageTrainer::trainingRun() {
 
         //confidence += tConfidence;
         */
+        qDebug() << "Loop " << someSets << ": " << damit.elapsed() - ms;
+        ms = damit.elapsed();
     }
     //confidence /= totalSetsToRun;
 
@@ -190,7 +195,8 @@ real OutageTrainer::trainingRun() {
 
     real cost = _params->alpha * mse[0] + _params->beta * mse[1];
     cost /= (_params->alpha + _params->beta);
-    return cost;
+qDebug() << "Training: " << damit.elapsed();
+    return 1-cost;
 
 
     /*
@@ -313,7 +319,8 @@ size_t OutageTrainer::randomizeTrainingInputs() {
     size_t minIt = 0;
     size_t maxIt = _outputIterators.size()-1;
 
-    size_t uniformOutputIt = _randomEngine.uniformUnsignedInt(minIt, maxIt);
+//    size_t uniformOutputIt = _randomEngine.uniformUnsignedInt(minIt, maxIt);
+    size_t uniformOutputIt = 1; /////BROKEN ON PURPOSE todo FIXME
     maxIt = _outputIterators[uniformOutputIt].size() -1;
     size_t I = _randomEngine.uniformUnsignedInt(minIt, maxIt);
     I = _outputIterators[uniformOutputIt][I];
@@ -327,7 +334,7 @@ size_t OutageTrainer::randomizeTrainingInputs() {
         _neuralNet->loadInput(inputItems[i], i);
     }
 
-    return I;
+    return it;
 }
 
 OutageDataWrapper &OutageTrainer::loadTestInput(const size_t & I) {

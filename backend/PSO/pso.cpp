@@ -1,5 +1,7 @@
 #include "pso.h"
 
+#include <QTime>
+
 template <class T>
 bool Pso<T>::_overideTermFlag;
 template <class T>
