@@ -17,7 +17,7 @@ void ParticlePlot::updatePlot(const size_t & firstDim, const size_t & secondDim,
         if (firstDim < p._x.size()) {
             if (secondDim < p._x[firstDim].size()) {
                 if (thirdDim < p._x[firstDim][secondDim].size()) {
-                    updatePlot(i, p._x[firstDim][secondDim][thirdDim]);
+                    updatePlot(i, p._x_pb[firstDim][secondDim][thirdDim]);
                 }
             }
         }

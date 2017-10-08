@@ -75,7 +75,7 @@ void ParticlePlotWindow::resetCycleTimer() {
 }
 
 void ParticlePlotWindow::toggleCycleBtn() {
-    ui->cycle_btn->setChecked(!ui->cycle_btn->isChecked());
+    //ui->cycle_btn->setChecked(!ui->cycle_btn->isChecked());
 }
 
 void ParticlePlotWindow::cycleDimensions() {
