@@ -19,12 +19,16 @@ public:
     explicit FitnessPlotter(QWidget *parent = 0);
     ~FitnessPlotter();
 
+    void setWindowSize(const size_t & ws) { _windowSize = ws; }
+    const size_t & windowSize() { return _windowSize; }
+
     void plotHistory(const std::vector<real> & history);
     void setLineColor(const QColor & c);
     void setMarkerColor(const QColor & c);
 
 private:
     Ui::FitnessPlotter *ui;
+    size_t _windowSize=50;
 
     QColor _plotLineColor;
     QColor _plotMarkColor;

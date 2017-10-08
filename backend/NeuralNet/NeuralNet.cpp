@@ -60,12 +60,12 @@ NeuralNet::~NeuralNet() {
 void NeuralNet::initialize(const NeuralNetParameters & p) {
     _nParams = p;
 
-    setTotalInputs(_nParams.inputs);
-    setTotalInnerNets(_nParams.innerNets);
-    for (int i = 0; i < _nParams.innerNets; i++) {
-      setInnerNetNodes(_nParams.innerNetNodes[i], i);
+    setTotalInputs(static_cast<size_t>(_nParams.inputs));
+    setTotalInnerNets(static_cast<size_t>(_nParams.innerNets));
+    for (size_t i = 0; i < static_cast<size_t>(_nParams.innerNets); i++) {
+      setInnerNetNodes(static_cast<size_t>(_nParams.innerNetNodes[i]), i);
     }
-    setTotalOutputs(_nParams.outputs);
+    setTotalOutputs(static_cast<size_t>(_nParams.outputs));
 
     buildNets();
 
@@ -100,29 +100,34 @@ void NeuralNet::resetWeights() {
   }
 }
 
-void NeuralNet::setTotalInputs(uint n) {
+void NeuralNet::setTotalInputs(const size_t & n) {
     _inputNodes.clear();
-    _inputNodes.resize(n, 0);
+    _inputNodes.resize(n+1, 0);
+    _inputNodes.back() = 1;
+    _modifiedFlag = true;
 }
 
 // Clears all nodes
 /// Need to call setInnerNetNodes() after
-void NeuralNet::setTotalInnerNets(uint n) {
+void NeuralNet::setTotalInnerNets(const size_t & n) {
     _innerNodes.clear();
     _innerNodes.resize(n);
     _edges.clear();
     _edges.resize(n+1);
+    _modifiedFlag = true;
 }
-void NeuralNet::setInnerNetNodes(uint nodes, uint i) {
-    if (i >= 0 && i < _innerNodes.size()) {
+void NeuralNet::setInnerNetNodes(const size_t & nodes, const size_t & i) {
+    if (i < static_cast<size_t>(_innerNodes.size())) {
         _innerNodes[i].clear();
         _innerNodes[i].resize(nodes, 0);
+        _modifiedFlag = true;
     }
 }
 
-void NeuralNet::setTotalOutputs(uint n) {
+void NeuralNet::setTotalOutputs(const size_t & n) {
     _outputNodes.clear();
     _outputNodes.resize(n, 0);
+    _modifiedFlag = true;
 }
 
 
@@ -188,8 +193,8 @@ bool NeuralNet::buildNets() {
   return true;
 }
 
-void NeuralNet::loadInput(real in, uint i) {
-  if (i >= 0 && i < _inputNodes.capacity()) {
+void NeuralNet::loadInput(const real & in, const size_t & i) {
+  if (i < _inputNodes.size()) {
     _inputNodes[i] = in;
   }
 }
@@ -256,6 +261,11 @@ real NeuralNet::getSign(const real &in) {
 }
 
 const vector<real> & NeuralNet::process() {
+
+    if (_modifiedFlag) {
+        _modifiedFlag = false;
+        buildNets();
+    }
 
   // If the edges aren't built, it's broke
   if (_edges.size() == 0)

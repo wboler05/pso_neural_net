@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <memory>
 #include <vector>
 #include <cmath>
 #include <ctime>
@@ -62,10 +63,10 @@ public:
     void resetInnerNodes();
     void resetWeights();
 
-    void setTotalInputs(uint n);
-    void setTotalInnerNets(uint n);
-    void setInnerNetNodes(uint nodes, uint i);
-    void setTotalOutputs(uint n);
+    void setTotalInputs(const size_t & n);
+    void setTotalInnerNets(const size_t & n);
+    void setInnerNetNodes(const size_t & nodes, const size_t & i);
+    void setTotalOutputs(const size_t & n);
 
     size_t totalInputs() { return _inputNodes.size(); }
     size_t totalOutputs() { return _outputNodes.size(); }
@@ -79,9 +80,9 @@ public:
     EdgeType & getWeights() {return _edges; }
     RecEdgeType & getRecWeights() { return _recEdges; }
 
-    void loadInput(real in, uint i);
-    void setOutputs(vector<real> out);
-    const vector<real> &process();
+    void loadInput(const real &in, const size_t & i);
+    void setOutputs(const std::vector<real>& out);
+    const std::vector<real> &process();
 
     bool buildNets();
 
@@ -94,9 +95,10 @@ public:
 
 private:
     // Weights and Data
-    vector<real> _inputNodes;
-    vector<vector<real>> _innerNodes;  /// columns / node
-    vector<real> _outputNodes;
+    std::vector<real> _inputNodes;
+    std::vector<vector<real>> _innerNodes;  /// columns / node
+    std::vector<real> _outputNodes;
+    bool _modifiedFlag = false;
 
     EdgeType _edges;  ///TODO: Make _edges a pointer and pass edge pointers from PSO.
     RecEdgeType _recEdges;

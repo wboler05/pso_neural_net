@@ -102,9 +102,6 @@ void OutageTrainer::runTrainer() {
 * @todo Need to swap iterators.  Train all particles on same dataset
 */
 real OutageTrainer::trainingRun() {
-QTime damit;
-damit.start();
-int ms =0;
     size_t outputNodes = static_cast<size_t>(_neuralNet->nParams()->outputs);
     std::vector<real> mse;
     mse.resize(outputNodes, 0);
@@ -184,8 +181,6 @@ int ms =0;
 
         //confidence += tConfidence;
         */
-        qDebug() << "Loop " << someSets << ": " << damit.elapsed() - ms;
-        ms = damit.elapsed();
     }
     //confidence /= totalSetsToRun;
 
@@ -195,7 +190,6 @@ int ms =0;
 
     real cost = _params->alpha * mse[0] + _params->beta * mse[1];
     cost /= (_params->alpha + _params->beta);
-qDebug() << "Training: " << damit.elapsed();
     return 1-cost;
 
 

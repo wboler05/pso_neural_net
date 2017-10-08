@@ -27,6 +27,8 @@ void FitnessPlotter::setMarkerColor(const QColor & c) {
 
 void FitnessPlotter::plotHistory(const std::vector<real> &history) {
 
+    if (history.size() == 0) return;
+
     static bool entry = false;
 
     if (entry) {
@@ -43,7 +45,10 @@ void FitnessPlotter::plotHistory(const std::vector<real> &history) {
     float minY = std::numeric_limits<float>::max();
     float maxY = -std::numeric_limits<float>::max();
 
-    for (size_t i = 0; i < history.size(); i++) {
+    int window_min = static_cast<int>(history.size()) - static_cast<int>(_windowSize);
+    window_min = std::max(window_min, 0);
+
+    for (size_t i = window_min; i < history.size(); i++) {
         QPointF newPoint;
         newPoint.setX((qreal) i+1);
         newPoint.setY((qreal) history[i]);
@@ -72,7 +77,7 @@ void FitnessPlotter::plotHistory(const std::vector<real> &history) {
         mark->attach(this);
     }
 
-    setAxisScale(xBottom, 0, history.size());
+    setAxisScale(xBottom, window_min, history.size());
     setAxisScale(yLeft, minY * 0.9995, maxY * 1.0005);
 
     replot();
