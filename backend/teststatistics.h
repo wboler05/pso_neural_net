@@ -8,10 +8,10 @@
 #include "custommath.h"
 
 #define N_Accuracy(tp, tn, fp, fn) ((tp + tn) / (tp + tn + fp + fn))
-#define N_Precision(tp, fp) (tp / (tp + fp + 1.0f))
-#define N_Sensitivity(tp, fn) (tp / (tp + fn + 1.0))
-#define N_Specificity(tn, fp) (tn / (tn + fp + 1.0))
-#define N_F_Score(tp, fp, fn) (2.0f*tp / (2.0f*tp + fp + fn + 1.0))
+#define N_Precision(tp, fp) (tp / (tp + fp + 1.0L))
+#define N_Sensitivity(tp, fn) (tp / (tp + fn + 1.0L))
+#define N_Specificity(tn, fp) (tn / (tn + fp + 1.0L))
+#define N_F_Score(tp, fp, fn) (2.0L*tp / (2.0L*tp + fp + fn + 1.0L))
 
 class TestStatistics
 {
@@ -26,11 +26,11 @@ public:
     };
 
     struct ClassificationError {
-        real accuracy;
-        real precision;
-        real sensitivity;
-        real specificity;
-        real f_score;
+        real accuracy = 0;
+        real precision = 0;
+        real sensitivity = 0;
+        real specificity = 0;
+        real f_score = 0;
     };
 
     const TestStruct & testStruct() { return _test; }
@@ -41,10 +41,10 @@ public:
     const real & fn() { return _test.falseNegative; }
     const real & fp() { return _test.falsePositive; }
 
-    real tn_norm() { return _test.trueNegative / (real) _population; }
-    real tp_norm() { return _test.truePositive / (real) _population; }
-    real fn_norm() { return _test.falseNegative / (real) _population; }
-    real fp_norm() { return _test.falsePositive / (real) _population; }
+    real tn_norm() { return _test.trueNegative / static_cast<real>(_population); }
+    real tp_norm() { return _test.truePositive / static_cast<real>(_population); }
+    real fn_norm() { return _test.falseNegative / static_cast<real>(_population); }
+    real fp_norm() { return _test.falsePositive / static_cast<real>(_population); }
 
     void addTn() { _test.trueNegative++; _population++; }
     void addTp() { _test.truePositive++; _population++; }
@@ -54,11 +54,15 @@ public:
     const uint64_t & population() { return _population; }
     void clear();
 
-    void getClassError(ClassificationError *ce);
-    std::string outputString(ClassificationError *ce);
+    void getClassError(ClassificationError & ce);
+    std::string outputString(const ClassificationError &ce);
+
+    void setMse(const real & mse) { _mse = mse; }
+    const real & mse() { return _mse; }
 
 private:
     TestStruct _test;
+    real _mse = 0;
     uint64_t _population=0;
 };
 

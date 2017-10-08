@@ -10,9 +10,7 @@ InputCache::InputCache(const CacheParameters &c) :
     _cacheParams.inputFileName = c.inputFileName;
     _cacheParams.headerSize = c.headerSize;
 
-    if (!verifyInputFile()) {
-        qWarning() << "Error: could not open input file.";
-    }
+    reloadCache(c.inputFileName);
 
     setMaxBytes(c.maxBytes);
     setTotalSlicesPerCache(c.totalSlicesPerCache);
@@ -21,6 +19,15 @@ InputCache::InputCache(const CacheParameters &c) :
 
 InputCache::~InputCache() {
     _cacheSlices.clear();
+}
+
+bool InputCache::reloadCache(const QString & fileName) {
+    _cacheParams.inputFileName = fileName;
+    if (!verifyInputFile()) {
+        qWarning() << "Error: could not open input file.";
+        return false;
+    }
+    return true;
 }
 
 void InputCache::setMaxBytes(const unsigned long &maxBytes) {

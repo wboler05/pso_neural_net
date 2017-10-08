@@ -558,13 +558,16 @@ std::string stringifyPParams(const PsoParams & p) {
     ps.append("\n");
 
     // Particles
-    ps.append(stringifyParamsNugget<uint32_t>("particles", p.particles));
+    ps.append(stringifyParamsNugget<uint32_t>("population", p.population));
 
     // Neighbors
     ps.append(stringifyParamsNugget<uint32_t>("neighbors", p.neighbors));
 
-    // Iterations
-    ps.append(stringifyParamsNugget<uint32_t>("iterations", p.iterations));
+    // minEpochs
+    ps.append(stringifyParamsNugget<uint32_t>("minEpochs", p.minEpochs));
+
+    // maxEpochs
+    ps.append(stringifyParamsNugget<uint32_t>("maxEpochs", p.maxEpochs));
 
     // delta
     ps.append(stringifyParamsNugget<real>("delta", p.delta));
@@ -576,7 +579,7 @@ std::string stringifyPParams(const PsoParams & p) {
     ps.append(stringifyParamsNugget<real>("vLimit", p.vLimit));
 
     // Window
-    ps.append(stringifyParamsNugget<uint32_t>("window", p.window));
+    ps.append(stringifyParamsNugget<uint32_t>("windowSize", p.windowSize));
 
     // termIterationFlag
     int termIterationFlag = p.termIterationFlag ? 1 : 0;
@@ -722,11 +725,11 @@ PsoParams psoParametersFromString(const std::string & ps) {
     int it = 0;
 
     // Particles
-    uint32_t particles = 0;
-    if (!valFromNuggetString(ps, "particles", it, particles)) {
+    uint32_t population = 0;
+    if (!valFromNuggetString(ps, "population", it, population)) {
         return emptyP;
     } else {
-        p.particles = particles;
+        p.population = population;
     }
 
     // Neighbors
@@ -737,12 +740,19 @@ PsoParams psoParametersFromString(const std::string & ps) {
         p.neighbors = neighbors;
     }
 
-    // Iterations
-    uint32_t iterations = 0;
-    if (!valFromNuggetString(ps, "iterations", it, iterations)) {
+    // Min Epochs
+    uint32_t minEpochs = 0;
+    if (!valFromNuggetString(ps, "minEpochs", it, minEpochs)) {
         return emptyP;
     } else {
-        p.iterations = iterations;
+        p.minEpochs = minEpochs;
+    }
+
+    size_t maxEpochs = 0;
+    if (!valFromNuggetString(ps, "maxEpochs", it, maxEpochs)) {
+        return emptyP;
+    } else {
+        p.maxEpochs = maxEpochs;
     }
 
     // Delta
@@ -770,11 +780,11 @@ PsoParams psoParametersFromString(const std::string & ps) {
     }
 
     // Window
-    uint32_t window = 0;
-    if (!valFromNuggetString(ps, "window", it, window)) {
+    uint32_t windowSize = 0;
+    if (!valFromNuggetString(ps, "windowSize", it, windowSize)) {
         return emptyP;
     } else {
-        p.window = window;
+        p.windowSize = windowSize;
     }
 
     // TermIterationFlag (bool)

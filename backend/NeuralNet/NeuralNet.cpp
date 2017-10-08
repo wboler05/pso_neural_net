@@ -136,8 +136,7 @@ bool NeuralNet::buildNets() {
     return false;
   }
 
-  std::default_random_engine gen;
-  std::uniform_real_distribution<real> dist(-1,1);
+  //std::uniform_real_distribution<real> dist(-1,1);
 
   // Connect the input to the inner nodes
   for (uint i = 0; i < _edges.size(); i++) {
@@ -168,8 +167,8 @@ bool NeuralNet::buildNets() {
   for (uint i = 0; i < _edges.size(); i++) {
     for (uint j = 0; j < _edges[i].size(); j++) {
       for (uint k = 0; k < _edges[i][j].size(); k++) {
-        //_edges[i][j][k] = (real) (rand() % 10000) / 10000.0;
-        _edges[i][j][k] = dist(gen);
+        _edges[i][j][k] = (real) (rand() % 10000-5000) / 10000.0;
+        //_edges[i][j][k] = dist(gen);
       }
     }
   }
@@ -180,7 +179,8 @@ bool NeuralNet::buildNets() {
       _recEdges[i].resize(_innerNodes[i].size());
       _recBuffer[i].resize(_innerNodes[i].size());
       for (size_t j = 0; j < _innerNodes[i].size(); j++) {
-          _recEdges[i][j] = dist(gen);
+          //_recEdges[i][j] = dist(gen);
+          _recEdges[i][j] = (real) (rand() % 10000-5000) / 10000.0;
           _recBuffer[i][j] = 0;
       }
   }

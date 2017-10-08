@@ -8,9 +8,13 @@ struct Particle {
   T _x;
   T _v;
 
+  T _minX;
+  T _maxX;
+
   T _x_pb;
   T _x_lb;
 
+  real _fit;
   real _fit_pb;
   real _fit_lb;
   bool _worstFlag;

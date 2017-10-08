@@ -20,99 +20,130 @@ NeuralPso::~NeuralPso() {
 }
 
 void NeuralPso::buildPso() {
-  _gb._fit_pb = -numeric_limits<real>::max();
+    _gb._fit_pb = -numeric_limits<real>::max();
 
-  std::default_random_engine gen;
-  std::uniform_real_distribution<real> dist(-1, 1);
+    //std::uniform_real_distribution<real> dist(-1, 1);
+    //std::uniform_real_distribution<real> infDist(-std::numeric_limits<real>::max(),
+    //                                             std::numeric_limits<real>::max());
+    std::vector<real> innerWeightRange = {-1, 1};
+    std::vector<real> infWeightRange = {-std::numeric_limits<real>::max()*.1L,
+                                        std::numeric_limits<real>::max()*.1L};
 
-  _particles.empty();
-  const NeuralNet::EdgeType &edges = _neuralNet->getWeights();
-  const NeuralNet::RecEdgeType & rEdges = _neuralNet->getRecWeights();
+    _particles.empty();
+    const NeuralNet::EdgeType &edges = _neuralNet->getWeights();
+    const NeuralNet::RecEdgeType & rEdges = _neuralNet->getRecWeights();
 
-  // Create N particles
-  _particles.resize(_psoParams.particles);
-  for (uint i = 0; i < _psoParams.particles; i++) {
-    // Create the number of inner columns
-    _particles[i]._fit_pb = -numeric_limits<real>::max();
-    _particles[i]._fit_lb = -numeric_limits<real>::max();
+    // Create N particles
+    _particles.resize(_psoParams.population);
+    for (uint i = 0; i < _psoParams.population; i++) {
+        // Create the number of inner columns
+        _particles[i]._fit_pb = -numeric_limits<real>::max();
+        _particles[i]._fit_lb = -numeric_limits<real>::max();
 
-    _particles[i]._x.resize(edges.size()+1);
-    _particles[i]._v.resize(edges.size()+1);
-    _particles[i]._x_pb.resize(edges.size()+1);
-    _particles[i]._x_lb.resize(edges.size()+1);
-    _particles[i]._worstFlag = false;
-    _particles[i]._points = _psoParams.startPoints;
+        _particles[i]._x.resize(edges.size()+1);
+        _particles[i]._minX.resize(edges.size()+1);
+        _particles[i]._maxX.resize(edges.size()+1);
+        _particles[i]._v.resize(edges.size()+1);
+        _particles[i]._x_pb.resize(edges.size()+1);
+        _particles[i]._x_lb.resize(edges.size()+1);
+        _particles[i]._worstFlag = false;
+        _particles[i]._points = _psoParams.startPoints;
 
-    if (i == 0) {
-      _gb._x.resize(edges.size()+1);
-    }
-    // Create each inner column edge
-    for (uint j = 0; j < edges.size(); j++) {
-      // Create left edges
-      _particles[i]._x[j].resize(edges[j].size());
-      _particles[i]._v[j].resize(edges[j].size());
-      _particles[i]._x_pb[j].resize(edges[j].size());
-      _particles[i]._x_lb[j].resize(edges[j].size());
-      if (i == 0) {
-        _gb._x[j].resize(edges[j].size());
-      }
-      for (uint k = 0; k < edges[j].size(); k++) {
-        // Create right edges
-        _particles[i]._x[j][k].resize(edges[j][k].size());
-        _particles[i]._v[j][k].resize(edges[j][k].size());
-        _particles[i]._x_pb[j][k].resize(edges[j][k].size());
-        _particles[i]._x_lb[j][k].resize(edges[j][k].size());
         if (i == 0) {
-          _gb._x[j][k].resize(edges[j][k].size());
+            _gb._x.resize(edges.size()+1);
         }
-        for (uint m = 0; m < edges[j][k].size(); m++) {
-          _particles[i]._x[j][k][m] = dist(gen);
-          _particles[i]._v[j][k][m] = 0;
-          _particles[i]._x_pb[j][k][m] = 0;
-          _particles[i]._x_lb[j][k][m] = 0;
+        // Create each inner column edge
+        for (uint j = 0; j < edges.size(); j++) {
+            // Create left edges
+            _particles[i]._x[j].resize(edges[j].size());
+            _particles[i]._minX[j].resize(edges[j].size());
+            _particles[i]._maxX[j].resize(edges[j].size());
+            _particles[i]._v[j].resize(edges[j].size());
+            _particles[i]._x_pb[j].resize(edges[j].size());
+            _particles[i]._x_lb[j].resize(edges[j].size());
+            if (i == 0) {
+                _gb._x[j].resize(edges[j].size());
+            }
+            for (uint k = 0; k < edges[j].size(); k++) {
+                // Create right edges
+                _particles[i]._x[j][k].resize(edges[j][k].size());
+                _particles[i]._minX[j][k].resize(edges[j][k].size());
+                _particles[i]._maxX[j][k].resize(edges[j][k].size());
+                _particles[i]._v[j][k].resize(edges[j][k].size());
+                _particles[i]._x_pb[j][k].resize(edges[j][k].size());
+                _particles[i]._x_lb[j][k].resize(edges[j][k].size());
+                if (i == 0) {
+                    _gb._x[j][k].resize(edges[j][k].size());
+                }
+                for (uint m = 0; m < edges[j][k].size(); m++) {
+                    _particles[i]._v[j][k][m] = 0;
+                    _particles[i]._x_pb[j][k][m] = 0;
+                    _particles[i]._x_lb[j][k][m] = 0;
 
-          if (i == 0) {
-            _gb._x[j][k][m] = 0;
-          }
+                    if (i == 0) {
+                        _gb._x[j][k][m] = 0;
+                    }
+                    if (j == 0 || j == edges.size()-1) {
+                        //_particles[i]._x[j][k][m] = infDist(_randomEngine.engine());
+//                        _particles[i]._x[j][k][m] = _randomEngine.uniformReal(
+//                                    infWeightRange[0], infWeightRange[1]);
+                        _particles[i]._x[j][k][m] = _randomEngine.uniformReal(
+                                    innerWeightRange[0], innerWeightRange[1]);
+                        _particles[i]._minX[j][k][m] = infWeightRange[0];
+                        _particles[i]._maxX[j][k][m] = infWeightRange[1];
+                    } else {
+                        //_particles[i]._x[j][k][m] = dist(_randomEngine.engine());
+                        _particles[i]._x[j][k][m] = _randomEngine.uniformReal(
+                                    innerWeightRange[0], innerWeightRange[1]);
+                        _particles[i]._minX[j][k][m] = innerWeightRange[0];
+                        _particles[i]._maxX[j][k][m] = innerWeightRange[1];
+                    }
+                }
+            }
         }
-      }
-    }
 
-    const size_t recEdgeIt = edges.size();
+        const size_t recEdgeIt = edges.size();
 
-    _particles[i]._x[recEdgeIt].resize(rEdges.size());
-    _particles[i]._v[recEdgeIt].resize(rEdges.size());
-    _particles[i]._x_pb[recEdgeIt].resize(rEdges.size());
-    _particles[i]._x_lb[recEdgeIt].resize(rEdges.size());
-    if (i == 0) {
-        _gb._x[recEdgeIt].resize(rEdges.size());
-    }
-    for (uint j = 0; j < rEdges.size(); j++) {
-        _particles[i]._x[recEdgeIt][j].resize(rEdges[j].size());
-        _particles[i]._v[recEdgeIt][j].resize(rEdges[j].size());
-        _particles[i]._x_pb[recEdgeIt][j].resize(rEdges[j].size());
-        _particles[i]._x_lb[recEdgeIt][j].resize(rEdges[j].size());
+        _particles[i]._x[recEdgeIt].resize(rEdges.size());
+        _particles[i]._minX[recEdgeIt].resize(rEdges.size());
+        _particles[i]._maxX[recEdgeIt].resize(rEdges.size());
+        _particles[i]._v[recEdgeIt].resize(rEdges.size());
+        _particles[i]._x_pb[recEdgeIt].resize(rEdges.size());
+        _particles[i]._x_lb[recEdgeIt].resize(rEdges.size());
         if (i == 0) {
-            _gb._x[recEdgeIt][j].resize(rEdges[j].size());
+            _gb._x[recEdgeIt].resize(rEdges.size());
         }
-        for (uint k = 0; k < rEdges[j].size(); k++) {
-             _particles[i]._x[recEdgeIt][j][k] = dist(gen);
-             _particles[i]._v[recEdgeIt][j][k] = 0;
-             _particles[i]._x_pb[recEdgeIt][j][k] = 0;
-             _particles[i]._x_lb[recEdgeIt][j][k] = 0;
+        for (uint j = 0; j < rEdges.size(); j++) {
+            _particles[i]._x[recEdgeIt][j].resize(rEdges[j].size());
+            _particles[i]._minX[recEdgeIt][j].resize(rEdges[j].size());
+            _particles[i]._maxX[recEdgeIt][j].resize(rEdges[j].size());
+            _particles[i]._v[recEdgeIt][j].resize(rEdges[j].size());
+            _particles[i]._x_pb[recEdgeIt][j].resize(rEdges[j].size());
+            _particles[i]._x_lb[recEdgeIt][j].resize(rEdges[j].size());
+            if (i == 0) {
+                _gb._x[recEdgeIt][j].resize(rEdges[j].size());
+            }
+            for (uint k = 0; k < rEdges[j].size(); k++) {
+                //_particles[i]._x[recEdgeIt][j][k] = dist(_randomEngine.engine());
+                _particles[i]._x[recEdgeIt][j][k] = _randomEngine.uniformReal(
+                            innerWeightRange[0], innerWeightRange[1]);
+                _particles[i]._minX[recEdgeIt][j][k] = innerWeightRange[0];
+                _particles[i]._maxX[recEdgeIt][j][k] = innerWeightRange[1];
+                _particles[i]._v[recEdgeIt][j][k] = 0;
+                _particles[i]._x_pb[recEdgeIt][j][k] = 0;
+                _particles[i]._x_lb[recEdgeIt][j][k] = 0;
 
-             if (i == 0) {
-                 _gb._x[recEdgeIt][j][k] = 0;
-             }
+                if (i == 0) {
+                    _gb._x[recEdgeIt][j][k] = 0;
+                }
+            }
         }
     }
-  }
 }
 
 void NeuralPso::fly() {
 
     real velSum = 0;
-    bool term = true;
 
     if (_particles.size() == 0) return;
     if (_particles[0]._v.size() == 0) return;
@@ -120,23 +151,25 @@ void NeuralPso::fly() {
     static int innerNetAccessCount = _psoParams.iterationsPerLevel;
     static uint innerNetIt = _particles[0]._v.size()-1;
 
-    real choice;
+    real choice=0;
     bool worstFlag;
 
-    const real C1 = 2.495, C2 = 2.495, C3 = 0.05;
+    const real C1 = 2.495L, C2 = 2.495L, C3 = 0.05L;
     real dt = 1;
     real vLimit = _psoParams.vLimit;
 
     // Random, pb, lb, gb
-    static std::vector<real> pdf = {.001, 2, 8, 4};
+    static std::vector<real> pdf = {.001L, 2.0L, 8.0L, 4.0L};
     static std::vector<real> cdf = cdfUniform(pdf);
 
-    std::default_random_engine gen;
-    std::uniform_real_distribution<real> dist(0, 1);
-    std::uniform_real_distribution<real> negPosRange(-1, 1);
+    std::vector<real> probRange = { 0.0L, 1.0L};
+    std::vector<real> negRange =  {-1.0L, 1.0L};
+    std::vector<real> inertiaRange = {0.5L, 1.0L};
+    //std::uniform_real_distribution<real> dist(0, 1);
+    //std::uniform_real_distribution<real> negPosRange(-1, 1);
 
     // For each particle
-    for (uint i = 0; i < _particles.size(); i++) {
+    for (size_t i = 0; i < _particles.size(); i++) {
         Particle<NeuralNet::CombEdgeType> *p = &_particles[i];
         //p->_worstFlag = false;
         worstFlag = p->_worstFlag;
@@ -145,7 +178,9 @@ void NeuralPso::fly() {
             p->_worstFlag = false;
             if (p->_points <= 0) {
                 //choice = (real) (rand() % 10000) / 10000.0;
-                choice = dist(gen);
+                //choice = dist(_randomEngine.engine());
+                choice = _randomEngine.uniformReal(
+                            probRange[0], probRange[1]);
                 p->_fit_pb = 0;
                 p->_fit_lb = 0;
                 p->_points = _psoParams.startPoints;
@@ -176,14 +211,16 @@ void NeuralPso::fly() {
             // For each edge (left side) of that inner net
 
             //#pragma omp parallel for
-            for (int left_edge = 0; left_edge < (int)p->_v[inner_net].size(); left_edge++) {
+            for (size_t left_edge = 0; left_edge < p->_v[inner_net].size(); left_edge++) {
                 // For each edge (right side) of that inner net
-                for (uint right_edge = 0; right_edge < p->_v[inner_net][left_edge].size(); right_edge++) {
+                for (size_t right_edge = 0; right_edge < p->_v[inner_net][left_edge].size(); right_edge++) {
                     /// Concept based on Genetic Algorithms, idea based on Alex
                     /// Find the worst of the particles and reset it.
                     if (worstFlag) { // Reset the worst one
                         if (choice < cdf[0]) {
-                            p->_x[inner_net][left_edge][right_edge] = negPosRange(gen);
+                            //p->_x[inner_net][left_edge][right_edge] = negPosRange(_randomEngine.engine());
+                            p->_x[inner_net][left_edge][right_edge] =
+                                    _randomEngine.uniformReal(negRange[0], negRange[1]);
                         } else if (choice < cdf[1]) {
                             p->_x[inner_net][left_edge][right_edge] = p->_x_pb[inner_net][left_edge][right_edge];
                         } else if (choice < cdf[2]) {
@@ -191,7 +228,9 @@ void NeuralPso::fly() {
                         } else {
                             p->_x[inner_net][left_edge][right_edge] = _gb._x[inner_net][left_edge][right_edge];
                         }
-                        p->_v[inner_net][left_edge][right_edge] = negPosRange(gen);
+                        //p->_v[inner_net][left_edge][right_edge] = negPosRange(_randomEngine.engine());
+                        p->_v[inner_net][left_edge][right_edge] =
+                                _randomEngine.uniformReal(negRange[0], negRange[1]);
                         continue;
                     }
 
@@ -201,11 +240,17 @@ void NeuralPso::fly() {
                     real *w_pb = &p->_x_pb[inner_net][left_edge][right_edge];
                     real *w_lb = &p->_x_lb[inner_net][left_edge][right_edge];
                     real *w_gb = &_gb._x[inner_net][left_edge][right_edge];
+                    real *w_x_min = &p->_minX[inner_net][left_edge][right_edge];
+                    real *w_x_max = &p->_maxX[inner_net][left_edge][right_edge];
 
-                    real inertia = (dist(gen)*0.5) + 0.5;
-                    real c1 = C1 * dist(gen);
-                    real c2 = C2 * dist(gen);
-                    real c3 = C3 * dist(gen);
+                    //real inertia = (dist(_randomEngine.engine())*0.5) + 0.5;
+                    //real c1 = C1 * dist(_randomEngine.engine());
+                    //real c2 = C2 * dist(_randomEngine.engine());
+                    //real c3 = C3 * dist(_randomEngine.engine());
+                    real inertia = _randomEngine.uniformReal(inertiaRange[0], inertiaRange[1]);
+                    real c1 = C1 * _randomEngine.uniformReal(probRange[0], probRange[1]);
+                    real c2 = C2 * _randomEngine.uniformReal(probRange[0], probRange[1]);
+                    real c3 = C3 * _randomEngine.uniformReal(probRange[0], probRange[1]);
 
                     *w_v = (
                                 inertia * (*w_v)
@@ -215,7 +260,6 @@ void NeuralPso::fly() {
                                 ) * dt;
 
                     velSum += *w_v;
-                    term = term && (*w_pb == *w_x) && (*w_lb == *w_x);
 
                     if (*w_v > vLimit) {
                         *w_v = vLimit;
@@ -225,13 +269,16 @@ void NeuralPso::fly() {
 
                     *w_x += *w_v;
 
-                    if (*w_x > fitnessParams()->edgeWeightMax) {
-                        *w_x = fitnessParams()->edgeWeightMax;
-                        //*w_v *= -0.01;
-                    } else if (*w_x < fitnessParams()->edgeWeightMin) {
-                        *w_x = fitnessParams()->edgeWeightMin;
-                        //*w_v *= -0.01;
-                    }
+                    *w_x = std::min(*w_x, *w_x_min);
+                    *w_x = std::max(*w_x, *w_x_max);
+
+//                    if (*w_x > fitnessParams()->edgeWeightMax) {
+//                        *w_x = fitnessParams()->edgeWeightMax;
+//                        //*w_v *= -0.01;
+//                    } else if (*w_x < fitnessParams()->edgeWeightMin) {
+//                        *w_x = fitnessParams()->edgeWeightMin;
+//                        //*w_v *= -0.01;
+//                    }
                 }
             }
         }
@@ -244,24 +291,19 @@ void NeuralPso::fly() {
         }
     }
 
-    //  if (velSum < _psoParams.vDelta)
-    //    _overideTermFlag = true;
-    if (term) {
-        interruptProcess();
-    }
-
     // If stagnant, mix it up a bit
     if (abs(velSum) < _psoParams.vDelta) {
 
-        for (uint i = 0; i < _particles.size(); i++) {
+        for (size_t i = 0; i < _particles.size(); i++) {
             // Reset bests
             _particles[i]._fit_pb = -numeric_limits<real>::max();
             _particles[i]._fit_lb = -numeric_limits<real>::max();
-            for (uint j = 0; j < _particles[i]._x.size(); j++) {
-                for (uint k = 0; k < _particles[i]._x[j].size(); k++) {
-                    for (uint m = 0; m < _particles[i]._x[j][k].size(); m++) {
+            for (size_t j = 0; j < _particles[i]._x.size(); j++) {
+                for (size_t k = 0; k < _particles[i]._x[j].size(); k++) {
+                    for (size_t m = 0; m < _particles[i]._x[j][k].size(); m++) {
                         //_particles[i]._x[j][k][m] = ((real)(rand() % 20000)/10000.0) - 1.0;
-                        _particles[i]._x[j][k][m] = negPosRange(gen);
+                        //_particles[i]._x[j][k][m] = negPosRange(_randomEngine.engine());
+                        _particles[i]._x[j][k][m] = _randomEngine.uniformReal(negRange[0], negRange[1]);
                     }
                 }
             }
@@ -275,6 +317,7 @@ void NeuralPso::fly() {
     }
 }
 
+/*
 void NeuralPso::flyIteration(
         size_t particle,
         size_t inner_net,
@@ -320,131 +363,77 @@ void NeuralPso::flyIteration(
 //      //*w_v *= -0.01;
 //    }
 }
+*/
 
-real NeuralPso::getCost() {
-  real correctRatio=0;
-  int totalCount=0;
-  bool printChange = false;
-  real worstFit = numeric_limits<real>::max();
-  real worstFitIt = 0;
-  static real prevBest = 0;
-
-  for (uint i = 0; i < _particles.size(); i++) {
-    if (checkTermProcess()) {
-        return 0;
-    }
-
-    Particle<NeuralNet::EdgeType> *p = &_particles[i];
-
-    if (!_neuralNet->setCombinedWeights(p->_x)) {
-      std::cout<< "Failure to set weights." << endl;
-    }
-
-    // Initialize storage variables
-    real tempCorrectRatio = 0;
-    uint tempTotalCount = 0;
-    real confidence = 0;
-
-    // Get fitness
-    real fit = testRun(tempCorrectRatio, tempTotalCount, confidence);
-
-    // Track worst fitness
-    if (worstFit >= fit) {
-      worstFit = fit;
-      worstFitIt = i;
-    }
-
-    p->_points -= _psoParams.decayPoints;
-    if (p->_points < 0) {
-        p->_worstFlag = true;
-    }
-
-    // Find personal best
-    if (fit > p->_fit_pb) {
-      p->_fit_pb = fit;
-      p->_points += _psoParams.pbPoints;
-      printChange = true;
-
-      for (uint i = 0; i < p->_x_pb.size(); i++) {
-        for (uint j = 0; j < p->_x_pb[i].size(); j++) {
-          for (uint k = 0; k < p->_x_pb[i][j].size(); k++) {
-            p->_x_pb[i][j][k] = p->_x[i][j][k];
-          }
+/**
+ * @brief NeuralPso::getCost
+ * @details Update each particle's current cost at current position
+ */
+void NeuralPso::getCost() {
+    // Get the cost for each particle's current position
+    for (size_t i = 0; i < _particles.size(); i++) {
+        if (checkTermProcess()) {
+            return;
         }
-      }
-    } // end personal best
 
-    // Find global best
-    if (fit > _gb._fit_pb) {
-      _gb._fit_pb = fit;
-      p->_points += _psoParams.gbPoints;
-      printChange = true;
+        NeuralParticle *p = &_particles[i];
 
-      for (uint i = 0; i < p->_x.size(); i++) {
-        for (uint j = 0; j < p->_x[i].size(); j++) {
-          for (uint k = 0; k < p->_x[i][j].size(); k++) {
-            _gb._x[i][j][k] = p->_x[i][j][k];
-          }
+        if (!_neuralNet->setCombinedWeights(p->_x)) {
+            std::cout<< "Failure to set weights." << endl;
         }
-      }
-      correctRatio = tempCorrectRatio;
-      totalCount = tempTotalCount;
-    } // End global best
 
-
-    // Find local best
-    int left_i = i - (_psoParams.neighbors / 2);
-    if (left_i < 0) left_i += _particles.size();
-    for (uint j = 0; j < _psoParams.neighbors; j++) {
-      uint it = (uint) left_i + j;
-      if (it < 0) {
-        it += _particles.size();
-      } else if (it >= _particles.size()) {
-        it -= _particles.size();
-      }
-
-      Particle<NeuralNet::CombEdgeType> *p_n = &_particles[it];
-      if (fit > p_n->_fit_lb) {
-        p_n->_fit_lb = fit;
-        p->_points += _psoParams.lbPoints;
-        printChange = true;
-
-        for (uint i = 0; i < p_n->_x_lb.size(); i++) {
-          uint size2 = p_n->_x_lb[i].size();
-          for (uint j = 0; j < p_n->_x_lb[i].size(); j++) {
-            for (uint k = 0; k < p_n->_x_lb[i][j].size(); k++) {
-              if (j >= size2) continue;
-              p_n->_x_lb[i][j][k] = p->_x[i][j][k];
-            }
-          }
-        }
-      }
-    } // End local best
-
-    // Handle logging
-    if (printChange) {
-      printChange = false;
-      std::string outputString;
-      outputString += "Particle (";
-      outputString += stringPut(i);
-      outputString += "):: Fit: ";
-      outputString += stringPut(fit);
-      outputString += "\tPB: ";
-      outputString += stringPut(p->_fit_pb);
-      outputString += "\tLB: ";
-      outputString += stringPut(p->_fit_lb);
-      outputString += "\tGB: ";
-      outputString += stringPut(gb()->_fit_pb);
-      outputString += "\tCor: ";
-      outputString += stringPut(correctRatio);
-      outputString += "\tPts: ";
-      outputString += stringPut(p->_points);
-      outputString += "\n";
-      Logger::write(outputString);
-
+        // Get fitness
+        real fit = trainingRun();
+        p->_fit = fit;
     }
-  } // end for each particle
+} // end getCost()
 
+/**
+ * @brief NeuralPso::evaluate
+ * @details Evaulate personal, local, and global bests
+ */
+real NeuralPso::evaluate() {
+    real correctRatio=0;
+//    int totalCount=0;
+
+    std::vector<bool> printChange;
+    printChange.resize(_particles.size(), false);
+
+//    static real prevBest = 0;
+
+    evaluatePoints(printChange);
+    findPersonalBest(printChange);
+    findLocalBest(printChange);
+    findGlobalBest(printChange);
+
+    // Print changes
+    for (size_t i = 0; i < _particles.size(); i++) {
+        NeuralParticle *p = &_particles[i];
+
+        // Handle logging
+        if (printChange[i]) {
+            std::string outputString;
+            outputString += "Particle (";
+            outputString += stringPut(i);
+            outputString += "):: Fit: ";
+            outputString += stringPut(p->_fit);
+            outputString += "\tPB: ";
+            outputString += stringPut(p->_fit_pb);
+            outputString += "\tLB: ";
+            outputString += stringPut(p->_fit_lb);
+            outputString += "\tGB: ";
+            outputString += stringPut(gb()->_fit_pb);
+            outputString += "\tCor: ";
+            outputString += stringPut(correctRatio);
+            outputString += "\tPts: ";
+            outputString += stringPut(p->_points);
+            outputString += "\n";
+            Logger::write(outputString);
+
+        }
+    } // end for each particle
+
+/*
   // Print out global change made
   if (prevBest != gb()->_fit_pb) {
       prevBest = gb()->_fit_pb;
@@ -462,25 +451,160 @@ real NeuralPso::getCost() {
       printGB();
       testGB();
   }
+*/
 
-  // Set the worst fit flag for particle
-  _particles[worstFitIt]._worstFlag = true;
+    if (checkForPrint()) {
+        testGB();
+    }
 
-  if (checkForPrint()) {
-    testGB();
-  }
+    printGBMtx.lock();
+    if (printGBFlag) {
+        printGBFlag = false;
+        printGB();
+    }
+    printGBMtx.unlock();
 
-  printGBMtx.lock();
-  if (printGBFlag) {
-    printGBFlag = false;
-    printGB();
-  }
-  printGBMtx.unlock();
+    return gb()->_fit_pb;
+}
 
-  return gb()->_fit_pb;
-} // end getCost()
+/**
+ * @brief NeuralPso::evaluatePoints
+ */
+void NeuralPso::evaluatePoints(std::vector<bool> & printChange) {
+    real worstFit = numeric_limits<real>::max();
+    size_t worstFitIt = 0;
 
-real NeuralPso::testRun(real &correctRatio, uint32_t &totalCount, real &confidence) {
+    for (size_t i = 0; i < _particles.size(); i++) {
+        // Reset flag
+        _particles[i]._worstFlag = false;
+
+        // Track worst fitness
+        if (worstFit >= _particles[i]._fit) {
+          worstFit = _particles[i]._fit;
+          worstFitIt = i;
+        }
+
+        // Apply decay
+        _particles[i]._points -= _psoParams.decayPoints;
+
+        // Negative points force particle updates
+        if (_particles[i]._points < 0) {
+            _particles[i]._worstFlag = true;
+        }
+    }
+    // Set the worst fit flag for particle
+    _particles[worstFitIt]._worstFlag = true;
+
+    for (size_t i = 0; i < _particles.size(); i++) {
+        printChange[i] = _particles[i]._worstFlag;
+    }
+}
+
+/**
+ * @brief NeuralPso::findPersonalBest
+ */
+void NeuralPso::findPersonalBest(std::vector<bool> & printChange) {
+    // Find personal best for each particle
+    for (size_t i = 0; i < _particles.size(); i++) {
+        // Check if personal best has surpassed remembered fitness
+        if (_particles[i]._fit > _particles[i]._fit_pb) {
+            _particles[i]._fit_pb = _particles[i]._fit;
+            _particles[i]._points += _psoParams.pbPoints;
+            printChange[i] = true;
+            updatePersonalBest(_particles[i]);
+        }
+    }
+}
+
+void NeuralPso::updatePersonalBest(NeuralParticle & p) {
+    // Update personal best location to memory
+    for (size_t i = 0; i < p._x_pb.size(); i++) {
+        for (size_t j = 0; j < p._x_pb[i].size(); j++) {
+            for (size_t k = 0; k < p._x_pb[i][j].size(); k++) {
+                p._x_pb[i][j][k] = p._x[i][j][k];
+            }
+        }
+    }
+}
+
+/**
+ * @brief NeuralPso::findLocalBest
+ * @details Update all the local bests for each particle
+ * @return
+ */
+void NeuralPso::findLocalBest(std::vector<bool> & printChange) {
+    for (size_t i = 0; i < _particles.size(); i++) {
+        NeuralParticle &p = _particles[i];
+
+        int left_i = static_cast<int> (i - (_psoParams.neighbors / 2));
+        if (left_i < 0) left_i += _particles.size();
+
+        size_t bestNeighborIt = i;
+        for (size_t j = 0; j < _psoParams.neighbors; j++) {
+            int it = left_i + static_cast<int>(j);
+            if (it < 0) {
+                it += _particles.size();
+            } else if (it >= static_cast<int>(_particles.size())) {
+                it -= _particles.size();
+            }
+
+            NeuralParticle &p_n = _particles[static_cast<size_t>(it)];
+            if (p._fit_pb < p_n._fit_lb) {
+                bestNeighborIt = static_cast<size_t>(it);
+            }
+        }
+
+        NeuralParticle &p_n = _particles[bestNeighborIt];
+        printChange[i] = true;
+        updateNeighborBest(p, p_n);
+    }
+}
+
+/**
+ * @brief NeuralPso::updateNeighborBest
+ * @details Update neighbor best for current particle
+ * @param p     - Current Particle
+ * @param p_n   - Best neighbor Particle
+ */
+void NeuralPso::updateNeighborBest(NeuralParticle & p, NeuralParticle & p_n) {
+    p_n._fit_lb = p._fit_pb;
+    p_n._points += _psoParams.lbPoints;
+    for (size_t i = 0; i < p_n._x_lb.size(); i++) {
+        for (size_t j = 0; j < p_n._x_lb[i].size(); j++) {
+            for (size_t k = 0; k < p_n._x_lb[i][j].size(); k++) {
+                p_n._x_lb[i][j][k] = p._x_pb[i][j][k];
+            } // for k
+        } // for j
+    } // for i
+} // updateNeighborBest
+
+void NeuralPso::findGlobalBest(std::vector<bool> & printChange) {
+    size_t globalBestIt=0;
+    for (size_t i = 0; i < _particles.size(); i++) {
+        NeuralParticle & p = _particles[i];
+        if (p._fit_pb > _gb._fit_pb) {
+            globalBestIt = i;
+        } // End global best
+    }
+
+    NeuralParticle & p = _particles[globalBestIt];
+    printChange[globalBestIt] = true;
+    updateGlobalBest(p);
+}
+
+void NeuralPso::updateGlobalBest(NeuralParticle &p) {
+    _gb._fit_pb = p._fit_pb;
+    p._points += _psoParams.gbPoints;
+    for (size_t i = 0; i < p._x.size(); i++) {
+        for (size_t j = 0; j < p._x[i].size(); j++) {
+            for (size_t k = 0; k < p._x[i][j].size(); k++) {
+                _gb._x[i][j][k] = p._x[i][j][k];
+            }
+        }
+    }
+}
+
+real NeuralPso::trainingRun() {
     std::cout << "Error, must be implemented via inherited training class." << std::endl;
     return 0;
 }

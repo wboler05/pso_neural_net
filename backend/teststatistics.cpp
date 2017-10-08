@@ -11,15 +11,16 @@ void TestStatistics::clear() {
     _test.falseNegative = 0;
     _test.falsePositive = 0;
     _population = 0;
+    _mse = 0;
 }
 
-void TestStatistics::getClassError(ClassificationError *ce) {
+void TestStatistics::getClassError(ClassificationError & ce) {
 
-    ce->accuracy = N_Accuracy(tp(), tn(), fp(), fn());
-    ce->precision = N_Precision(tp(), fp());
-    ce->sensitivity = N_Sensitivity(tp(), fn());
-    ce->specificity = N_Specificity(tn(), fp());
-    ce->f_score = N_F_Score(tp(), fp(), fn());
+    ce.accuracy = N_Accuracy(tp(), tn(), fp(), fn());
+    ce.precision = N_Precision(tp(), fp());
+    ce.sensitivity = N_Sensitivity(tp(), fn());
+    ce.specificity = N_Specificity(tn(), fp());
+    ce.f_score = N_F_Score(tp(), fp(), fn());
 }
 
 TestStatistics::TestStruct TestStatistics::testStruct_norm() {
@@ -31,7 +32,7 @@ TestStatistics::TestStruct TestStatistics::testStruct_norm() {
     return ts;
 }
 
-std::string TestStatistics::outputString(ClassificationError * ce) {
+std::string TestStatistics::outputString(const ClassificationError &ce) {
 
     TestStatistics::TestStruct tsNorm = testStruct_norm();
 
@@ -55,19 +56,19 @@ std::string TestStatistics::outputString(ClassificationError * ce) {
     outputString += stringPut(tsNorm.falsePositive + tsNorm.truePositive);
 
     outputString += "\n\tAccuracy [ (tp + tn) / testSize ]: ";
-    outputString += stringPut(ce->accuracy);
+    outputString += stringPut(ce.accuracy);
 
     outputString += "\n\tPrecision [ tp / (tp + fp) ]:      ";
-    outputString += stringPut(ce->precision);
+    outputString += stringPut(ce.precision);
 
     outputString += "\n\tSensitivity [ tp / (tp + fn) ]:    ";
-    outputString += stringPut(ce->sensitivity);
+    outputString += stringPut(ce.sensitivity);
 
     outputString += "\n\tSpecificity [ tn / (tn + fp) ]:    ";
-    outputString += stringPut(ce->specificity);
+    outputString += stringPut(ce.specificity);
 
     outputString += "\n\tF-Score [ 2tp / (2tp + fp + fn) ]: ";
-    outputString += stringPut(ce->f_score);
+    outputString += stringPut(ce.f_score);
 
     outputString += "\n";
     return outputString;

@@ -197,7 +197,8 @@ SOURCES += \
     frontend/Trainer/Cache/cacheslice.cpp \
     frontend/Trainer/Cache/inputcache.cpp \
     frontend/maxmemorydialog.cpp \
-    frontend/slicenumberdialog.cpp
+    frontend/slicenumberdialog.cpp \
+    utils/randomnumberengine.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -225,7 +226,8 @@ HEADERS += \
     frontend/Trainer/Cache/cacheslice.h \
     frontend/Trainer/Cache/inputcache.h \
     frontend/maxmemorydialog.h \
-    frontend/slicenumberdialog.h
+    frontend/slicenumberdialog.h \
+    utils/randomnumberengine.h
 
 FORMS += \
     frontend/mainwindow.ui \

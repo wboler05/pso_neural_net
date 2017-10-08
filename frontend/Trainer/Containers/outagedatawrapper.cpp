@@ -139,31 +139,31 @@ OutageDataItem OutageDataWrapper::parseInputString(const QString & line) {
     newItem._date.month(lineList[1].toInt(&ok));
     newItem._date.day(lineList[2].toInt(&ok));
 
-    newItem._temp.hi(lineList[3].toDouble(&ok));
-    newItem._temp.avg(lineList[4].toDouble(&ok));
-    newItem._temp.lo(lineList[5].toDouble(&ok));
+    newItem._temp.hi(static_cast<real>(lineList[3].toDouble(&ok)));
+    newItem._temp.avg(static_cast<real>(lineList[4].toDouble(&ok)));
+    newItem._temp.lo(static_cast<real>(lineList[5].toDouble(&ok)));
 
-    newItem._dew.hi(lineList[6].toDouble(&ok));
-    newItem._dew.avg(lineList[7].toDouble(&ok));
-    newItem._dew.lo(lineList[8].toDouble(&ok));
+    newItem._dew.hi(static_cast<real>(lineList[6].toDouble(&ok)));
+    newItem._dew.avg(static_cast<real>(lineList[7].toDouble(&ok)));
+    newItem._dew.lo(static_cast<real>(lineList[8].toDouble(&ok)));
 
-    newItem._humidity.hi(lineList[9].toDouble(&ok));
-    newItem._humidity.avg(lineList[10].toDouble(&ok));
-    newItem._humidity.lo(lineList[11].toDouble(&ok));
+    newItem._humidity.hi(static_cast<real>(lineList[9].toDouble(&ok)));
+    newItem._humidity.avg(static_cast<real>(lineList[10].toDouble(&ok)));
+    newItem._humidity.lo(static_cast<real>(lineList[11].toDouble(&ok)));
 
-    newItem._pressure.hi(lineList[12].toDouble(&ok));
-    newItem._pressure.avg(lineList[13].toDouble(&ok));
-    newItem._pressure.lo(lineList[14].toDouble(&ok));
+    newItem._pressure.hi(static_cast<real>(lineList[12].toDouble(&ok)));
+    newItem._pressure.avg(static_cast<real>(lineList[13].toDouble(&ok)));
+    newItem._pressure.lo(static_cast<real>(lineList[14].toDouble(&ok)));
 
-    newItem._visibility.hi(lineList[15].toDouble(&ok));
-    newItem._visibility.avg(lineList[16].toDouble(&ok));
-    newItem._visibility.lo(lineList[17].toDouble(&ok));
+    newItem._visibility.hi(static_cast<real>(lineList[15].toDouble(&ok)));
+    newItem._visibility.avg(static_cast<real>(lineList[16].toDouble(&ok)));
+    newItem._visibility.lo(static_cast<real>(lineList[17].toDouble(&ok)));
 
-    newItem._wind.hi(lineList[18].toDouble(&ok));
-    newItem._wind.avg(lineList[19].toDouble(&ok));
-    newItem._wind.gust(lineList[20].toDouble(&ok));
+    newItem._wind.hi(static_cast<real>(lineList[18].toDouble(&ok)));
+    newItem._wind.avg(static_cast<real>(lineList[19].toDouble(&ok)));
+    newItem._wind.gust(static_cast<real>(lineList[20].toDouble(&ok)));
 
-    newItem._precipitation = lineList[21].toDouble(&ok);
+    newItem._precipitation = static_cast<real>(lineList[21].toDouble(&ok));
 
 //    newItem._storm_event = ((QString)lineList[22]).toStdString();
     parseStormEvents(lineList, 22, newItem);
@@ -175,7 +175,7 @@ void OutageDataWrapper::parseStormEvents(
         const QStringList & events, const size_t & bIt, OutageDataItem & item)
 {
     QStringList parsedEvents;
-    for (size_t i = bIt; i < events.size(); i++) {
+    for (int i = static_cast<int>(bIt); i < events.size(); i++) {
         parsedEvents.append(events.at(i));
     }
 
@@ -193,9 +193,9 @@ std::vector<real> OutageDataWrapper::inputize() {
     input.push_back(_latlong.longitude());
 
     // Date
-    input.push_back((real) _date.year());
-    input.push_back((real) _date.month());
-    input.push_back((real) _date.day());
+    input.push_back(static_cast<real>(_date.year()));
+    input.push_back(static_cast<real>(_date.month()));
+    input.push_back(static_cast<real>(_date.day()));
 
     // Temperature
     input.push_back(_temp.lo());
@@ -245,9 +245,10 @@ std::vector<real> OutageDataWrapper::inputize() {
 
 std::vector<real> OutageDataWrapper::outputize() {
     std::vector<real> output;
+    output.resize(2, 0);
 
-    output.push_back(bool2Double(_outage));
-    output.push_back((real) _affectedCustomers);
+    output[0] = bool2Double(_outage);
+    output[1] = static_cast<real>(_affectedCustomers);
 
     return output;
 }
@@ -332,16 +333,30 @@ real OutageDataWrapper::MSE(const std::vector<real> &result, const std::vector<r
     return error;
 }
 
+std::vector<real> OutageDataWrapper::splitMSE(const std::vector<real> & result, const std::vector<real> & expected) {
+    std::vector<real> mse;
+
+    if (result.size() != expected.size()) {
+        return mse;
+    } else {
+        mse.resize(result.size(),std::numeric_limits<real>::infinity());
+    }
+    for (size_t i = 0; i < mse.size(); i++) {
+        mse[i] = CustomMath::pow(result[i]-expected[i], 2);
+    }
+    return mse;
+}
+
 real OutageDataWrapper::bool2Double(const bool &b) {
     if (b) {
-        return 1.0f;
+        return 1.0L;
     } else {
-        return 0.0f;
+        return 0.0L;
     }
 }
 
 bool OutageDataWrapper::double2Bool(const real &d) {
-    return d < 0.5f;
+    return d < 0.5L;
 }
 
 real OutageDataWrapper::cityToNumber(const std::string &c) {
@@ -349,25 +364,25 @@ real OutageDataWrapper::cityToNumber(const std::string &c) {
     std::string newC = std::tolower(c.c_str(), loc); //!FIXME Cannot take const char!!
 
     if (newC == "monticello") {
-        return (real) 100;
+        return static_cast<real>(100);
     } else if (newC == "valparaiso") {
-        return (real) 50;
+        return static_cast<real>(50);
     } else if (newC == "crown point") {
-        return (real) 30;
+        return static_cast<real>(30);
     } else if (newC == "plymouth") {
-        return (real) 70;
+        return static_cast<real>(70);
     } else if (newC == "goshen") {
-        return (real) 110;
+        return static_cast<real>(110);
     } else if (newC == "gary") {
-        return (real) 150;
+        return static_cast<real>(150);
     } else if (newC == "hammond") {
-        return (real) 10;
+        return static_cast<real>(10);
     } else if (newC == "la porte" || newC == "laporte") {
-        return (real) 160;
+        return static_cast<real>(160);
     } else if (newC == "angola") {
-        return (real) 90;
+        return static_cast<real>(90);
     } else {
-        return (real) -1;
+        return static_cast<real>(-1);
     }
 }
 
@@ -376,19 +391,19 @@ real OutageDataWrapper::countyToNumber(const std::string &c) {
     std::string newC = std::tolower(c.c_str(), loc);
 
     if (newC == "la porte" || newC == "laporte") {
-        return (real) 0;
+        return static_cast<real>(0);
     } else if (newC == "lake") {
-        return (real) 1;
+        return static_cast<real>(1);
     } else if (newC == "marshall") {
-        return (real) 2;
+        return static_cast<real>(2);
     } else if (newC == "porter") {
-        return (real) 3;
+        return static_cast<real>(3);
     } else if (newC == "steuben") {
-        return (real) 4;
+        return static_cast<real>(4);
     } else if (newC == "white") {
-        return (real) 5;
+        return static_cast<real>(5);
     } else {
-        return (real) -1;
+        return static_cast<real>(-1);
     }
 }
 
@@ -398,23 +413,23 @@ real OutageDataWrapper::reportedEventToNumber(const std::string &e) {
     std::string newC = std::tolower(e.c_str(), loc);
 
     if (newC == "no cause") {
-        return (real) 0;
+        return static_cast<real>(0);
     } else if (newC == "210 - tree fell - naturally") {
-        return (real) 210;
+        return static_cast<real>(210);
     } else if (newC == "211 - tree fell - storm") {
-        return (real) 211;
+        return static_cast<real>(211);
     } else if (newC == "230 - tree grow - naturally") {
-        return (real) 230;
+        return static_cast<real>(230);
     } else if (newC == "291 - weather") {
-        return (real) 291;
+        return static_cast<real>(291);
     } else if (newC == "320 - snow") {
-        return (real) 320;
+        return static_cast<real>(320);
     } else if (newC == "340 - tornado") {
-        return (real) 340;
+        return static_cast<real>(340);
     } else if (newC == "310 - lightning") {
-        return (real) 310;
+        return static_cast<real>(310);
     } else {
-        return (real) -1;
+        return static_cast<real>(-1);
     }
 
 }
@@ -422,9 +437,9 @@ real OutageDataWrapper::reportedEventToNumber(const std::string &e) {
 real OutageDataWrapper::stormTypeToNumber(const std::string &s) {
     size_t val = 0;
     for (size_t i = 0; i < s.size(); i++) {
-        val += s[i];
+        val += static_cast<size_t>(s[i]);
     }
-    return (real) val;
+    return static_cast<real>(val);
 }
 
 OutageDataItem OutageDataWrapper::copy(const OutageDataItem & l) {

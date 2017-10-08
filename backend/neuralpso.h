@@ -30,14 +30,16 @@ struct FitnessParameters {
     TestStatistics::ClassificationError weights;
     TestStatistics::ClassificationError floors;
 
-    real edgeWeightMax = 10E5;
-    real edgeWeightMin = -10E5;
+    real edgeWeightMax = 10E5L;
+    real edgeWeightMin = -10E5L;
 };
 
 class NeuralPso : public Pso<NeuralNet::CombEdgeType> {
 public:
   NeuralPso(PsoParams pp, NeuralNet::NeuralNetParameters np, FitnessParameters fp);
-  ~NeuralPso();
+  virtual ~NeuralPso();
+
+  typedef Particle<NeuralNet::CombEdgeType> NeuralParticle;
 
   void buildPso();
   void build(std::vector<std::vector<std::vector<byte> > > &images, std::vector<byte> &labels);
@@ -47,7 +49,16 @@ public:
   real evaluate();
   void processEvents();
 
-  virtual real trainingRun(real &correctRatio, uint &totalCount, real &confidence);
+  void evaluatePoints(std::vector<bool> & printChange);
+  void findPersonalBest(std::vector<bool> & printChange);
+  void findLocalBest(std::vector<bool> & printChange);
+  void findGlobalBest(std::vector<bool> & printChange);
+
+  void updatePersonalBest(NeuralParticle & p);
+  void updateNeighborBest(NeuralParticle & p, NeuralParticle & p_n);
+  void updateGlobalBest(NeuralParticle & p);
+
+  virtual real trainingRun();
   virtual void testGB();
 
   NeuralNet * neuralNet() { return _neuralNet; }

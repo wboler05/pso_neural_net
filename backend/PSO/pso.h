@@ -13,15 +13,16 @@
 
 #include "custommath.h"
 #include "util.h"
+#include "randomnumberengine.h"
 
 struct PsoParams {
   size_t population=50;
   size_t neighbors=5;
   size_t minEpochs = 10;
   size_t maxEpochs=100;
-  real delta=5E-3;
-  real vDelta=5E-20;
-  real vLimit = 0.5;
+  real delta=5E-3L;
+  real vDelta=5E-20L;
+  real vLimit = 0.5L;
   size_t windowSize = 50;
 
   bool termIterationFlag;
@@ -45,7 +46,7 @@ template <class T>
 class Pso {
 public:
   Pso(PsoParams p);
-  ~Pso();
+  virtual ~Pso();
 
   void run();
   virtual void fly();           // Fly particles
@@ -53,7 +54,7 @@ public:
   virtual real evaluate();
   virtual void processEvents(); // Process events
 
-  void getDelta();
+  real getDelta();
 
   std::vector<Particle<T> > * particles() { return &_particles; }
   Particle<T> * gb() { return &_gb; }
@@ -65,11 +66,13 @@ public:
   static void setToPrint();
   static bool checkForPrint();
 
-  const uint32_t & iterations() const { return _iterations; }
+  const uint32_t & epochs() const { return _epochs; }
 
   const PsoParams & psoParams() { return _psoParams; }
 
   const std::vector<real> & historyFromLastRun() { return _history; }
+
+  static RandomNumberEngine _randomEngine;
 
 protected:
   std::vector<Particle<T> > _particles;

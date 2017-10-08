@@ -81,6 +81,8 @@ protected slots:
     void on_actionLoad_Input_File_triggered();
     void on_actionMax_Memory_triggered();
     void on_actionSlices_Per_Cache_triggered();
+    void updateCacheMaxBytes(const int & bytes);
+    void updateSlicesPerCache(const int & slices);
 
 private:
     Ui::MainWindow *ui;
@@ -108,6 +110,7 @@ private:
 #endif
 
     void initializeData();
+    void initializeCache();
     QString loadInputFileDialog();
     void enableParameterInput(bool b);
     void tryInjectGB();

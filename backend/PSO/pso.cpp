@@ -8,6 +8,9 @@ template <class T>
 bool Pso<T>::_printFlag=false;
 template <class T>
 std::mutex Pso<T>::printMtx;
+template <class T>
+RandomNumberEngine Pso<T>::_randomEngine(
+        std::chrono::system_clock::now().time_since_epoch().count());
 
 template <class T>
 Pso<T>::Pso(PsoParams p) :
@@ -69,12 +72,12 @@ void Pso<T>::run() {
 }
 
 template <class T>
-void Pso::getDelta() {
+real Pso<T>::getDelta() {
     real lowCost = std::numeric_limits<real>::max();
     real highCost = -std::numeric_limits<real>::max();
 
     // Get the iteration for the beginning of the window
-    size_t minWindowIt = _history.size() <= _psoParams.window
+    size_t minWindowIt = _history.size() <= _psoParams.windowSize
             ? 0 : _history.size() - _psoParams.windowSize - 1;
 
     // Find the low and hi within the history
@@ -94,7 +97,7 @@ void Pso<T>::getCost() {
 }
 
 template <class T>
-void Pso<T>::evaluate() {
+real Pso<T>::evaluate() {
     return 0;
 }
 

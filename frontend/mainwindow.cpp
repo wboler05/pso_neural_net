@@ -20,89 +20,6 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // Test some stuff
-
-    LatLongObject * newObject = new LatLongObject(45, -128);
-    LatLongObject someGuy = *newObject;
-    someGuy.latitude(15);
-    someGuy.longitude(400);
-
-    LatLongObject someOtherGuy;
-    someOtherGuy.latitude(14);
-    someOtherGuy.longitude(1972);
-
-    LatLongObject * hisDad = new LatLongObject(someOtherGuy);
-
-    qDebug() << "New Object: " << (double) newObject->latitude() << ", " << (double) newObject->longitude();
-    qDebug() << "Some Guy: " << (double) someGuy.latitude() << ", " << (double) someGuy.longitude();
-    qDebug() << "Some Other Guy: " << (double) someOtherGuy.latitude() << ", " << (double) someOtherGuy.longitude();
-    qDebug() << "His Dad: " << (double) hisDad->latitude() << ", " << (double) hisDad->longitude();
-
-    delete newObject;
-    delete hisDad;
-
-    qDebug() << "LatLongObject Objects:: " << LatLongObject::totalObjects();
-    qDebug() << "Size of someGuy: " << sizeof(someGuy);
-    qDebug() << "Size of LatLongObject: " << sizeof(LatLongObject);
-
-    int mBytes = 128;
-    int totalCrap = mBytes * 1024 * 1024 / sizeof(LatLongObject);
-
-    std::vector<LatLongObject> someStuff;
-    someStuff.resize(totalCrap);
-
-    for(int i = 0; i < someStuff.size(); i++) {
-        someStuff[i] = someGuy;
-    }
-
-    qDebug() << "Size of some stuff: " << sizeof(LatLongObject)*someStuff.size();
-    qDebug() << "Total of them: " << someStuff.size();
-    qDebug() << "Total LatLongObjects: " << LatLongObject::totalObjects();
-
-    CacheParameters c;
-    c.inputFileName = QString ("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\test\\10_Hammond_CrownPoint_Lake.csv");
-    c.maxBytes = 128*1024;
-    c.totalSlicesPerCache = 8;
-    c.headerSize = 2;
-    InputCache * testCache = new InputCache(c);
-//    OutageDataItem & index2 = testCache[2];
-//    OutageDataItem & index30 = testCache[30];
-//    OutageDataItem & index55 = testCache[55];
-//    OutageDataItem & index425 = testCache[425];
-
-    for (int i = 0; i < testCache->totalInputItemsInFile(); i++) {
-        OutageDataItem & index = (*testCache)[i];
-        qDebug() <<
-            "(" << i << "): date(" <<
-            index._date.day() << "/" <<
-            index._date.month() << "/" <<
-            index._date.year() << ") Temp(" <<
-            (double) index._temp.hi() << "," <<
-            (double) index._temp.avg() << "," <<
-            (double) index._temp.lo() << ")";
-    }
-
-    c.maxBytes = 512*1024*1024;
-    delete testCache;
-
-    testCache = new InputCache(c);
-    for (int i = 0; i < testCache->totalInputItemsInFile(); i++) {
-        OutageDataItem & index = (*testCache)[i];
-        qDebug() <<
-            "(" << i << "): date(" <<
-            index._date.day() << "/" <<
-            index._date.month() << "/" <<
-            index._date.year() << ") Temp(" <<
-            (double) index._temp.hi() << "," <<
-            (double) index._temp.avg() << "," <<
-            (double) index._temp.lo() << ")";
-    }
-    delete testCache;
-
-//PROGRAM BREAKS AFTER THIS POINT SO DON'T RUN IT
-    // End that testing
-
-    srand(time(NULL));
     _runTimer.start();
 
     // Set the logger file
@@ -157,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->applyParams_btn, SIGNAL(clicked(bool)), this, SLOT(applyParameterChanges()));
     connect(ui->innerNet_btn, SIGNAL(clicked(bool)), this, SLOT(setInnerNetNodesFromGui()));
     connect(ui->setNet_btn, SIGNAL(clicked(bool)), this, SLOT(setCurrentNet()));
-    connect(ui->testInput_btn, SIGNAL(clicked(bool)), this, SLOT(testTrainedNetWithInput()));
+//Disable until we can fix    connect(ui->testInput_btn, SIGNAL(clicked(bool)), this, SLOT(testTrainedNetWithInput()));
     connect(ui->scrollToBottom_cb, SIGNAL(toggled(bool)), this, SLOT(scrollToBottom_toggled()));
 
 //    connect(ui->a_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
@@ -202,36 +119,40 @@ void MainWindow::on_actionLoad_Input_File_triggered() {
     QDir curDir(qApp->applicationDirPath());
     QString filename = QFileDialog::getOpenFileName(this, "Open input file:", curDir.absolutePath(), "CSV (*.csv)");
     if (filename != "") {
-        _cacheParams = filename;
-        _inputCache = std::make_unique<InputCache> (_cacheParams);
+        if (!_inputCache->reloadCache(filename)) {
+            QMessageBox fileLoadFailed;
+            fileLoadFailed.setText("Error: could not load cache from file!");
+            fileLoadFailed.exec();
+        }
     }
 }
 
 void MainWindow::on_actionMax_Memory_triggered() {
     /**TEST**/
-    MaxMemoryDialog * mDialog = new MaxMemoryDialog(_cacheParams.maxBytes);
+    MaxMemoryDialog * mDialog = new MaxMemoryDialog(static_cast<int>(_params->cp.maxBytes));
     connect(mDialog, SIGNAL(maxBytesUpdated(int)), this, SLOT(updateCacheMaxBytes(int)));
 }
 
 void MainWindow::updateCacheMaxBytes(const int & bytes) {
     /**TEST**/
-    _cacheParams.maxBytes = bytes;
+    _params->cp.maxBytes = static_cast<size_t>(bytes);
     if (_inputCache) {
-        ((InputCache *)_inputCache)->setMaxBytes(bytes);
+        _inputCache->setMaxBytes(static_cast<size_t>(bytes));
     }
 }
 
 void MainWindow::on_actionSlices_Per_Cache_triggered() {
     /**TEST**/
-    SliceNumberDialog * sDialog = new SliceNumberDialog(_cacheParams.totalSlicesPerCache, this);
+    SliceNumberDialog * sDialog = new SliceNumberDialog(
+                static_cast<int>(_params->cp.totalSlicesPerCache), this);
     connect(sDialog, SIGNAL(slicesUpdated(int)), this, SLOT(updateSlicesPerCache(int)));
 }
 
 void MainWindow::updateSlicesPerCache(const int & slices) {
     /**TEST**/
-    _cacheParams.totalSlicesPerCache = slices;
+    _params->cp.totalSlicesPerCache = static_cast<size_t>(slices);
     if (_inputCache) {
-        ((InputCache *)_inputCache)->setTotalSlicesPerCache(slices);
+        _inputCache->setTotalSlicesPerCache(static_cast<size_t>(slices));
     }
 }
 
@@ -290,8 +211,8 @@ void MainWindow::on_actionLoad_PSO_State_triggered() {
         clearPSOState();
 
         if (_neuralPsoTrainer->loadStatefromString(psoState.toStdString())) {
-            _params.pp = _neuralPsoTrainer->psoParams();
-            _params.np = *_neuralPsoTrainer->neuralNet()->nParams();
+            _params->pp = _neuralPsoTrainer->psoParams();
+            _params->np = *_neuralPsoTrainer->neuralNet()->nParams();
             updateParameterGui();
 
             msgTxt.append("Loaded PSO State: \n" );
@@ -322,108 +243,30 @@ void MainWindow::setCurrentNet() {
 void MainWindow::initializeData() {
     //loadFile_btn();
 //    generateAndLabels();
+    initializeCache();
     setParameterDefaults();
     setInputsForTrainedNetFromGui();
 }
 
-void MainWindow::keyPressEvent(QKeyEvent * e) {
-    if (e->key() == Qt::Key_C) {
-        cout << "Ending process.  Please wait. " << endl;
-        NeuralPso::interruptProcess();
-    } else if (e->key() == Qt::Key_P) {
-        NeuralPso::setToPrint();
-    } else if (e->key() == Qt::Key_G) {
-        NeuralPso::setToPrintGBNet();
+void MainWindow::initializeCache() {
+    CacheParameters c;
+    c.inputFileName = QString ("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\test\\10_Hammond_CrownPoint_Lake.csv");
+    c.maxBytes = 128*1024;
+    c.totalSlicesPerCache = 8;
+    c.headerSize = 2;
+    _inputCache = std::make_shared<InputCache>(c);
+
+    for (size_t i = 0; i < _inputCache->totalInputItemsInFile(); i++) {
+        OutageDataItem & index = (*_inputCache)[i];
+        qDebug() <<
+            "(" << i << "): date(" <<
+            index._date.day() << "/" <<
+            index._date.month() << "/" <<
+            index._date.year() << ") Temp(" <<
+            static_cast<double>(index._temp.hi()) << "," <<
+            static_cast<double>(index._temp.avg()) << "," <<
+            static_cast<double>(index._temp.lo()) << ")";
     }
-    QMainWindow::keyPressEvent(e);
-}
-
-void MainWindow::applyParameterChanges() {
-    _params.pp.particles = ui->totalParticles_sb->value();
-    _params.pp.neighbors = ui->totalNeighbors_sb->value();
-    _params.pp.iterations = ui->totalIterations_sb->value();
-    _params.pp.delta = ui->delta_dsb->value();
-    _params.pp.window = ui->window_sb->value();
-    _params.pp.termIterationFlag = ui->enableIteration_cb->isChecked();
-    _params.pp.termDeltaFlag = ui->enableDelta_cb->isChecked();
-
-    _params.np.testIterations = ui->testIt_sb->value();
-
-    _params.fp.mse_floor = ui->mse_floor_dsb->value();
-    _params.fp.floors.accuracy = ui->acc_floor_dsb->value();
-    _params.fp.floors.precision = ui->pre_floor_dsb->value();
-    _params.fp.floors.sensitivity = ui->sen_floor_dsb->value();
-    _params.fp.floors.specificity = ui->spe_floor_dsb->value();
-    _params.fp.floors.f_score = ui->fscore_floor_dsb->value();
-
-    _params.fp.mse_weight = ui->mse_weight_dsb->value();
-    _params.fp.weights.accuracy = ui->acc_weight_dsb->value();
-    _params.fp.weights.precision = ui->pre_weight_dsb->value();
-    _params.fp.weights.sensitivity = ui->sen_weight_dsb->value();
-    _params.fp.weights.specificity = ui->spe_weight_dsb->value();
-    _params.fp.weights.f_score = ui->fscore_weight_dsb->value();
-
-    setNetTypeByIndex(ui->netType_cb->currentIndex());
-}
-
-void MainWindow::updateParameterGui() {
-    ui->totalParticles_sb->setValue(_params->pp.particles);
-    ui->totalNeighbors_sb->setValue(_params->pp.neighbors);
-    ui->totalIterations_sb->setValue(_params->pp.iterations);
-    ui->window_sb->setValue(_params->pp.window);
-    ui->delta_dsb->setValue(_params->pp.delta);
-    ui->enableIteration_cb->setChecked(_params->pp.termIterationFlag);
-    ui->enableDelta_cb->setChecked(_params->pp.termDeltaFlag);
-
-    ui->testIt_sb->setValue(_params->np.testIterations);
-
-    ui->mse_floor_dsb->setValue(_params->fp.mse_floor);
-    ui->acc_floor_dsb->setValue(_params->fp.floors.accuracy);
-    ui->pre_floor_dsb->setValue(_params->fp.floors.precision);
-    ui->sen_floor_dsb->setValue(_params->fp.floors.sensitivity);
-    ui->spe_floor_dsb->setValue(_params->fp.floors.specificity);
-    ui->fscore_floor_dsb->setValue(_params->fp.floors.f_score);
-
-    ui->mse_weight_dsb->setValue(_params->fp.mse_weight);
-    ui->acc_weight_dsb->setValue(_params->fp.weights.accuracy);
-    ui->pre_weight_dsb->setValue(_params->fp.weights.precision);
-    ui->sen_weight_dsb->setValue(_params->fp.weights.sensitivity);
-    ui->spe_weight_dsb->setValue(_params->fp.weights.specificity);
-    ui->fscore_weight_dsb->setValue(_params->fp.weights.f_score);
-
-    ui->netType_cb->setCurrentIndex(getNetTypeCBIndex());
-}
-
-int MainWindow::getNetTypeCBIndex() {
-    switch (_params->np.type) {
-    case NeuralNet::Feedforward:
-        return 0;
-        break;
-    case NeuralNet::Recurrent:
-        return 1;
-        break;
-    default:
-        return 0;
-        break;
-    }
-}
-
-void MainWindow::setNetTypeByIndex(const int & i) {
-    switch (i) {
-    case 0:
-        _params.np.type = NeuralNet::Feedforward;
-        break;
-    case 1:
-        _params.np.type = NeuralNet::Recurrent;
-        break;
-    default:
-        _params.np.type = NeuralNet::Feedforward;
-        break;
-    }
-}
-
-void MainWindow::setInnerNetNodesFromGui() {
-    InnerNetNodesInput * dialog = new InnerNetNodesInput(_params->np);
 }
 
 void MainWindow::setParameterDefaults() {
@@ -431,14 +274,15 @@ void MainWindow::setParameterDefaults() {
         _params = std::make_shared<TrainingParameters>();
     }
 
-    _params->pp.particles = 50; // 50
+    _params->pp.population = 50; // 50
     _params->pp.neighbors = 13; // 10
-    _params->pp.iterations = 1000;
-    _params->pp.delta = 5E-8;
-    _params->pp.vDelta = 5E-200;
+    _params->pp.minEpochs = 10;
+    _params->pp.maxEpochs = 1000;
+    _params->pp.delta = 5E-8L;
+    _params->pp.vDelta = 5E-200L;
     _params->pp.termIterationFlag = false;
     _params->pp.termDeltaFlag = true;
-    _params->pp.window = 500;
+    _params->pp.windowSize = 500;
 
     /*
     NeuralNetParameters nParams;
@@ -448,28 +292,28 @@ void MainWindow::setParameterDefaults() {
     //nParams.innerNetNodes.push_back(50);
     nParams.outputs = 10;
     */
-    _params->np.inputs = _inputData[0].size();
+    _params->np.inputs = static_cast<int>((*_inputCache)[0].inputize().size());
     _params->np.innerNetNodes.clear();
     _params->np.innerNetNodes.push_back(4);
     _params->np.innerNetNodes.push_back(4);
     _params->np.innerNetNodes.push_back(4);
-    _params->np.innerNets = _params.np.innerNetNodes.size();
-    _params->np.outputs = 1;
+    _params->np.innerNets = static_cast<int>(_params->np.innerNetNodes.size());
+    _params->np.outputs = static_cast<int>((*_inputCache)[0].outputize().size());
     _params->np.testIterations = 500; //500
 
-    _params->fp.floors.accuracy = .05;
-    _params->fp.floors.precision = 0.05;
-    _params->fp.floors.sensitivity = 0.05;
-    _params->fp.floors.specificity = .05;
-    _params->fp.floors.f_score = 0.05;
+    _params->fp.floors.accuracy = .05L;
+    _params->fp.floors.precision = 0.05L;
+    _params->fp.floors.sensitivity = 0.05L;
+    _params->fp.floors.specificity = .05L;
+    _params->fp.floors.f_score = 0.05L;
     _params->fp.mse_floor = 0;
 
     _params->fp.mse_weight = 1;
-    _params->fp.weights.accuracy = 0.0;
-    _params->fp.weights.precision = 0.0;
-    _params->fp.weights.sensitivity = 0.0;
-    _params->fp.weights.specificity = 0.0;
-    _params->fp.weights.f_score = 0.0;
+    _params->fp.weights.accuracy = 0.0L;
+    _params->fp.weights.precision = 0.0L;
+    _params->fp.weights.sensitivity = 0.0L;
+    _params->fp.weights.specificity = 0.0L;
+    _params->fp.weights.f_score = 0.0L;
 
     _params->cp.inputFileName = QString ("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\test\\10_Hammond_CrownPoint_Lake.csv");
     _params->cp.headerSize = 2;
@@ -477,6 +321,92 @@ void MainWindow::setParameterDefaults() {
     _params->cp.totalSlicesPerCache = 8;
 
     updateParameterGui();
+}
+
+void MainWindow::applyParameterChanges() {
+    _params->pp.population = static_cast<size_t>(ui->totalParticles_sb->value());
+    _params->pp.neighbors = static_cast<size_t>(ui->totalNeighbors_sb->value());
+    _params->pp.minEpochs = static_cast<size_t>(ui->minEpochs_sb->value());
+    _params->pp.maxEpochs = static_cast<size_t>(ui->maxEpochs_sb->value());
+    _params->pp.delta = static_cast<size_t>(ui->delta_dsb->value());
+    _params->pp.windowSize = static_cast<size_t>(ui->window_sb->value());
+    _params->pp.termIterationFlag = static_cast<size_t>(ui->enableIteration_cb->isChecked());
+    _params->pp.termDeltaFlag = static_cast<size_t>(ui->enableDelta_cb->isChecked());
+
+    _params->np.testIterations = ui->testIt_sb->value();
+
+    _params->fp.mse_floor = static_cast<real>(ui->mse_floor_dsb->value());
+    _params->fp.floors.accuracy = static_cast<real>(ui->acc_floor_dsb->value());
+    _params->fp.floors.precision = static_cast<real>(ui->pre_floor_dsb->value());
+    _params->fp.floors.sensitivity = static_cast<real>(ui->sen_floor_dsb->value());
+    _params->fp.floors.specificity = static_cast<real>(ui->spe_floor_dsb->value());
+    _params->fp.floors.f_score = static_cast<real>(ui->fscore_floor_dsb->value());
+
+    _params->fp.mse_weight = static_cast<real>(ui->mse_weight_dsb->value());
+    _params->fp.weights.accuracy = static_cast<real>(ui->acc_weight_dsb->value());
+    _params->fp.weights.precision = static_cast<real>(ui->pre_weight_dsb->value());
+    _params->fp.weights.sensitivity = static_cast<real>(ui->sen_weight_dsb->value());
+    _params->fp.weights.specificity = static_cast<real>(ui->spe_weight_dsb->value());
+    _params->fp.weights.f_score = static_cast<real>(ui->fscore_weight_dsb->value());
+
+    setNetTypeByIndex(ui->netType_cb->currentIndex());
+}
+
+void MainWindow::updateParameterGui() {
+    ui->totalParticles_sb->setValue(static_cast<int>(_params->pp.population));
+    ui->totalNeighbors_sb->setValue(static_cast<int>(_params->pp.neighbors));
+    ui->minEpochs_sb->setValue(static_cast<int>(_params->pp.minEpochs));
+    ui->maxEpochs_sb->setValue(static_cast<int>(_params->pp.maxEpochs));
+    ui->window_sb->setValue(static_cast<int>(_params->pp.windowSize));
+    ui->delta_dsb->setValue(static_cast<int>(_params->pp.delta));
+    ui->enableIteration_cb->setChecked(_params->pp.termIterationFlag);
+    ui->enableDelta_cb->setChecked(_params->pp.termDeltaFlag);
+
+    ui->testIt_sb->setValue(_params->np.testIterations);
+
+    ui->mse_floor_dsb->setValue(static_cast<double>(_params->fp.mse_floor));
+    ui->acc_floor_dsb->setValue(static_cast<double>(_params->fp.floors.accuracy));
+    ui->pre_floor_dsb->setValue(static_cast<double>(_params->fp.floors.precision));
+    ui->sen_floor_dsb->setValue(static_cast<double>(_params->fp.floors.sensitivity));
+    ui->spe_floor_dsb->setValue(static_cast<double>(_params->fp.floors.specificity));
+    ui->fscore_floor_dsb->setValue(static_cast<double>(_params->fp.floors.f_score));
+
+    ui->mse_weight_dsb->setValue(static_cast<double>(_params->fp.mse_weight));
+    ui->acc_weight_dsb->setValue(static_cast<double>(_params->fp.weights.accuracy));
+    ui->pre_weight_dsb->setValue(static_cast<double>(_params->fp.weights.precision));
+    ui->sen_weight_dsb->setValue(static_cast<double>(_params->fp.weights.sensitivity));
+    ui->spe_weight_dsb->setValue(static_cast<double>(_params->fp.weights.specificity));
+    ui->fscore_weight_dsb->setValue(static_cast<double>(_params->fp.weights.f_score));
+
+    ui->netType_cb->setCurrentIndex(getNetTypeCBIndex());
+}
+
+int MainWindow::getNetTypeCBIndex() {
+    switch (_params->np.type) {
+    case NeuralNet::Feedforward:
+        return 0;
+    case NeuralNet::Recurrent:
+        return 1;
+    }
+    return 0;
+}
+
+void MainWindow::setNetTypeByIndex(const int & i) {
+    switch (i) {
+    case 0:
+        _params->np.type = NeuralNet::Feedforward;
+        break;
+    case 1:
+        _params->np.type = NeuralNet::Recurrent;
+        break;
+    default:
+        _params->np.type = NeuralNet::Feedforward;
+        break;
+    }
+}
+
+void MainWindow::setInnerNetNodesFromGui() {
+    InnerNetNodesInput * dialog = new InnerNetNodesInput(_params->np);
 }
 
 void MainWindow::setInputsForTrainedNetFromGui() {
@@ -487,19 +417,19 @@ void MainWindow::setInputsForTrainedNetFromGui() {
 void MainWindow::updateConfusionMatrix() {
     TestStatistics & ts = _neuralPsoTrainer->testStats();
     TestStatistics::ClassificationError ce;
-    ts.getClassError(&ce);
+    ts.getClassError(ce);
 
-    double actPos = ts.tp() + ts.fn();
-    double actNeg = ts.fp() + ts.tn();
-    double prePos = ts.tp() + ts.fp();
-    double preNeg = ts.tn() + ts.fn();
+    double actPos = static_cast<double>(ts.tp() + ts.fn());
+    double actNeg = static_cast<double>(ts.fp() + ts.tn());
+    double prePos = static_cast<double>(ts.tp() + ts.fp());
+    double preNeg = static_cast<double>(ts.tn() + ts.fn());
     double pop = ts.population();
 
-    ui->acc_lbl->setText(QString::number((double)ce.accuracy));
-    ui->prec_lbl->setText(QString::number((double)ce.precision));
-    ui->sens_lbl->setText(QString::number((double)ce.sensitivity));
-    ui->spec_lbl->setText(QString::number((double)ce.specificity));
-    ui->fscore_lbl->setText(QString::number((double)ce.f_score));
+    ui->acc_lbl->setText(QString::number(static_cast<double>(ce.accuracy)));
+    ui->prec_lbl->setText(QString::number(static_cast<double>(ce.precision)));
+    ui->sens_lbl->setText(QString::number(static_cast<double>(ce.sensitivity)));
+    ui->spec_lbl->setText(QString::number(static_cast<double>(ce.specificity)));
+    ui->fscore_lbl->setText(QString::number(static_cast<double>(ce.f_score)));
 
     ui->actPosNum_lbl->setText(QString::number(actPos));
     ui->actPosPerc_lbl->setText(QString::number(actPos / pop));
@@ -510,14 +440,14 @@ void MainWindow::updateConfusionMatrix() {
     ui->predNegNum_lbl->setText(QString::number(preNeg));
     ui->predNegPerc_lbl->setText(QString::number(preNeg / pop));
 
-    ui->truePosNum_lbl->setText(QString::number((double)ts.tp()));
-    ui->truePosPerc_lbl->setText(QString::number((double)ts.tp_norm()));
-    ui->trueNegNum_lbl->setText(QString::number((double)ts.tn()));
-    ui->trueNegPerc_lbl->setText(QString::number((double)ts.tn_norm()));
-    ui->falsePosNum_lbl->setText(QString::number((double)ts.fp()));
-    ui->falsePosPerc_lbl->setText(QString::number((double)ts.fp_norm()));
-    ui->falseNegNum_lbl->setText(QString::number((double)ts.fn()));
-    ui->falseNegPerc_lbl->setText(QString::number((double)ts.fn_norm()));
+    ui->truePosNum_lbl->setText(QString::number(static_cast<double>(ts.tp())));
+    ui->truePosPerc_lbl->setText(QString::number(static_cast<double>(ts.tp_norm())));
+    ui->trueNegNum_lbl->setText(QString::number(static_cast<double>(ts.tn())));
+    ui->trueNegPerc_lbl->setText(QString::number(static_cast<double>(ts.tn_norm())));
+    ui->falsePosNum_lbl->setText(QString::number(static_cast<double>(ts.fp())));
+    ui->falsePosPerc_lbl->setText(QString::number(static_cast<double>(ts.fp_norm())));
+    ui->falseNegNum_lbl->setText(QString::number(static_cast<double>(ts.fn())));
+    ui->falseNegPerc_lbl->setText(QString::number(static_cast<double>(ts.fn_norm())));
 }
 
 void MainWindow::testTrainedNetWithInput() {
@@ -619,8 +549,9 @@ void MainWindow::runNeuralPso() {
   tryInjectGB();
   _neuralPsoTrainer->runTrainer();
 
-  TestStatistics::ClassificationError ce;
-  _neuralPsoTrainer->classError(&ce);
+  _neuralPsoTrainer->testGB();
+  //TestStatistics::ClassificationError ce;
+  //_neuralPsoTrainer->classError(ce);
 
   stopPso();
 
@@ -628,9 +559,9 @@ void MainWindow::runNeuralPso() {
 
   QString completionMsg;
   completionMsg.append("Complete. ");
-  completionMsg.append(QString::number(_neuralPsoTrainer->iterations(), 10));
-  completionMsg.append(" iterations\t");
-  completionMsg.append(QString::number((double)_runTimer.elapsed() / 1000.0));
+  completionMsg.append(QString::number(_neuralPsoTrainer->epochs(), 10));
+  completionMsg.append(" epochs\t");
+  completionMsg.append(QString::number(static_cast<double>(_runTimer.elapsed()) / 1000.0));
   completionMsg.append(" seconds");
   setOutputLabel(completionMsg);
 
@@ -677,7 +608,7 @@ void MainWindow::on_clearState_btn_clicked() {
 }
 
 void MainWindow::clearPSOState() {
-    _neuralPsoTrainer = std::make_unique<OutageTrainer>(_params);
+    _neuralPsoTrainer = std::make_unique<OutageTrainer>(_params, _inputCache);
     //_neuralPsoTrainer->build(_inputData, _labelsData);
     _neuralPsoTrainer->setFunctionMsg("Outage Data");
 }
@@ -696,7 +627,7 @@ void MainWindow::tryInjectGB() {
 void MainWindow::updatePlot() {
     if (_neuralPsoTrainer != nullptr) {
         NeuralNet::CombEdgeType * edge = &(_neuralPsoTrainer->gb()->_x);
-        ui->neuralNetPlot->setEdges(edge, _params.np.type);
+        ui->neuralNetPlot->setEdges(edge, _params->np.type);
         updateConfusionMatrix();
 
         if (_runPso) {
@@ -706,8 +637,8 @@ void MainWindow::updatePlot() {
 
                 QString completionMsg;
                 completionMsg.append("Training running. ");
-                completionMsg.append(QString::number(_neuralPsoTrainer->iterations(), 10));
-                completionMsg.append(" iterations");
+                completionMsg.append(QString::number(_neuralPsoTrainer->epochs(), 10));
+                completionMsg.append(" epochs");
                 setOutputLabel(completionMsg);
             }
         }
@@ -728,32 +659,47 @@ void MainWindow::tellParameters() {
     std::string outputString;
 
     outputString += "\n\nInputs: ";
-    outputString += stringPut(_params.np.inputs);
+    outputString += stringPut(_params->np.inputs);
     outputString += "\nInner Nets: ";
-    outputString += stringPut(_params.np.innerNets);
+    outputString += stringPut(_params->np.innerNets);
     outputString += "\n";
-    for (uint i = 0; i < _params.np.innerNetNodes.size(); i++) {
+    for (uint i = 0; i < _params->np.innerNetNodes.size(); i++) {
         outputString += " - ";
-        outputString += stringPut(_params.np.innerNetNodes[i]);
+        outputString += stringPut(_params->np.innerNetNodes[i]);
         outputString += "\n";
         //cout << " - " << nParams.innerNetNodes[i] << endl;
     }
     outputString += "Tests per train(min): ";
-    outputString += stringPut(_params.np.testIterations);
+    outputString += stringPut(_params->np.testIterations);
     outputString += "\n";
     outputString += "Particles: ";
-    outputString += stringPut(_params.pp.particles);
+    outputString += stringPut(_params->pp.population);
     outputString += "\nNeighbors: ";
-    outputString += stringPut(_params.pp.neighbors);
+    outputString += stringPut(_params->pp.neighbors);
     outputString += "\n";
     outputString += "Minimum Particle Iterations: ";
-    outputString += stringPut(_params.pp.iterations);
+    outputString += stringPut(_params->pp.minEpochs);
+    outputString += "\n";
+    outputString += "Maximum Particle Iterations: ";
+    outputString += stringPut(_params->pp.maxEpochs);
     outputString += "\n";
 
     //cout << "Tests per train(min): " << nParams.testIterations << endl;
     //cout << "Particles: " << pParams.particles << "\nNeighbors: " << pParams.neighbors << endl;
     //cout << "Minimum Particle Iterations: " << pParams.iterations << endl;
     Logger::write(outputString);
+}
+
+void MainWindow::keyPressEvent(QKeyEvent * e) {
+    if (e->key() == Qt::Key_C) {
+        cout << "Ending process.  Please wait. " << endl;
+        NeuralPso::interruptProcess();
+    } else if (e->key() == Qt::Key_P) {
+        NeuralPso::setToPrint();
+    } else if (e->key() == Qt::Key_G) {
+        NeuralPso::setToPrintGBNet();
+    }
+    QMainWindow::keyPressEvent(e);
 }
 
 uint32_t MainWindow::readUnsignedInt(ifstream &input) {

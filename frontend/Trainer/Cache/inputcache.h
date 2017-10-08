@@ -23,17 +23,18 @@ public:
 
     const unsigned long DEFAULT_MAX_BYTES = 1024*1024*64;
 
+    bool reloadCache(const QString & filename);
     const bool & validFile() { return _validFile; }
 
     void setMaxBytes(const unsigned long & maxBytes);
     const unsigned long & maxBytes() { return _cacheParams.maxBytes; }
     const unsigned long & effectiveMaxBytes() { return _effectiveMaxBytes; }
     const unsigned long & fileEffectiveBytes() { return _fileEffectiveBytes; }
-    double maxKBytes() { return (double) _cacheParams.maxBytes * 1024.0; }
+    double maxKBytes() { return static_cast<double>(_cacheParams.maxBytes) * 1024.0; }
     double maxMBytes() { return maxKBytes() * 1024.0; }
-    double effectiveMaxKBytes() { return (double) _effectiveMaxBytes * 1024.0; }
+    double effectiveMaxKBytes() { return static_cast<double>(_effectiveMaxBytes) * 1024.0; }
     double effectiveMaxMBytes() { return effectiveMaxKBytes() * 1024.0; }
-    double fileEffectiveKBytes() { return (double) _fileEffectiveBytes * 1024.0; }
+    double fileEffectiveKBytes() { return static_cast<double>(_fileEffectiveBytes) * 1024.0; }
     double fileEffectiveMBytes() { return fileEffectiveKBytes() * 1024.0; }
 
     void setTotalSlicesPerCache(const size_t & slices);

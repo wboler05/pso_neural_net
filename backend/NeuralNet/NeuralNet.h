@@ -42,7 +42,9 @@ public:
         int innerNets=0;            // Total inner layers
         vector<int> innerNetNodes;  // Number of nodes for each layer
         int outputs=0;              // Output nodes
-        int testIterations=20;      // Number of inputs to check per training iteration
+        int trainingIterations=20;  // Total iterations of training
+        int validationIterations=20;// Total iterations of validation
+        int testIterations=20;      // Total iterations of testing
         NeuralNet::Type type = Feedforward;
     };
 
