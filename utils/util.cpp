@@ -7,11 +7,11 @@
 std::vector<real> cdfUniform(const std::vector<real> &n) {
   std::vector<real> cdf;
   real sum = 0;
-  for (uint32_t i = 0; i < n.size(); i++) {
+  for (size_t i = 0; i < n.size(); i++) {
     sum += n[i];
   }
   real nSum = 0;
-  for (uint32_t i = 0; i < n.size(); i++) {
+  for (size_t i = 0; i < n.size(); i++) {
     nSum += n[i] / sum;
     cdf.push_back(nSum);
   }

@@ -28,7 +28,7 @@ using namespace std;
 #define M_PI 3.1415926535897
 #endif
 
-#define uint uint32_t
+//#define uint uint32_t
 #define byte uint8_t
 
 class NeuralNet {

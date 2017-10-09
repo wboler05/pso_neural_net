@@ -80,7 +80,7 @@ real CustomMath::poly(real input, QVector<real> coeffs, int order) {
  */
 QVector<real> CustomMath::bestFitLine(const QVector<real> &t, const QVector<real> &b, bool intZero) {
     QVector<real> result;
-    uint n = t.count();
+    size_t n = t.count();
     if (t.count() == 0) return result;
     if (b.count() == 0) return result;
     if (t.count() != b.count()) return result;
@@ -89,7 +89,7 @@ QVector<real> CustomMath::bestFitLine(const QVector<real> &t, const QVector<real
         // Best fit line for intercept at zero
         real dotProd = 0;
         real t_sqr = 0;
-        for (unsigned int i = 0; i < n; i++) {
+        for (size_t i = 0; i < n; i++) {
             dotProd += t.at(i)*b.at(i);
             t_sqr += t.at(i)*t.at(i);
         }
@@ -117,7 +117,7 @@ QVector<real> CustomMath::bestFitLine(const QVector<real> &t, const QVector<real
             // Break if dividing by zero
             return result; // Result size 0
         } else {
-            for (unsigned int i = 0; i < n; i++) {
+            for (size_t i = 0; i < n; i++) {
                 C += b.at(i) * (n * t.at(i) - sum_t);
                 D += b.at(i) * (t_sqr - (t.at(i) * sum_t));
             }

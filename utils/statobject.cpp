@@ -1,15 +1,15 @@
 #include "statobject.h"
 #include <QDebug>
 
-uint StatObject::_stat_object_count = 0;
-uint StatObject::_snapShots = 0;
+uint32_t StatObject::_stat_object_count = 0;
+uint32_t StatObject::_snapShots = 0;
 
 /**
  * @brief StatObject::StatObject
  * @param max - Maximum size of queue.
  * @details Constructor which takes the maximum window size for the internal queue.
  */
-StatObject::StatObject(unsigned int max) :
+StatObject::StatObject(uint32_t max) :
     _name(QString()),
     _values(new QQueue<double>),
     _valuesTotal(0),
@@ -27,7 +27,7 @@ StatObject::StatObject(unsigned int max) :
  * @param max
  * @details Constructor which takes both an object name and a window size.
  */
-StatObject::StatObject(QString name, unsigned int max) :
+StatObject::StatObject(QString name, uint32_t max) :
     _name(name),
     _values(new QQueue<double>),
     _valuesTotal(0),
@@ -205,7 +205,7 @@ double StatObject::var() {
     double variance = 0;
     //double avg_ = avg();
 /*
-    for (unsigned int i = 0; i < _events; i++) {
+    for (uint32_t i = 0; i < _events; i++) {
         variance += pow(_values->at(i) - avg_, 2);
     }
     variance /= _events - 1;

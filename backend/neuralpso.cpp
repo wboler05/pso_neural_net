@@ -35,7 +35,7 @@ void NeuralPso::buildPso() {
 
     // Create N particles
     _particles->resize(_psoParams.population);
-    for (uint i = 0; i < _psoParams.population; i++) {
+    for (size_t i = 0; i < _psoParams.population; i++) {
         // Create the number of inner columns
         (*_particles)[i]._fit_pb = -numeric_limits<real>::max();
         (*_particles)[i]._fit_lb = -numeric_limits<real>::max();
@@ -53,7 +53,7 @@ void NeuralPso::buildPso() {
             _gb._x.resize(edges.size()+1);
         }
         // Create each inner column edge
-        for (uint j = 0; j < edges.size(); j++) {
+        for (size_t j = 0; j < edges.size(); j++) {
             // Create left edges
             (*_particles)[i]._x[j].resize(edges[j].size());
             (*_particles)[i]._minX[j].resize(edges[j].size());
@@ -64,7 +64,7 @@ void NeuralPso::buildPso() {
             if (i == 0) {
                 _gb._x[j].resize(edges[j].size());
             }
-            for (uint k = 0; k < edges[j].size(); k++) {
+            for (size_t k = 0; k < edges[j].size(); k++) {
                 // Create right edges
                 (*_particles)[i]._x[j][k].resize(edges[j][k].size());
                 (*_particles)[i]._minX[j][k].resize(edges[j][k].size());
@@ -75,7 +75,7 @@ void NeuralPso::buildPso() {
                 if (i == 0) {
                     _gb._x[j][k].resize(edges[j][k].size());
                 }
-                for (uint m = 0; m < edges[j][k].size(); m++) {
+                for (size_t m = 0; m < edges[j][k].size(); m++) {
                     (*_particles)[i]._v[j][k][m] = 0;
                     (*_particles)[i]._x_pb[j][k][m] = 0;
                     (*_particles)[i]._x_lb[j][k][m] = 0;
@@ -113,7 +113,7 @@ void NeuralPso::buildPso() {
         if (i == 0) {
             _gb._x[recEdgeIt].resize(rEdges.size());
         }
-        for (uint j = 0; j < rEdges.size(); j++) {
+        for (size_t j = 0; j < rEdges.size(); j++) {
             (*_particles)[i]._x[recEdgeIt][j].resize(rEdges[j].size());
             (*_particles)[i]._minX[recEdgeIt][j].resize(rEdges[j].size());
             (*_particles)[i]._maxX[recEdgeIt][j].resize(rEdges[j].size());
@@ -123,7 +123,7 @@ void NeuralPso::buildPso() {
             if (i == 0) {
                 _gb._x[recEdgeIt][j].resize(rEdges[j].size());
             }
-            for (uint k = 0; k < rEdges[j].size(); k++) {
+            for (size_t k = 0; k < rEdges[j].size(); k++) {
                 //(*_particles)[i]._x[recEdgeIt][j][k] = dist(_randomEngine.engine());
                 (*_particles)[i]._x[recEdgeIt][j][k] = _randomEngine.uniformReal(
                             innerWeightRange[0], innerWeightRange[1]);
@@ -149,7 +149,7 @@ void NeuralPso::fly() {
     if ((*_particles)[0]._v.size() == 0) return;
 
     static int innerNetAccessCount = _psoParams.iterationsPerLevel;
-    static uint innerNetIt = (*_particles)[0]._v.size()-1;
+    static size_t innerNetIt = (*_particles)[0]._v.size()-1;
 
     real choice=0;
     bool worstFlag;
@@ -201,7 +201,7 @@ void NeuralPso::fly() {
         }
 
         // For each inner net
-        for (uint inner_net = 0; inner_net < p->_v.size(); inner_net++) {
+        for (size_t inner_net = 0; inner_net < p->_v.size(); inner_net++) {
             if (checkTermProcess())
                 return;
 
@@ -624,12 +624,12 @@ void NeuralPso::processEvents() {
 void NeuralPso::printGB() {
   std::string printString;
   printString += "Global Best: \n";
-  for (uint i = 0; i < _gb._x.size(); i++) {
+  for (size_t i = 0; i < _gb._x.size(); i++) {
     printString += "  Inner Net ";
     printString += stringPut(i+1);
     printString += "\n";
-    for (uint j = 0; j < gb()->_x[i].size(); j++) {
-      for (uint k = 0; k < gb()->_x[i][j].size(); k++) {
+    for (size_t j = 0; j < gb()->_x[i].size(); j++) {
+      for (size_t k = 0; k < gb()->_x[i][j].size(); k++) {
         printString += "  -- ";
         printString += stringPut(j+1);
         printString += " : ";
@@ -643,19 +643,19 @@ void NeuralPso::printGB() {
   Logger::write(printString);
 }
 
-void NeuralPso::printParticle(uint I) {
+void NeuralPso::printParticle(size_t I) {
   if (I > _particles->size()) return;
 
   std::string printString;
   printString += "Particle (";
   printString += stringPut(I);
   printString += "): \n";
-  for (uint i = 0; i < (*_particles)[I]._x.size(); i++) {
+  for (size_t i = 0; i < (*_particles)[I]._x.size(); i++) {
     printString += "  Inner Net ";
     printString += stringPut(i+1);
     printString += "\n";
-    for (uint j = 0; j < (*_particles)[I]._x[i].size(); j++) {
-      for (uint k = 0; k < (*_particles)[I]._x[i][j].size(); k++) {
+    for (size_t j = 0; j < (*_particles)[I]._x[i].size(); j++) {
+      for (size_t k = 0; k < (*_particles)[I]._x[i][j].size(); k++) {
         printString += "  -- ";
         printString += stringPut(j+1);
         printString += " : ";
@@ -669,19 +669,19 @@ void NeuralPso::printParticle(uint I) {
   Logger::write(printString);
 }
 
-void NeuralPso::printParticlePBest(uint I) {
+void NeuralPso::printParticlePBest(size_t I) {
   if (I > _particles->size()) return;
 
   std::string printString;
   printString += "Particle pBest (";
   printString += stringPut(I);
   printString += "): \n";
-  for (uint i = 0; i < (*_particles)[I]._x_pb.size(); i++) {
+  for (size_t i = 0; i < (*_particles)[I]._x_pb.size(); i++) {
     printString += "  Inner Net ";
     printString += stringPut(i+1);
     printString += "\n";
-    for (uint j = 0; j < (*_particles)[I]._x_pb[i].size(); j++) {
-      for (uint k = 0; k < (*_particles)[I]._x_pb[i][j].size(); k++) {
+    for (size_t j = 0; j < (*_particles)[I]._x_pb[i].size(); j++) {
+      for (size_t k = 0; k < (*_particles)[I]._x_pb[i][j].size(); k++) {
         printString += "  -- ";
         printString += stringPut(j+1);
         printString += " : ";
@@ -695,19 +695,19 @@ void NeuralPso::printParticlePBest(uint I) {
   Logger::write(printString);
 }
 
-void NeuralPso::printParticleLBest(uint I) {
+void NeuralPso::printParticleLBest(size_t I) {
   if (I > _particles->size()) return;
 
   std::string printString;
   printString += "Particle lBest (";
   printString += stringPut(I);
   printString += "): \n";
-  for (uint i = 0; i < (*_particles)[I]._x_lb.size(); i++) {
+  for (size_t i = 0; i < (*_particles)[I]._x_lb.size(); i++) {
     printString += "  Inner Net ";
     printString += stringPut(i+1);
     printString += "\n";
-    for (uint j = 0; j < (*_particles)[I]._x_lb[i].size(); j++) {
-      for (uint k = 0; k < (*_particles)[I]._x_lb[i][j].size(); k++) {
+    for (size_t j = 0; j < (*_particles)[I]._x_lb[i].size(); j++) {
+      for (size_t k = 0; k < (*_particles)[I]._x_lb[i][j].size(); k++) {
         printString += "  -- ";
         printString += stringPut(j+1);
         printString += " : ";

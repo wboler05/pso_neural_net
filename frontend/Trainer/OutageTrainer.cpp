@@ -4,8 +4,8 @@
 
 OutageTrainer::OutageTrainer(const std::shared_ptr<TrainingParameters> & pe, const std::shared_ptr<InputCache> & inputCache) :
     NeuralPso(pe->pp, pe->np, pe->fp),
-    _inputCache(inputCache),
-    _params(pe)
+    _params(pe),
+    _inputCache(inputCache)
 {
     build();
 }
@@ -58,14 +58,13 @@ void OutageTrainer::biasAgainstOutputs() {
     // Run through the training inputs
     for (size_t i = 0; i < _trainingInputs.size(); i++) {
         size_t it = _trainingInputs.at(i);
-        OutageDataItem & dataItem = (*_inputCache)[it];
-        OutageDataWrapper dataWrapper(dataItem);
-        if (dataWrapper.empty()) {
+        OutageDataWrapper dataItem = (*_inputCache)[it];
+        if (dataItem.empty()) {
             continue;
         }
 
         // Count the true and false outages
-        bool outage = confirmOutage(dataWrapper.outputize());
+        bool outage = confirmOutage(dataItem.outputize());
         if (outage) {
             _biasedTrainingInputsCounts[1]++;
             _biasedTrainingInputs[1].push_back(it);
@@ -112,12 +111,12 @@ real OutageTrainer::trainingRun() {
     expectedOutput.resize(outputNodes);
 
     size_t totalSetsToRun = static_cast<size_t>(_neuralNet->nParams()->trainingIterations);
-//    uint correctCount = totalSetsToRun;
+//    size_t correctCount = totalSetsToRun;
 
 //    TestStatistics testStats;
 
     // First, test each output and store to the vector of results;
-    for (uint someSets = 0; someSets < totalSetsToRun; someSets++) {
+    for (size_t someSets = 0; someSets < totalSetsToRun; someSets++) {
         qApp->processEvents();
         // Set a random input
         size_t I = randomizeTrainingInputs();
@@ -133,9 +132,8 @@ real OutageTrainer::trainingRun() {
         }
 
         //expectedOutput = _output->at(I);
-        OutageDataItem & dataItem = (*_inputCache)[I];
-        OutageDataWrapper dataWrapper = dataItem;
-        expectedOutput = dataWrapper.outputize();
+        OutageDataWrapper dataItem = (*_inputCache)[I];
+        expectedOutput = dataItem.outputize();
 
         //    real maxVal = -1.0;
         //    int maxNode = 0;
@@ -165,7 +163,7 @@ real OutageTrainer::trainingRun() {
         }
 
         // Get the MSE
-        for (uint i = 0; i < outputError.size(); i++) {
+        for (size_t i = 0; i < outputError.size(); i++) {
             mse += pow(outputError[i], 2);
         }
 
@@ -237,7 +235,7 @@ real OutageTrainer::trainingRun() {
 
 //  vector<real> w = {1, 0, 100};
 //  real probSum = 0;
-//  for (uint i = 0; i < w.size(); i++) {
+//  for (size_t i = 0; i < w.size(); i++) {
 //    probSum += w[i];
 //  }
 
@@ -321,8 +319,7 @@ size_t OutageTrainer::randomizeTrainingInputs() {
     size_t I = _randomEngine.uniformUnsignedInt(minIt, maxBiasIt);
     size_t it = _biasedTrainingInputs[uniformOutputIt][I];
 
-    OutageDataItem & dataItem =(*_inputCache)[it];
-    OutageDataWrapper item = dataItem;
+    OutageDataWrapper item =(*_inputCache)[it];
     std::vector<real> inputItems = item.inputize();
 
     for (size_t i = 0; i < inputItems.size(); i++) {
@@ -332,41 +329,40 @@ size_t OutageTrainer::randomizeTrainingInputs() {
     return it;
 }
 
-OutageDataWrapper &OutageTrainer::loadTestInput(const size_t & I) {
+OutageDataWrapper && OutageTrainer::loadTestInput(const size_t & I) {
+    OutageDataWrapper wrapper;
     if (I >= _testInputs.size()) {
-        OutageDataWrapper empty;
-        return empty;
+        return std::move(wrapper);
     }
     size_t it = _testInputs[I];
 
     _neuralNet->resetInputs();
 
-    OutageDataItem &dataItem = (*_inputCache)[it];
-    OutageDataWrapper item = dataItem;
+    OutageDataWrapper item = (*_inputCache)[it];
     std::vector<real> inputItems = item.inputize();
 
-    for (uint i = 0; i < inputItems.size(); i++) {
+    for (size_t i = 0; i < inputItems.size(); i++) {
         _neuralNet->loadInput(inputItems[i], i);
     }
-    return item;
+    return std::move(item);
 }
 
-OutageDataWrapper & OutageTrainer::loadValidationInput(const size_t & I) {
+OutageDataWrapper && OutageTrainer::loadValidationInput(const size_t & I) {
     if (I >= _validationInputs.size()) {
         OutageDataWrapper empty;
-        return empty;
+        return std::move(empty);
     }
     size_t it = _validationInputs[I];
 
     _neuralNet->resetInputs();
 
-    OutageDataItem &dataItem = (*_inputCache)[it];
-    OutageDataWrapper item = dataItem;
+    OutageDataWrapper item = (*_inputCache)[it];
     std::vector<real> inputItems = item.inputize();
 
-    for (uint i = 0; i < inputItems.size(); i++) {
+    for (size_t i = 0; i < inputItems.size(); i++) {
       _neuralNet->loadInput(inputItems[i], i);
     }
+    return std::move(item);
 }
 
 void OutageTrainer::testGB() {
@@ -402,17 +398,16 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
         size_t it = testInputs[i];
         _neuralNet->resetInputs();
 
-        OutageDataItem &dataItem = (*_inputCache)[it];
-        OutageDataWrapper outageData = dataItem;
+        OutageDataWrapper outageData = (*_inputCache)[it];
         std::vector<real> inputItems = outageData.inputize();
-        for (uint i = 0; i < inputItems.size(); i++) {
+        for (size_t i = 0; i < inputItems.size(); i++) {
             _neuralNet->loadInput(inputItems[i], i);
         }
 
         std::vector<real> expectedOutput = outageData.outputize();
         std::vector<real> output = _neuralNet->process();
 
-        mse += OutageDataWrapper::MSE(output, expectedOutput) / 2.0L;
+        mse += OutageDataWrapper::MSE(output, expectedOutput) / static_cast<real>(2.0);
 
         bool result = confirmOutage(output);
         bool expectedResult = confirmOutage(expectedOutput);
@@ -445,9 +440,5 @@ bool OutageTrainer::confirmOutage(const std::vector<real> & output) {
         qWarning()<< "Error, wrong vector size for output.";
         return false;
     }
-    if (output[0] < 0.5L) {
-        return false;
-    } else {
-        return true;
-    }
+    return OutageDataWrapper::double2Bool(output[0]);
 }

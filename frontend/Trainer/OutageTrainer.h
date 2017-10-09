@@ -36,8 +36,8 @@ public:
 
     size_t randomizeTrainingInputs();
     void runTrainer();
-    OutageDataWrapper & loadTestInput(const size_t & I);
-    OutageDataWrapper &loadValidationInput(const size_t &I);
+    OutageDataWrapper && loadTestInput(const size_t & I);
+    OutageDataWrapper && loadValidationInput(const size_t &I);
 
     void classError(const std::vector<size_t> &testInputs,
                     TestStatistics &testStats,

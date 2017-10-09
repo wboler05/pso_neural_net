@@ -266,7 +266,7 @@ void MainWindow::initializeCache() {
     _inputCache = std::make_shared<InputCache>(c);
 
     for (size_t i = 0; i < _inputCache->totalInputItemsInFile(); i++) {
-        OutageDataItem & index = (*_inputCache)[i];
+        OutageDataWrapper index = (*_inputCache)[i];
         qDebug() <<
             "(" << i << "): date(" <<
             index._date.day() << "/" <<
@@ -304,8 +304,7 @@ void MainWindow::setParameterDefaults() {
     nParams.outputs = 10;
     */
 
-    OutageDataItem & dataItem = (*_inputCache)[0];
-    OutageDataWrapper dataWrapper = dataItem;
+    OutageDataWrapper dataWrapper = (*_inputCache)[0];
 
     _params->np.inputs = static_cast<int>(dataWrapper.inputize().size());
     _params->np.innerNetNodes.clear();
@@ -695,7 +694,7 @@ void MainWindow::tellParameters() {
     outputString += "\nInner Nets: ";
     outputString += stringPut(_params->np.innerNets);
     outputString += "\n";
-    for (uint i = 0; i < _params->np.innerNetNodes.size(); i++) {
+    for (size_t i = 0; i < _params->np.innerNetNodes.size(); i++) {
         outputString += " - ";
         outputString += stringPut(_params->np.innerNetNodes[i]);
         outputString += "\n";

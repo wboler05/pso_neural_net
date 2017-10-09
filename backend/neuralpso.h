@@ -69,9 +69,9 @@ public:
   bool loadStatefromString(const std::string & psoState);
 
   void printGB();
-  void printParticle(uint i);
-  void printParticlePBest(uint i);
-  void printParticleLBest(uint i);
+  void printParticle(size_t i);
+  void printParticlePBest(size_t i);
+  void printParticleLBest(size_t i);
 
   static void setToPrintGBNet();
 

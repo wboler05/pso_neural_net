@@ -47,8 +47,8 @@ void InputCache::setMaxBytes(const unsigned long &maxBytes) {
     updateCache();
 }
 
-void InputCache::setTotalSlicesPerCache(const unsigned int &slices) {
-    unsigned int maxCacheSliceNum = _effectiveMaxBytes / sizeof(CacheSlice);
+void InputCache::setTotalSlicesPerCache(const size_t &slices) {
+    size_t maxCacheSliceNum = _effectiveMaxBytes / sizeof(CacheSlice);
 
     if (slices == 0) {
         qWarning() << "InputCache: Error, cannot set cache slice to zero.";
@@ -171,7 +171,7 @@ size_t InputCache::cacheIndex(const size_t & itemIndex) {
     }
 }
 
-OutageDataItem & InputCache::operator[](size_t index) {
+OutageDataWrapper InputCache::operator[](size_t index) {
     OutageDataWrapper nullObject;
 
     if (_cacheSlices.size() == 0

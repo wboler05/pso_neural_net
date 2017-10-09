@@ -26,7 +26,7 @@ public:
     // Stores a single instance of statistics data
     struct SnapShot {
         QString name;           // Name assigned to StatObject for identification
-        uint id;                // Struct ID
+        uint32_t id;                // Struct ID
         double total;
         double mean;            // Mean
         double median;          // Median
@@ -37,8 +37,8 @@ public:
     };
 
 
-    StatObject(unsigned int max=STAT_DEFAULT_MAX);  // Constructor (max events)
-    StatObject(QString name, unsigned int max=STAT_DEFAULT_MAX);    // Constructor(name, max events)
+    StatObject(uint32_t max=STAT_DEFAULT_MAX);  // Constructor (max events)
+    StatObject(QString name, uint32_t max=STAT_DEFAULT_MAX);    // Constructor(name, max events)
     ~StatObject();                                  // Destructor
 
     StatObject(const StatObject &);                 // Copy Constructor
@@ -62,11 +62,11 @@ public:
     double lastVal();                               // Get the last value or return 0 if empty
     void reset();                                   // Reset (Clear) all data
 
-    const unsigned int &events() { return _events; }            // Total number of events (N)
-    const unsigned int &max_events() { return _maxEvents; }     // Max events stored
-    void max_events(const unsigned int &m) { _maxEvents = m; }  // Set the max events
+    const uint32_t &events() { return _events; }            // Total number of events (N)
+    const uint32_t &max_events() { return _maxEvents; }     // Max events stored
+    void max_events(const uint32_t &m) { _maxEvents = m; }  // Set the max events
 
-    static uint stat_object_count() { return _stat_object_count; }  // Static count of StatObjects
+    static uint32_t stat_object_count() { return _stat_object_count; }  // Static count of StatObjects
 
     StatObject::SnapShot * getSnapShot();
 
@@ -80,12 +80,12 @@ protected:
     double _valuesTotalSqr;     // Square of the sum of values (for variance)
     double _valuesVariance;     // Statistical Variance of values
     double _valuesStdDev;       // Statistical standard deviation of values
-    unsigned int _events;       // Total events (N)
-    unsigned int _maxEvents;    // Max events (Restrict Queue size)
+    uint32_t _events;       // Total events (N)
+    uint32_t _maxEvents;    // Max events (Restrict Queue size)
 
 private:
-    static uint _stat_object_count;     // StatObject static count
-    static uint _snapShots; // Number of snapshots created
+    static uint32_t _stat_object_count;     // StatObject static count
+    static uint32_t _snapShots; // Number of snapshots created
 
     void qs_sort(QList<double> &a, const int &lo, const int &hi);
     int qs_partition(QList<double> & a, const int & lo, const int & hi);

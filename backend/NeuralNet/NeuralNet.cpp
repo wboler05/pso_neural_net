@@ -75,25 +75,25 @@ void NeuralNet::initialize(const NeuralNetParameters & p) {
 
 void NeuralNet::resetInputs() {
 
-  for (uint i = 0; i < _inputNodes.size(); i++) {
+  for (size_t i = 0; i < _inputNodes.size(); i++) {
     _inputNodes[i] = 0;
   }
 
-  for (uint i = 0; i < _innerNodes.size(); i++) {
-    for (uint j = 0; j < _innerNodes[i].size(); j++) {
+  for (size_t i = 0; i < _innerNodes.size(); i++) {
+    for (size_t j = 0; j < _innerNodes[i].size(); j++) {
       _innerNodes[i][j] = 0;
     }
   }
 
-  for (uint i = 0; i < _outputNodes.size(); i++) {
+  for (size_t i = 0; i < _outputNodes.size(); i++) {
     _outputNodes[i] = 0;
   }
 }
 
 void NeuralNet::resetWeights() {
-  for (uint i = 0; i < _edges.size(); i++) {
-    for (uint j = 0; j < _edges[i].size(); j++) {
-      for (uint k = 0; k < _edges[i][j].size(); k++) {
+  for (size_t i = 0; i < _edges.size(); i++) {
+    for (size_t j = 0; j < _edges[i].size(); j++) {
+      for (size_t k = 0; k < _edges[i][j].size(); k++) {
         _edges[i][j][k] = 0;
       }
     }
@@ -144,34 +144,34 @@ bool NeuralNet::buildNets() {
   //std::uniform_real_distribution<real> dist(-1,1);
 
   // Connect the input to the inner nodes
-  for (uint i = 0; i < _edges.size(); i++) {
+  for (size_t i = 0; i < _edges.size(); i++) {
     if (i == 0) { // Input to inner
       _edges[i].clear();
       _edges[i].resize(_inputNodes.size());
-      for (uint j = 0; j < _inputNodes.size(); j++) {
+      for (size_t j = 0; j < _inputNodes.size(); j++) {
         _edges[i][j].clear();
         _edges[i][j].resize(_innerNodes[0].size());
       }
     } else if (i == _edges.size()-1) { // inner to output
       _edges[i].clear();
       _edges[i].resize(_innerNodes[i-1].size());
-      for (uint j = 0; j < _innerNodes[i-1].size(); j++) {
+      for (size_t j = 0; j < _innerNodes[i-1].size(); j++) {
         _edges[i][j].clear();
         _edges[i][j].resize(_outputNodes.size());
       }
     } else {
       _edges[i].clear();
       _edges[i].resize(_innerNodes[i-1].size());
-      for (uint j = 0; j < _innerNodes[i-1].size(); j++) {
+      for (size_t j = 0; j < _innerNodes[i-1].size(); j++) {
         _edges[i][j].clear();
         _edges[i][j].resize(_innerNodes[i].size());
       }
     }
   }
 
-  for (uint i = 0; i < _edges.size(); i++) {
-    for (uint j = 0; j < _edges[i].size(); j++) {
-      for (uint k = 0; k < _edges[i][j].size(); k++) {
+  for (size_t i = 0; i < _edges.size(); i++) {
+    for (size_t j = 0; j < _edges[i].size(); j++) {
+      for (size_t k = 0; k < _edges[i][j].size(); k++) {
         _edges[i][j][k] = (real) (rand() % 10000-5000) / 10000.0;
         //_edges[i][j][k] = dist(gen);
       }
@@ -274,13 +274,13 @@ const vector<real> & NeuralNet::process() {
 //  cout << _inputNodes.size() << "\t" << _innerNodes.size();
 
   if (_nParams.type == Recurrent) {
-      for (uint i = 0; i < _innerNodes.size(); i++) {
-          for (uint j = 0; j < _innerNodes[i].size(); j++) {
+      for (size_t i = 0; i < _innerNodes.size(); i++) {
+          for (size_t j = 0; j < _innerNodes[i].size(); j++) {
               _recBuffer[i][j] = _recEdges[i][j] * activation(_innerNodes[i][j]);
           }
       }
-      for (uint i = 0; i < _innerNodes.size(); i++) {
-          for (uint j = 0; j < _innerNodes[i].size(); j++) {
+      for (size_t i = 0; i < _innerNodes.size(); i++) {
+          for (size_t j = 0; j < _innerNodes[i].size(); j++) {
               _innerNodes[i][j] = _recBuffer[i][j];
           }
       }
@@ -290,26 +290,26 @@ const vector<real> & NeuralNet::process() {
 
 
   // Handle the input to the inner
-  for (uint i = 0; i < _inputNodes.size(); i++) {
-    for (uint j = 0; j < _innerNodes[0].size(); j++) {
+  for (size_t i = 0; i < _inputNodes.size(); i++) {
+    for (size_t j = 0; j < _innerNodes[0].size(); j++) {
       _innerNodes[0][j] += _inputNodes[i] * _edges[0][i][j];;
     }
   }
 
     // Handle the rest of the inner nodes
-  for (uint i = 0; i < _innerNodes.size()-1; i++) {
-    for (uint j = 0; j < _innerNodes[i].size(); j ++) {
-      for (uint k = 0; k < _innerNodes[i+1].size(); k++) {
+  for (size_t i = 0; i < _innerNodes.size()-1; i++) {
+    for (size_t j = 0; j < _innerNodes[i].size(); j ++) {
+      for (size_t k = 0; k < _innerNodes[i+1].size(); k++) {
         _innerNodes[i+1][k] += _edges[i+1][j][k] * activation(_innerNodes[i][j]);
       }
     }
   }
 
   // Handle the inner nodes to the output
-  for (uint i = 0; i < _outputNodes.size(); i++) {
-    uint innerIndex = _innerNodes.size() - 1 ;
-    uint innerSize = _innerNodes[innerIndex].size();
-    for (uint j = 0; j < innerSize; j++) {
+  for (size_t i = 0; i < _outputNodes.size(); i++) {
+    size_t innerIndex = _innerNodes.size() - 1 ;
+    size_t innerSize = _innerNodes[innerIndex].size();
+    for (size_t j = 0; j < innerSize; j++) {
       _outputNodes[i] += _edges[_edges.size()-1][j][i] * activation(_innerNodes[innerIndex][j]);
     }
   }
@@ -318,13 +318,13 @@ const vector<real> & NeuralNet::process() {
 }
 
 void NeuralNet::resetInnerNodes() {
-  for (uint i = 0; i < _innerNodes.size(); i++) {
-    for (uint j = 0; j < _innerNodes[i].size(); j++) {
+  for (size_t i = 0; i < _innerNodes.size(); i++) {
+    for (size_t j = 0; j < _innerNodes[i].size(); j++) {
       _innerNodes[i][j] = 0;
     }
   }
 
-  for (uint i = 0; i < _outputNodes.size(); i++) {
+  for (size_t i = 0; i < _outputNodes.size(); i++) {
     _outputNodes[i] = 0;
   }
 }
@@ -338,11 +338,11 @@ void NeuralNet::resetInnerNodes() {
 bool NeuralNet::setWeights(const EdgeType & w) {
   //cout << "Edges: " << _edges.size() << " Setting: " << w->size() << endl;
   if (_edges.size() != w.size()) return false;
-  for (uint i = 0; i < w.size(); i++) {
+  for (size_t i = 0; i < w.size(); i++) {
     if (w[i].size() != _edges[i].size()) return false;
-    for (uint j = 0; j < w[i].size(); j++) {
+    for (size_t j = 0; j < w[i].size(); j++) {
       if (w[i][j].size() != _edges[i][j].size()) return false;
-      for (uint k = 0; k < w[i][j].size(); k++) {
+      for (size_t k = 0; k < w[i][j].size(); k++) {
         _edges[i][j][k] = w[i][j][k];
  //       cout << i << ": " << j << ", " << k << ": " << _edges[i][j][k];
  //       cout << endl;
@@ -356,8 +356,8 @@ bool NeuralNet::setRecWeights(const RecEdgeType & w) {
     if (_recEdges.size() != w.size()) {
         return false;
     }
-    for (uint i = 0; i < _recEdges.size(); i++) {
-        for (uint j = 0; j < _recEdges[i].size(); j++) {
+    for (size_t i = 0; i < _recEdges.size(); i++) {
+        for (size_t j = 0; j < _recEdges[i].size(); j++) {
             _recEdges[i][j] = w[i][j];
         }
     }
@@ -373,23 +373,23 @@ bool NeuralNet::setCombinedWeights(const EdgeType & w) {
         return false;
     }
 
-    for (uint i = 0; i < _edges.size(); i++) {
+    for (size_t i = 0; i < _edges.size(); i++) {
         if (w[i].size() != _edges[i].size()) {
             return false;
         }
-        for (uint j = 0; j < _edges[i].size(); j++) {
+        for (size_t j = 0; j < _edges[i].size(); j++) {
             if (w[i][j].size() != _edges[i][j].size()) {
                 return false;
             }
-            for (uint k = 0; k < _edges[i][j].size(); k++) {
+            for (size_t k = 0; k < _edges[i][j].size(); k++) {
                 _edges[i][j][k] = w[i][j][k];
             }
         }
     }
 
-    int it = w.size() - 1;
-    for (uint j = 0; j < w[it].size(); j++) {
-        for (uint k = 0; k < w[it][j].size(); k++) {
+    size_t it = w.size() - 1;
+    for (size_t j = 0; j < w[it].size(); j++) {
+        for (size_t k = 0; k < w[it][j].size(); k++) {
 
             _recEdges[j][k] = w[it][j][k];
         }
@@ -411,10 +411,10 @@ bool NeuralNet::splitCombinedWeights(const CombEdgeType &c, EdgeType & e, RecEdg
 
 void NeuralNet::printEdges() {
   qDebug() << "An edge: ";
-  for (uint i = 0; i < _edges.size(); i++) {
+  for (size_t i = 0; i < _edges.size(); i++) {
     qDebug() << "  Inner Net " << i+1;
-    for (uint j = 0; j < _edges[i].size(); j++) {
-      for (uint k = 0; k < _edges[i][j].size(); k++) {
+    for (size_t j = 0; j < _edges[i].size(); j++) {
+      for (size_t k = 0; k < _edges[i][j].size(); k++) {
         qDebug() << "  -- " << j+1 << " : " << k+1 << " = " << _edges[i][j][k];
       }
     }

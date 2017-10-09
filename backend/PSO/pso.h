@@ -66,7 +66,7 @@ public:
   static void setToPrint();
   static bool checkForPrint();
 
-  const uint32_t & epochs() const { return _epochs; }
+  const size_t & epochs() const { return _epochs; }
 
   const PsoParams & psoParams() { return _psoParams; }
 
@@ -81,7 +81,7 @@ protected:
   PsoParams _psoParams;
 
 private:
-  uint32_t _epochs=0;
+  size_t _epochs=0;
   std::vector<real> _history;
 
   static bool _overideTermFlag;
