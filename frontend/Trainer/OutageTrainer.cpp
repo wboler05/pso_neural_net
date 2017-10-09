@@ -52,25 +52,26 @@ void OutageTrainer::randomlyDistributeData() {
 void OutageTrainer::biasAgainstOutputs() {
     /** TEST **/
 
-    _outputCount.resize(2, 0);
-    _outputIterators.resize(2);
+    _biasedTrainingInputsCounts.resize(2, 0);
+    _biasedTrainingInputs.resize(2);
 
     // Run through the training inputs
     for (size_t i = 0; i < _trainingInputs.size(); i++) {
         size_t it = _trainingInputs.at(i);
-        OutageDataWrapper & dataItem = (*_inputCache)[it];
-        if (dataItem.empty()) {
+        OutageDataItem & dataItem = (*_inputCache)[it];
+        OutageDataWrapper dataWrapper(dataItem);
+        if (dataWrapper.empty()) {
             continue;
         }
 
         // Count the true and false outages
-        bool outage = confirmOutage(dataItem.outputize());
+        bool outage = confirmOutage(dataWrapper.outputize());
         if (outage) {
-            _outputCount[1]++;
-            _outputIterators[1].push_back(i);
+            _biasedTrainingInputsCounts[1]++;
+            _biasedTrainingInputs[1].push_back(it);
         } else {
-            _outputCount[0]++;
-            _outputIterators[0].push_back(i);
+            _biasedTrainingInputsCounts[0]++;
+            _biasedTrainingInputs[0].push_back(it);
         }
     }
 }
@@ -132,7 +133,9 @@ real OutageTrainer::trainingRun() {
         }
 
         //expectedOutput = _output->at(I);
-        expectedOutput = (*_inputCache)[I].outputize();
+        OutageDataItem & dataItem = (*_inputCache)[I];
+        OutageDataWrapper dataWrapper = dataItem;
+        expectedOutput = dataWrapper.outputize();
 
         //    real maxVal = -1.0;
         //    int maxNode = 0;
@@ -311,20 +314,18 @@ size_t OutageTrainer::randomizeTrainingInputs() {
     _neuralNet->resetInputs();
 
     size_t minIt = 0;
-    size_t maxIt = _outputIterators.size()-1;
+    size_t maxIt = _biasedTrainingInputs.size()-1;
 
-//    size_t uniformOutputIt = _randomEngine.uniformUnsignedInt(minIt, maxIt);
-    size_t uniformOutputIt = 1; /////BROKEN ON PURPOSE todo FIXME
-    maxIt = _outputIterators[uniformOutputIt].size() -1;
-    size_t I = _randomEngine.uniformUnsignedInt(minIt, maxIt);
-    I = _outputIterators[uniformOutputIt][I];
+    size_t uniformOutputIt = _randomEngine.uniformUnsignedInt(minIt, maxIt);
+    size_t maxBiasIt = _biasedTrainingInputs[uniformOutputIt].size() -1;
+    size_t I = _randomEngine.uniformUnsignedInt(minIt, maxBiasIt);
+    size_t it = _biasedTrainingInputs[uniformOutputIt][I];
 
-    size_t it = _trainingInputs[I];
-
-    OutageDataWrapper & item = (*_inputCache)[it];
+    OutageDataItem & dataItem =(*_inputCache)[it];
+    OutageDataWrapper item = dataItem;
     std::vector<real> inputItems = item.inputize();
 
-    for (uint i = 0; i < inputItems.size(); i++) {
+    for (size_t i = 0; i < inputItems.size(); i++) {
         _neuralNet->loadInput(inputItems[i], i);
     }
 
@@ -340,7 +341,8 @@ OutageDataWrapper &OutageTrainer::loadTestInput(const size_t & I) {
 
     _neuralNet->resetInputs();
 
-    OutageDataWrapper & item = (*_inputCache)[it];
+    OutageDataItem &dataItem = (*_inputCache)[it];
+    OutageDataWrapper item = dataItem;
     std::vector<real> inputItems = item.inputize();
 
     for (uint i = 0; i < inputItems.size(); i++) {
@@ -358,7 +360,8 @@ OutageDataWrapper & OutageTrainer::loadValidationInput(const size_t & I) {
 
     _neuralNet->resetInputs();
 
-    OutageDataWrapper & item = (*_inputCache)[it];
+    OutageDataItem &dataItem = (*_inputCache)[it];
+    OutageDataWrapper item = dataItem;
     std::vector<real> inputItems = item.inputize();
 
     for (uint i = 0; i < inputItems.size(); i++) {
@@ -399,7 +402,8 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
         size_t it = testInputs[i];
         _neuralNet->resetInputs();
 
-        OutageDataWrapper & outageData = (*_inputCache)[it];
+        OutageDataItem &dataItem = (*_inputCache)[it];
+        OutageDataWrapper outageData = dataItem;
         std::vector<real> inputItems = outageData.inputize();
         for (uint i = 0; i < inputItems.size(); i++) {
             _neuralNet->loadInput(inputItems[i], i);

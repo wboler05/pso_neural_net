@@ -53,14 +53,14 @@ MainWindow::MainWindow(QWidget *parent) :
     Logger::write(dateTime);
 
     std::string headerString;
-    headerString += "   ****************************************\n";
-    headerString += "   * PSO Neural Net (Gaussian Activation) *\n";
-    headerString += "   *       by William Boler, BSCE         *\n";
-    headerString += "   *     Research Assistant, IUPUI        *\n";
-    headerString += "   *                                      *\n";
-    headerString += "   *  Professor: Dr. Lauren Christopher   *\n";
-    headerString += "   *     Created: March 13, 2017          *\n";
-    headerString += "   ****************************************\n";
+    headerString += "   ***************************************\n";
+    headerString += "   * PSO Neural Net - Outage Prediction  *\n";
+    headerString += "   *       by William Boler, BSCE        *\n";
+    headerString += "   *     Research Assistant, IUPUI       *\n";
+    headerString += "   *                                     *\n";
+    headerString += "   *         Course: ECE 57000           *\n";
+    headerString += "   *      Created: March 13, 2017        *\n";
+    headerString += "   ***************************************\n";
     Logger::write(headerString);
 
 
@@ -95,6 +95,15 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
+    if (_particlePlotWindow.size() > 0) {
+        qDebug() << "Closing your plot window.";
+        foreach(auto p, _particlePlotWindow) {
+            p->close();
+        }
+
+        _particlePlotWindow.clear();
+    }
+
     qDebug() << "MainWindow: Terminating program.";
     Logger::terminate();
     stopPso();
@@ -250,7 +259,7 @@ void MainWindow::initializeData() {
 
 void MainWindow::initializeCache() {
     CacheParameters c;
-    c.inputFileName = QString ("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\test\\10_Hammond_CrownPoint_Lake.csv");
+    c.inputFileName = QString ("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\test\\10_Hammond_CrownPoint_Lake_test.csv");
     c.maxBytes = 512*1024*1024;
     c.totalSlicesPerCache = 8;
     c.headerSize = 2;
@@ -265,8 +274,10 @@ void MainWindow::initializeCache() {
             index._date.year() << ") Temp(" <<
             static_cast<double>(index._temp.hi()) << "," <<
             static_cast<double>(index._temp.avg()) << "," <<
-            static_cast<double>(index._temp.lo()) << ")";
+            static_cast<double>(index._temp.lo()) << ")\tAffected Customers: " <<
+            index._affectedCustomers << "\tOutage: " << OutageDataWrapper::bool2Double(index._outage);
     }
+    qDebug() << "Cache creation complete.";
 }
 
 void MainWindow::setParameterDefaults() {
@@ -292,13 +303,17 @@ void MainWindow::setParameterDefaults() {
     //nParams.innerNetNodes.push_back(50);
     nParams.outputs = 10;
     */
-    _params->np.inputs = static_cast<int>((*_inputCache)[0].inputize().size());
+
+    OutageDataItem & dataItem = (*_inputCache)[0];
+    OutageDataWrapper dataWrapper = dataItem;
+
+    _params->np.inputs = static_cast<int>(dataWrapper.inputize().size());
     _params->np.innerNetNodes.clear();
     _params->np.innerNetNodes.push_back(4);
-    _params->np.innerNetNodes.push_back(4);
-    _params->np.innerNetNodes.push_back(4);
     _params->np.innerNets = static_cast<int>(_params->np.innerNetNodes.size());
-    _params->np.outputs = static_cast<int>((*_inputCache)[0].outputize().size());
+    _params->np.outputs = static_cast<int>(dataWrapper.outputize().size());
+    _params->np.trainingIterations = 200;
+    _params->np.validationIterations = 200;
     _params->np.testIterations = 500; //500
 
     _params->fp.floors.accuracy = .05L;
@@ -328,6 +343,8 @@ void MainWindow::applyParameterChanges() {
     _params->pp.termIterationFlag = static_cast<size_t>(ui->enableIteration_cb->isChecked());
     _params->pp.termDeltaFlag = static_cast<size_t>(ui->enableDelta_cb->isChecked());
 
+    _params->np.trainingIterations = ui->trainingIterations_sb->value();
+    _params->np.validationIterations = ui->validationIterations_sb->value();
     _params->np.testIterations = ui->testIt_sb->value();
 
     _params->fp.mse_floor = static_cast<real>(ui->mse_floor_dsb->value());
@@ -357,6 +374,8 @@ void MainWindow::updateParameterGui() {
     ui->enableIteration_cb->setChecked(_params->pp.termIterationFlag);
     ui->enableDelta_cb->setChecked(_params->pp.termDeltaFlag);
 
+    ui->trainingIterations_sb->setValue(_params->np.trainingIterations);
+    ui->validationIterations_sb->setValue(_params->np.validationIterations);
     ui->testIt_sb->setValue(_params->np.testIterations);
 
     ui->mse_floor_dsb->setValue(static_cast<double>(_params->fp.mse_floor));

@@ -43,7 +43,7 @@ void Pso<T>::run() {
 
     _epochs = ++epochs;     // Count the iterations
 
-    processEvents();        // Virtual function for GUI updates
+ //   processEvents();        // Virtual function for GUI updates
     fly();                  // Fly the particles
     getCost();              // Establish particle cost
     real cost = evaluate(); // Evaluate pb, lb, gb

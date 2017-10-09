@@ -171,7 +171,7 @@ size_t InputCache::cacheIndex(const size_t & itemIndex) {
     }
 }
 
-OutageDataWrapper & InputCache::operator[](size_t index) {
+OutageDataItem & InputCache::operator[](size_t index) {
     OutageDataWrapper nullObject;
 
     if (_cacheSlices.size() == 0
@@ -195,13 +195,13 @@ OutageDataWrapper & InputCache::operator[](size_t index) {
     if (groupId_ != cacheSlice._groupId) {
         if (reloadCacheSlice(index)) {
             size_t sliceIndex_ = sliceIndex(index);
-            return OutageDataWrapper(cacheSlice._slice.at(sliceIndex_));
+            return cacheSlice._slice.at(sliceIndex_);
         } else {
             return nullObject;
         }
     } else {
         size_t sliceIndex_ = sliceIndex(index);
-        return OutageDataWrapper(cacheSlice._slice.at(sliceIndex_));
+        return cacheSlice._slice.at(sliceIndex_);
     }
 
 }

@@ -61,8 +61,8 @@ private:
     std::vector<size_t> _trainingInputs;
     std::vector<size_t> _testInputs;
     std::vector<size_t> _validationInputs;
-    std::vector<real> _outputCount;
-    std::vector<std::vector<size_t>> _outputIterators;
+    std::vector<real> _biasedTrainingInputsCounts;
+    std::vector<std::vector<size_t>> _biasedTrainingInputs;
 
     std::string _functionMsg;
 

@@ -139,34 +139,41 @@ OutageDataItem OutageDataWrapper::parseInputString(const QString & line) {
     newItem._date.month(lineList[1].toInt(&ok));
     newItem._date.day(lineList[2].toInt(&ok));
 
-    newItem._temp.hi(static_cast<real>(lineList[3].toDouble(&ok)));
-    newItem._temp.avg(static_cast<real>(lineList[4].toDouble(&ok)));
-    newItem._temp.lo(static_cast<real>(lineList[5].toDouble(&ok)));
+    newItem._affectedCustomers = lineList[3].toInt(&ok);
+    if (newItem._affectedCustomers > 0) {
+        newItem._outage = true;
+    } else {
+        newItem._outage = false;
+    }
 
-    newItem._dew.hi(static_cast<real>(lineList[6].toDouble(&ok)));
-    newItem._dew.avg(static_cast<real>(lineList[7].toDouble(&ok)));
-    newItem._dew.lo(static_cast<real>(lineList[8].toDouble(&ok)));
+    newItem._temp.hi(static_cast<real>(lineList[4].toDouble(&ok)));
+    newItem._temp.avg(static_cast<real>(lineList[5].toDouble(&ok)));
+    newItem._temp.lo(static_cast<real>(lineList[6].toDouble(&ok)));
 
-    newItem._humidity.hi(static_cast<real>(lineList[9].toDouble(&ok)));
-    newItem._humidity.avg(static_cast<real>(lineList[10].toDouble(&ok)));
-    newItem._humidity.lo(static_cast<real>(lineList[11].toDouble(&ok)));
+    newItem._dew.hi(static_cast<real>(lineList[7].toDouble(&ok)));
+    newItem._dew.avg(static_cast<real>(lineList[8].toDouble(&ok)));
+    newItem._dew.lo(static_cast<real>(lineList[9].toDouble(&ok)));
 
-    newItem._pressure.hi(static_cast<real>(lineList[12].toDouble(&ok)));
-    newItem._pressure.avg(static_cast<real>(lineList[13].toDouble(&ok)));
-    newItem._pressure.lo(static_cast<real>(lineList[14].toDouble(&ok)));
+    newItem._humidity.hi(static_cast<real>(lineList[10].toDouble(&ok)));
+    newItem._humidity.avg(static_cast<real>(lineList[11].toDouble(&ok)));
+    newItem._humidity.lo(static_cast<real>(lineList[12].toDouble(&ok)));
 
-    newItem._visibility.hi(static_cast<real>(lineList[15].toDouble(&ok)));
-    newItem._visibility.avg(static_cast<real>(lineList[16].toDouble(&ok)));
-    newItem._visibility.lo(static_cast<real>(lineList[17].toDouble(&ok)));
+    newItem._pressure.hi(static_cast<real>(lineList[13].toDouble(&ok)));
+    newItem._pressure.avg(static_cast<real>(lineList[14].toDouble(&ok)));
+    newItem._pressure.lo(static_cast<real>(lineList[15].toDouble(&ok)));
 
-    newItem._wind.hi(static_cast<real>(lineList[18].toDouble(&ok)));
-    newItem._wind.avg(static_cast<real>(lineList[19].toDouble(&ok)));
-    newItem._wind.gust(static_cast<real>(lineList[20].toDouble(&ok)));
+    newItem._visibility.hi(static_cast<real>(lineList[16].toDouble(&ok)));
+    newItem._visibility.avg(static_cast<real>(lineList[17].toDouble(&ok)));
+    newItem._visibility.lo(static_cast<real>(lineList[18].toDouble(&ok)));
 
-    newItem._precipitation = static_cast<real>(lineList[21].toDouble(&ok));
+    newItem._wind.hi(static_cast<real>(lineList[19].toDouble(&ok)));
+    newItem._wind.avg(static_cast<real>(lineList[20].toDouble(&ok)));
+    newItem._wind.gust(static_cast<real>(lineList[21].toDouble(&ok)));
+
+    newItem._precipitation = static_cast<real>(lineList[22].toDouble(&ok));
 
 //    newItem._storm_event = ((QString)lineList[22]).toStdString();
-    parseStormEvents(lineList, 22, newItem);
+    parseStormEvents(lineList, 23, newItem);
 
     return newItem;
 }
