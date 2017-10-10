@@ -65,13 +65,14 @@ void NeuralNetPlot::updateNodes() {
 
             // Don't forget to draw output nodes.
             if (i == edgeLayers - 1) {
-                if ((*_state)[i].size() > 0) {
-                    if ((*_state)[i][0].size() > 0) {
-                        size_t totalOutputNodes = ((*_state)[i][0].size());
+                size_t it = i+1;
+                if ((*_state)[it].size() > 0) {
+                    if ((*_state)[it][0].size() > 0) {
+                        size_t totalOutputNodes = ((*_state)[it][0].size());
                         y_offset = 1.0f / static_cast<double>(totalOutputNodes);
 
                         for (size_t j = 0; j < totalOutputNodes; j++) {
-                            QwtPlotMarker * mark = getNodeMarker(QPointF(i+1, y_offset*(double)j));
+                            QwtPlotMarker * mark = getNodeMarker(QPointF(it, y_offset*(double)j));
                             mark->attach(this);
                         }
                     }

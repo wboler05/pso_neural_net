@@ -85,6 +85,7 @@ protected slots:
     void updateCacheMaxBytes(const int & bytes);
     void updateSlicesPerCache(const int & slices);
     void on_actionParticle_Plotter_triggered();
+    void updateFitnessPlotWindowSize();
 
 private:
     Ui::MainWindow *ui;

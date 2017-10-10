@@ -28,7 +28,7 @@ public:
 
 private:
     Ui::FitnessPlotter *ui;
-    size_t _windowSize=50;
+    size_t _windowSize=100;
 
     QColor _plotLineColor;
     QColor _plotMarkColor;

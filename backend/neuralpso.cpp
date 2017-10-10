@@ -376,7 +376,7 @@ real NeuralPso::evaluate() {
         NeuralParticle *p = &(*_particles)[i];
 
         // Handle logging
-        if (printChange[i]) {
+        if (printChange[i] && false) { // Disable this for now
             printChange[i] = false;
             std::string outputString;
             outputString += "Particle (";
@@ -399,30 +399,6 @@ real NeuralPso::evaluate() {
         }
     } // end for each particle
 
-/*
-  // Print out global change made
-  if (prevBest != gb()->_fit_pb) {
-      prevBest = gb()->_fit_pb;
-
-      std::string outputString;
-      outputString += "Global: ";
-      outputString += stringPut(gb()->_fit_pb);
-      outputString += " - Correct: ";
-      outputString += stringPut(correctRatio * 100.0);
-      outputString += "% of ";
-      outputString += stringPut(totalCount);
-      outputString += " tests\n";
-      Logger::write(outputString);
-
-      printGB();
-      testGB();
-  }
-*/
-
-    if (checkForPrint()) {
-        testGB();
-    }
-
     printGBMtx.lock();
     if (printGBFlag) {
         printGBFlag = false;
@@ -430,6 +406,7 @@ real NeuralPso::evaluate() {
     }
     printGBMtx.unlock();
 
+    testGB();
     return gb()->_fit_pb;
 }
 

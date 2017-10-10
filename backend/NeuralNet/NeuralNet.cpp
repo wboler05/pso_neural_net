@@ -263,7 +263,7 @@ bool NeuralNet::buildForwardEdges() {
             // Inner Layer - There must be 2+ inner layers here
             _state[stateIt].resize(_innerNodes[i-1].size());
             for (size_t left_node = 0; left_node < _state[stateIt].size(); left_node++) {
-                _state[stateIt][left_node].resize(_innerNodes[stateIt].size(), 0);
+                _state[stateIt][left_node].resize(_innerNodes[i].size(), 0);
             }
         }
     }

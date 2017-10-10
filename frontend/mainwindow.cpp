@@ -81,6 +81,7 @@ MainWindow::MainWindow(QWidget *parent) :
 //    connect(ui->b_cb, SIGNAL(clicked(bool)), this, SLOT(setInputsForTrainedNetFromGui()));
 
     connect(ui->actionConfusion_Matrix, SIGNAL(triggered(bool)), this, SLOT(showConfusionMatrixHelpBox()));
+    connect(ui->fitnessPlotWindow_sb, SIGNAL(valueChanged(int)), this, SLOT(updateFitnessPlotWindowSize()));
 
     QTimer * updateTimer = new QTimer(this);
     connect(updateTimer, SIGNAL(timeout()), this, SLOT(updatePlot()));
@@ -329,6 +330,9 @@ void MainWindow::setParameterDefaults() {
     _params->fp.weights.specificity = 0.0L;
     _params->fp.weights.f_score = 0.0L;
 
+    _params->alpha = 1.0;
+    _params->beta = 1.0;
+
     updateParameterGui();
 }
 
@@ -337,7 +341,7 @@ void MainWindow::applyParameterChanges() {
     _params->pp.neighbors = static_cast<size_t>(ui->totalNeighbors_sb->value());
     _params->pp.minEpochs = static_cast<size_t>(ui->minEpochs_sb->value());
     _params->pp.maxEpochs = static_cast<size_t>(ui->maxEpochs_sb->value());
-    _params->pp.delta = static_cast<size_t>(ui->delta_dsb->value());
+    _params->pp.delta = static_cast<real>(ui->delta_dsb->value());
     _params->pp.windowSize = static_cast<size_t>(ui->window_sb->value());
     _params->pp.termIterationFlag = static_cast<size_t>(ui->enableIteration_cb->isChecked());
     _params->pp.termDeltaFlag = static_cast<size_t>(ui->enableDelta_cb->isChecked());
@@ -360,6 +364,9 @@ void MainWindow::applyParameterChanges() {
     _params->fp.weights.specificity = static_cast<real>(ui->spe_weight_dsb->value());
     _params->fp.weights.f_score = static_cast<real>(ui->fscore_weight_dsb->value());
 
+    _params->alpha = static_cast<real>(ui->alpha_dsb->value());
+    _params->beta = static_cast<real>(ui->beta_dsb->value());
+
     setNetTypeByIndex(ui->netType_cb->currentIndex());
 }
 
@@ -369,7 +376,7 @@ void MainWindow::updateParameterGui() {
     ui->minEpochs_sb->setValue(static_cast<int>(_params->pp.minEpochs));
     ui->maxEpochs_sb->setValue(static_cast<int>(_params->pp.maxEpochs));
     ui->window_sb->setValue(static_cast<int>(_params->pp.windowSize));
-    ui->delta_dsb->setValue(static_cast<int>(_params->pp.delta));
+    ui->delta_dsb->setValue(static_cast<double>(_params->pp.delta));
     ui->enableIteration_cb->setChecked(_params->pp.termIterationFlag);
     ui->enableDelta_cb->setChecked(_params->pp.termDeltaFlag);
 
@@ -390,6 +397,9 @@ void MainWindow::updateParameterGui() {
     ui->sen_weight_dsb->setValue(static_cast<double>(_params->fp.weights.sensitivity));
     ui->spe_weight_dsb->setValue(static_cast<double>(_params->fp.weights.specificity));
     ui->fscore_weight_dsb->setValue(static_cast<double>(_params->fp.weights.f_score));
+
+    ui->alpha_dsb->setValue(static_cast<double>(_params->alpha));
+    ui->beta_dsb->setValue(static_cast<double>(_params->beta));
 
     ui->netType_cb->setCurrentIndex(getNetTypeCBIndex());
 }
@@ -674,6 +684,10 @@ void MainWindow::updatePlot() {
             }
         }
     }
+}
+
+void MainWindow::updateFitnessPlotWindowSize() {
+    ui->fitnessPlot->setWindowSize(ui->fitnessPlotWindow_sb->value());
 }
 
 void MainWindow::enableParameterInput(bool b) {
