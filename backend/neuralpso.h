@@ -21,8 +21,7 @@
 #endif
 
 class NeuralNet;
-//template class Pso<NeuralNet::CombEdgeType>;
-template struct Particle<NeuralNet::CombEdgeType>;
+template struct Particle<NeuralNet::State>;
 
 struct FitnessParameters {
     real mse_weight;
@@ -34,12 +33,12 @@ struct FitnessParameters {
     real edgeWeightMin = -10E5L;
 };
 
-class NeuralPso : public Pso<NeuralNet::CombEdgeType> {
+class NeuralPso : public Pso<NeuralNet::State> {
 public:
   NeuralPso(PsoParams pp, NeuralNet::NeuralNetParameters np, FitnessParameters fp);
   virtual ~NeuralPso();
 
-  typedef Particle<NeuralNet::CombEdgeType> NeuralParticle;
+  typedef Particle<NeuralNet::State> NeuralParticle;
 
   void buildPso();
   void build(std::vector<std::vector<std::vector<byte> > > &images, std::vector<byte> &labels);
@@ -63,7 +62,7 @@ public:
 
   NeuralNet * neuralNet() { return _neuralNet; }
   std::unique_ptr<NeuralNet> buildNeuralNetFromGb();
-  bool injectGb(const NeuralNet::CombEdgeType &w);
+  bool injectGb(const NeuralNet::State &s);
 
   std::string stringifyState();
   bool loadStatefromString(const std::string & psoState);
@@ -77,7 +76,7 @@ public:
 
   FitnessParameters * fitnessParams() { return &_fParams; }
 
-  NeuralNet::CombEdgeType & getGbEdges();
+  NeuralNet::State & getGbState();
 
 protected:
     NeuralNet *_neuralNet;

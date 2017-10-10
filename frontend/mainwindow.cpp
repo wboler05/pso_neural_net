@@ -510,7 +510,7 @@ void MainWindow::testTrainedNetWithInput() {
             return;
         }
 
-        _trainedNeuralNet->resetInputs();
+        _trainedNeuralNet->resetAllNodes();
         for (size_t i = 0; i < newInput.size(); i++) {
             _trainedNeuralNet->loadInput(newInput[i], i);
         }
@@ -596,7 +596,7 @@ void MainWindow::runNeuralPso() {
   completionMsg.append(" seconds");
   setOutputLabel(completionMsg);
 
-  _gb = _neuralPsoTrainer->getGbEdges();
+  _gb = _neuralPsoTrainer->getGbState();
 
   disconnect(fitnessPlotTimer, SIGNAL(timeout()), this, SLOT(updateFitnessPlot()));
   fitnessPlotTimer->deleteLater();
@@ -657,8 +657,8 @@ void MainWindow::tryInjectGB() {
 
 void MainWindow::updatePlot() {
     if (_neuralPsoTrainer != nullptr) {
-        NeuralNet::CombEdgeType * edge = &(_neuralPsoTrainer->gb()->_x);
-        ui->neuralNetPlot->setEdges(edge, _params->np.type);
+        NeuralNet::State * state = &(_neuralPsoTrainer->gb()->_x);
+        ui->neuralNetPlot->setState(state, _params->np.type);
         updateConfusionMatrix();
 
         if (_runPso) {

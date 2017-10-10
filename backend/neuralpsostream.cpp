@@ -2,20 +2,20 @@
 
 namespace NeuralPsoStream {
 
-std::string stringifyParticle(const Particle<NeuralNet::EdgeType> & p) {
+std::string stringifyParticle(const Particle<NeuralNet::State> &p) {
     std::string ps;
 
     // Particle Position X
-    ps.append(stringifyEdges(p._x, "_x"));
+    ps.append(stringifyState(p._x, "_x"));
 
     // Particle Velocity
-    ps.append(stringifyEdges(p._v, "_v"));
+    ps.append(stringifyState(p._v, "_v"));
 
     // Particle Personal Best X
-    ps.append(stringifyEdges(p._x_pb, "_x_pb"));
+    ps.append(stringifyState(p._x_pb, "_x_pb"));
 
     // Particle Local Best
-    ps.append(stringifyEdges(p._x_lb, "_x_lb"));
+    ps.append(stringifyState(p._x_lb, "_x_lb"));
 
     // Particle Personal Best Fitness
     ps.append(tokenizedValue(p._fit_pb, "_fit_pb"));
@@ -48,13 +48,13 @@ std::string tokenizedValue(const T & val, const std::string & token) {
     return ps;
 }
 
-std::string stringifyEdges(const NeuralNet::EdgeType & edges, const std::string & token) {
+std::string stringifyState(const NeuralNet::State & state, const std::string & token) {
     std::string ps;
 
     ps.append("\t");
     ps.append(openToken(token));
     ps.append("\n");
-    ps.append(stringifyEdges(edges));
+    ps.append(stringifyState(state));
     ps.append("\t");
     ps.append(closeToken(token));
     ps.append("\n");
@@ -62,17 +62,17 @@ std::string stringifyEdges(const NeuralNet::EdgeType & edges, const std::string 
     return ps;
 }
 
-std::string stringifyEdges(const NeuralNet::EdgeType & edges) {
+std::string stringifyState(const NeuralNet::State & state) {
     std::string particleString;
 
-    for (size_t i = 0; i < edges.size(); i++) {
+    for (size_t i = 0; i < state.size(); i++) {
         particleString.append("\t\t{\n");
-        for (size_t j = 0; j < edges[i].size(); j++) {
+        for (size_t j = 0; j < state[i].size(); j++) {
             particleString.append("\t\t\t{\n\t\t\t\t");
-            for (size_t k = 0; k < edges[i][j].size(); k++) {
-                particleString.append(stringPut(edges[i][j][k]));
+            for (size_t k = 0; k < state[i][j].size(); k++) {
+                particleString.append(stringPut(state[i][j][k]));
                 particleString.append(",");
-                if (k == edges[i][j].size() -1) {
+                if (k == state[i][j].size() -1) {
                     particleString.append("\n");
                 }
             }
@@ -84,57 +84,24 @@ std::string stringifyEdges(const NeuralNet::EdgeType & edges) {
     return particleString;
 }
 
-std::string stringifyRecEdges(const NeuralNet::RecEdgeType & edges, const std::string & token) {
-    std::string ps;
+NeuralNet::State stateFromString(const std::string & stateString) {
 
-    ps.append("\t");
-    ps.append(openToken(token));
-    ps.append("\n");
-    ps.append(stringifyRecEdges(edges));
-    ps.append("\t");
-    ps.append(closeToken(token));
-    ps.append("\n");
-
-    return ps;
-}
-
-std::string stringifyRecEdges(const NeuralNet::RecEdgeType & edges) {
-
-    std::string ps;
-
-    for (size_t i = 0; i < edges.size(); i++) {
-        ps.append("\t\t{\n");
-        for (size_t j = 0; j < edges[i].size(); j++) {
-            ps.append(stringPut(edges[i][j]));
-            ps.append(",");
-            if (j == edges[i].size() -1) {
-                ps.append("\n");
-            }
-        }
-        ps.append("\t\t}\n");
-    }
-
-    return ps;
-}
-
-NeuralNet::EdgeType edgesFromString(const std::string & edgeString) {
-
-    NeuralNet::EdgeType e;
+    NeuralNet::State e;
 
     int it = 0;
-    while ( it < (int) edgeString.size()) {
-        if (edgeString[it]  == '{') {
+    while ( it < (int) stateString.size()) {
+        if (stateString[it]  == '{') {
             it++;
-            while (edgeString[it] != '}') {
+            while (stateString[it] != '}') {
                 std::vector<std::vector<real>> innerNet;
-                if (edgeString[it] == '{') {
+                if (stateString[it] == '{') {
                     it++;
-                    while (edgeString[it] != '}') {
+                    while (stateString[it] != '}') {
                         std::vector<real> leftNode;
                         int jt = it+1;
-                        while (edgeString[jt] != '}') {
-                            if (edgeString[jt] == ',' || edgeString[jt] == '}') {
-                                std::string valString = edgeString.substr(it,jt-it);
+                        while (stateString[jt] != '}') {
+                            if (stateString[jt] == ',' || stateString[jt] == '}') {
+                                std::string valString = stateString.substr(it,jt-it);
                                 real val = numberFromString<real>(valString);
                                 leftNode.push_back(val);
                                 it = jt+1;
@@ -143,16 +110,16 @@ NeuralNet::EdgeType edgesFromString(const std::string & edgeString) {
                         }
                         innerNet.push_back(leftNode);
                         it = jt+1;
-                        if (edgeString[it] == '{') {
+                        if (stateString[it] == '{') {
                             it++;
                         }
                     }
                 }
                 e.push_back(innerNet);
                 it++;
-                if (edgeString[it] == '{') {
+                if (stateString[it] == '{') {
                     it++;
-                } else if (edgeString[it] == 0) {
+                } else if (stateString[it] == 0) {
                     return e;
                 }
             }
@@ -162,76 +129,48 @@ NeuralNet::EdgeType edgesFromString(const std::string & edgeString) {
     return e;
 }
 
-NeuralNet::RecEdgeType recEdgesFromString(const string &edgeString) {
-    NeuralNet::RecEdgeType e;
-
-    int it = 0;
-
-    while (it < edgeString.size()) {
-        if (edgeString[it++] == '{') {
-            std::vector<real> cache;
-            while (edgeString[it] != '}') {
-                int jt = it+1;
-                while (edgeString[jt] != ',') {
-                    jt++;
-                }
-                std::string val = edgeString.substr(it, jt-it);
-                cache.push_back(numberFromString<real>(val));
-                it = jt + 1;
-            }
-            e.push_back(cache);
-            if (edgeString[it] == '}') {
-                return e;
-            }
-        }
-    }
-
-    // Case is when edgeString is empty
-    return e;
-}
-
-Particle<NeuralNet::EdgeType> particleFromString(const std::string & particleString) {
-    typedef Particle<NeuralNet::EdgeType> P;
+Particle<NeuralNet::State> particleFromString(const std::string & particleString) {
+    typedef Particle<NeuralNet::State> P;
     P pParticle;
     int it = 0;
 
     // Particle Position X
     {
-        NeuralNet::EdgeType xEdge;
-        if (!edgeFromNuggetString(particleString, "_x", it, xEdge)) {
+        NeuralNet::State xState;
+        if (!stateFromNuggetString(particleString, "_x", it, xState)) {
             return P();
         } else {
-            pParticle._x = xEdge;
+            pParticle._x = xState;
         }
     }
 
     // Particle Velocity
     {
-        NeuralNet::EdgeType vEdge;
-        if (!edgeFromNuggetString(particleString, "_v", it, vEdge)) {
+        NeuralNet::State vState;
+        if (!stateFromNuggetString(particleString, "_v", it, vState)) {
             return P();
         } else {
-            pParticle._v = vEdge;
+            pParticle._v = vState;
         }
     }
 
     // Particle Personal Best X
     {
-        NeuralNet::EdgeType xbEdge;
-        if (!edgeFromNuggetString(particleString, "_x_pb", it, xbEdge)) {
+        NeuralNet::State xbState;
+        if (!stateFromNuggetString(particleString, "_x_pb", it, xbState)) {
             return P();
         } else {
-            pParticle._x_pb = xbEdge;
+            pParticle._x_pb = xbState;
         }
     }
 
     // Particle Local Best
     {
-        NeuralNet::EdgeType xlEdge;
-        if (!edgeFromNuggetString(particleString, "_x_lb", it, xlEdge)) {
+        NeuralNet::State xlState;
+        if (!stateFromNuggetString(particleString, "_x_lb", it, xlState)) {
             return P();
         } else {
-            pParticle._x_lb = xlEdge;
+            pParticle._x_lb = xlState;
         }
     }
 
@@ -270,7 +209,7 @@ Particle<NeuralNet::EdgeType> particleFromString(const std::string & particleStr
     return pParticle;
 }
 
-bool edgeFromNuggetString(const std::string & cleanString, const std::string & token, int & it, NeuralNet::EdgeType & val) {
+bool stateFromNuggetString(const std::string & cleanString, const std::string & token, int & it, NeuralNet::State & val) {
     //!TEST!//
 
     // Move the iterator to the next token in the full string
@@ -279,12 +218,12 @@ bool edgeFromNuggetString(const std::string & cleanString, const std::string & t
         return false;
     }
     // Get the edge string
-    std::string edgeString = subStringByToken(cleanString, token, it);
-    if (!edgeString.empty()) {
+    std::string stateString = subStringByToken(cleanString, token, it);
+    if (!stateString.empty()) {
         // If it's not a failure, get the edges
-        NeuralNet::EdgeType edge = edgesFromString(edgeString);
+        NeuralNet::State state = stateFromString(stateString);
         // Send the edges to the return value
-        val = edge;
+        val = state;
     }
 
     return true;
@@ -518,8 +457,8 @@ void cleanInputString(std::string & dirtyString) {
     }
 }
 
-std::vector<Particle<NeuralNet::EdgeType>> readParticlesFromString(const std::string & partSubString) {
-    std::vector<Particle<NeuralNet::EdgeType>> particles;
+std::vector<Particle<NeuralNet::State>> readParticlesFromString(const std::string & partSubString) {
+    std::vector<Particle<NeuralNet::State>> particles;
     int it = 0;
     int i = 0;
     do {
@@ -529,7 +468,7 @@ std::vector<Particle<NeuralNet::EdgeType>> readParticlesFromString(const std::st
         std::string numString = stringPut(i++);
         std::string pString = subStringByToken(partSubString, numString, it);
         if (!pString.empty()) {
-            Particle<NeuralNet::EdgeType> p = particleFromString(pString);
+            Particle<NeuralNet::State> p = particleFromString(pString);
             particles.push_back(p);
         }
 

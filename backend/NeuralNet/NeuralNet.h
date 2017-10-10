@@ -7,6 +7,7 @@
 #include <vector>
 #include <cmath>
 #include <ctime>
+#include <chrono>
 
 //#ifdef USE_MAC
 //#include <tr1/cinttypes>
@@ -20,6 +21,7 @@
 using namespace std;
 
 #include "custommath.h"
+#include "randomnumberengine.h"
 
 #ifndef M_PI
 // Qt redifines M_PI, so it disables <cmath>
@@ -33,9 +35,12 @@ using namespace std;
 
 class NeuralNet {
 public:
-    typedef std::vector<std::vector<std::vector<real>>> EdgeType;
-    typedef std::vector<std::vector<real>> RecEdgeType;
-    typedef std::vector<std::vector<std::vector<real>>> CombEdgeType;
+
+    typedef std::vector<std::vector<real>> EdgeLayer;
+    typedef std::vector<std::vector<std::vector<real>>> State;
+    typedef std::vector<std::vector<real>> InnerNodes;
+    typedef std::vector<real> ExternalNodes;
+
     enum Type { Feedforward = 0, Recurrent };
 
     struct NeuralNetParameters {
@@ -50,7 +55,7 @@ public:
     };
 
     NeuralNet(const NeuralNetParameters &params);
-    NeuralNet(const NeuralNetParameters &p, const CombEdgeType &n);
+    NeuralNet(const NeuralNetParameters &p, const State &n);
     NeuralNet(const NeuralNet & n);
     NeuralNet(NeuralNet && n);
     NeuralNet & operator= (const NeuralNet & n);
@@ -59,9 +64,14 @@ public:
 
     void initialize(const NeuralNetParameters & p);
 
-    void resetInputs();
+    void resetAllNodes();
+    void resetInputNodes();
     void resetInnerNodes();
+    void resetRecurrentNodes();
+    void resetOutputNodes();
     void resetWeights();
+
+    void resetNodesForRerun();
 
     void setTotalInputs(const size_t & n);
     void setTotalInnerNets(const size_t & n);
@@ -71,45 +81,70 @@ public:
     size_t totalInputs() { return _inputNodes.size(); }
     size_t totalOutputs() { return _outputNodes.size(); }
 
-    bool setWeights(const EdgeType &w);
-    bool setRecWeights(const RecEdgeType & w);
-    bool setCombinedWeights(const EdgeType & w);
-
-    static bool splitCombinedWeights(const CombEdgeType & c, EdgeType & e, RecEdgeType & r);
-
-    EdgeType & getWeights() {return _edges; }
-    RecEdgeType & getRecWeights() { return _recEdges; }
+    bool setState(const State & s);
+    State & state() { return _state; }
 
     void loadInput(const real &in, const size_t & i);
+    void loadInputs(const ExternalNodes & in);
     void setOutputs(const std::vector<real>& out);
-    const std::vector<real> &process();
+    const ExternalNodes &process();
 
-    bool buildNets();
+    const ExternalNodes & inputs() { return _inputNodes; }
+    const ExternalNodes & outputs() { return _outputNodes; }
+
+    //TODO
+    void enableAllNodes(const bool & t);
+    void randomDropoutNodes(const real & mean, const real & sigma);
+
+    real enableNodeBoolToValue(const bool &t);
+    bool enableNodeValueToBool(const real &val);
+
+    real nodeEnabled(const size_t & layer, const size_t & node);
+
+    EdgeLayer * forwardEdgeLayer(const size_t & i);
+    EdgeLayer * recurrentEdgeLayer(const size_t & i);
 
     static real activation(real in);
     static real getSign(const real & in);
 
     NeuralNetParameters * nParams() { return &_nParams; }
 
-    void printEdges();
+    //void printEdges();
+    void printState();
+
+    static size_t totalStateElementsFromInnerNodes(const size_t & innerNodes);
+    static size_t totalEdgeLayersFromState(const State & state);
 
 private:
     // Weights and Data
-    std::vector<real> _inputNodes;
-    std::vector<vector<real>> _innerNodes;  /// columns / node
-    std::vector<real> _outputNodes;
+    ExternalNodes _inputNodes;  // Nodes
+    InnerNodes _innerNodes;     // Columns : Nodes
+    InnerNodes _recurrentNodes; // Columns : Nodes
+    ExternalNodes _outputNodes; // Nodes
     bool _modifiedFlag = false;
 
-    EdgeType _edges;  ///TODO: Make _edges a pointer and pass edge pointers from PSO.
-    RecEdgeType _recEdges;
-    RecEdgeType _recBuffer;
+    State _state;   // [ T[][] : Edges[][] : Recurrent Edges[][] ]
     bool _localEdgesFlag;
 
     NeuralNetParameters _nParams;
 
+    RandomNumberEngine _randomEngine = std::chrono::system_clock::now().time_since_epoch().count();
+
 /// Inner Edge index:           0           1            2  ... n-1            n
 /// Nodes:               input -> inner (0) -> inner (1) -> ... -> inner (n-1) -> output
 /// Dimension of edges:     dim(input, inner(0))   dim(inner(i), inner(i+1)    dim(inner(n), output)
+
+    bool buildANN();
+    bool validateParams();
+    void prepareState();
+    void buildTopology();
+    bool buildEdges();
+    bool buildForwardEdges();
+    bool buildRecurrentEdges();
+
+    void processRecurrentNodes();
+    void processRecurrentNodes(const size_t &layer);
+    void processForwardPropagation();
 };
 
 

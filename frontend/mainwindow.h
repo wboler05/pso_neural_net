@@ -91,7 +91,7 @@ private:
     std::unique_ptr<OutageTrainer> _neuralPsoTrainer;
     std::unique_ptr<NeuralNet> _trainedNeuralNet;
     std::shared_ptr<TrainingParameters> _params;
-    NeuralNet::EdgeType _gb;
+    NeuralNet::State _gb;
     QVector<ParticlePlotWindow *> _particlePlotWindow;
 
     QTime _runTimer;

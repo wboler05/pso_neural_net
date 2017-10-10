@@ -85,7 +85,7 @@ void OutageTrainer::runTrainer() {
 
   // Termination
   printGB();
-  _neuralNet->setWeights(gb()->_x);
+  _neuralNet->setState(gb()->_x);
 }
 
 /// Passing null parameters to return stored values.
@@ -299,7 +299,7 @@ bool OutageTrainer::validateOutput(
 */
 
 void OutageTrainer::validateGB() {
-    _neuralNet->setWeights(_gb._x);
+    _neuralNet->setState(_gb._x);
     TestStatistics::ClassificationError ce;
     classError(_validationInputs, _validationStats, ce, _neuralNet->nParams()->validationIterations);
 }
@@ -309,7 +309,7 @@ void OutageTrainer::validateGB() {
  * @return Iterator for testInput list
  */
 size_t OutageTrainer::randomizeTrainingInputs() {
-    _neuralNet->resetInputs();
+    _neuralNet->resetAllNodes();
 
     size_t minIt = 0;
     size_t maxIt = _biasedTrainingInputs.size()-1;
@@ -336,7 +336,7 @@ OutageDataWrapper && OutageTrainer::loadTestInput(const size_t & I) {
     }
     size_t it = _testInputs[I];
 
-    _neuralNet->resetInputs();
+    _neuralNet->resetAllNodes();
 
     OutageDataWrapper item = (*_inputCache)[it];
     std::vector<real> inputItems = item.inputize();
@@ -354,7 +354,7 @@ OutageDataWrapper && OutageTrainer::loadValidationInput(const size_t & I) {
     }
     size_t it = _validationInputs[I];
 
-    _neuralNet->resetInputs();
+    _neuralNet->resetAllNodes();
 
     OutageDataWrapper item = (*_inputCache)[it];
     std::vector<real> inputItems = item.inputize();
@@ -367,7 +367,7 @@ OutageDataWrapper && OutageTrainer::loadValidationInput(const size_t & I) {
 
 void OutageTrainer::testGB() {
     /** TEST **/
-  _neuralNet->setWeights(_gb._x);
+  _neuralNet->setState(_gb._x);
 
     TestStatistics::ClassificationError ce;
     classError(_testInputs, _testStats, ce, _neuralNet->nParams()->testIterations);
@@ -396,7 +396,7 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
 
     for (size_t i = 0; i < iterations; i++) {
         size_t it = testInputs[i];
-        _neuralNet->resetInputs();
+        _neuralNet->resetAllNodes();
 
         OutageDataWrapper outageData = (*_inputCache)[it];
         std::vector<real> inputItems = outageData.inputize();

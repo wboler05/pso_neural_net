@@ -30,8 +30,8 @@ void NeuralPso::buildPso() {
                                         std::numeric_limits<real>::max()*.1};
 
     _particles->empty();
-    const NeuralNet::EdgeType &edges = _neuralNet->getWeights();
-    const NeuralNet::RecEdgeType & rEdges = _neuralNet->getRecWeights();
+    const NeuralNet::State &state = _neuralNet->state();
+    size_t outputIt = NeuralNet::totalEdgeLayersFromState(state);
 
     // Create N particles
     _particles->resize(_psoParams.population);
@@ -40,42 +40,42 @@ void NeuralPso::buildPso() {
         (*_particles)[i]._fit_pb = -numeric_limits<real>::max();
         (*_particles)[i]._fit_lb = -numeric_limits<real>::max();
 
-        (*_particles)[i]._x.resize(edges.size()+1);
-        (*_particles)[i]._minX.resize(edges.size()+1);
-        (*_particles)[i]._maxX.resize(edges.size()+1);
-        (*_particles)[i]._v.resize(edges.size()+1);
-        (*_particles)[i]._x_pb.resize(edges.size()+1);
-        (*_particles)[i]._x_lb.resize(edges.size()+1);
+        (*_particles)[i]._x.resize(state.size());
+        (*_particles)[i]._minX.resize(state.size());
+        (*_particles)[i]._maxX.resize(state.size());
+        (*_particles)[i]._v.resize(state.size());
+        (*_particles)[i]._x_pb.resize(state.size());
+        (*_particles)[i]._x_lb.resize(state.size());
         (*_particles)[i]._worstFlag = false;
         (*_particles)[i]._points = _psoParams.startPoints;
 
         if (i == 0) {
-            _gb._x.resize(edges.size()+1);
+            _gb._x.resize(state.size()+1);
         }
         // Create each inner column edge
-        for (size_t j = 0; j < edges.size(); j++) {
+        for (size_t j = 0; j < state.size(); j++) {
             // Create left edges
-            (*_particles)[i]._x[j].resize(edges[j].size());
-            (*_particles)[i]._minX[j].resize(edges[j].size());
-            (*_particles)[i]._maxX[j].resize(edges[j].size());
-            (*_particles)[i]._v[j].resize(edges[j].size());
-            (*_particles)[i]._x_pb[j].resize(edges[j].size());
-            (*_particles)[i]._x_lb[j].resize(edges[j].size());
+            (*_particles)[i]._x[j].resize(state[j].size());
+            (*_particles)[i]._minX[j].resize(state[j].size());
+            (*_particles)[i]._maxX[j].resize(state[j].size());
+            (*_particles)[i]._v[j].resize(state[j].size());
+            (*_particles)[i]._x_pb[j].resize(state[j].size());
+            (*_particles)[i]._x_lb[j].resize(state[j].size());
             if (i == 0) {
-                _gb._x[j].resize(edges[j].size());
+                _gb._x[j].resize(state[j].size());
             }
-            for (size_t k = 0; k < edges[j].size(); k++) {
+            for (size_t k = 0; k < state[j].size(); k++) {
                 // Create right edges
-                (*_particles)[i]._x[j][k].resize(edges[j][k].size());
-                (*_particles)[i]._minX[j][k].resize(edges[j][k].size());
-                (*_particles)[i]._maxX[j][k].resize(edges[j][k].size());
-                (*_particles)[i]._v[j][k].resize(edges[j][k].size());
-                (*_particles)[i]._x_pb[j][k].resize(edges[j][k].size());
-                (*_particles)[i]._x_lb[j][k].resize(edges[j][k].size());
+                (*_particles)[i]._x[j][k].resize(state[j][k].size());
+                (*_particles)[i]._minX[j][k].resize(state[j][k].size());
+                (*_particles)[i]._maxX[j][k].resize(state[j][k].size());
+                (*_particles)[i]._v[j][k].resize(state[j][k].size());
+                (*_particles)[i]._x_pb[j][k].resize(state[j][k].size());
+                (*_particles)[i]._x_lb[j][k].resize(state[j][k].size());
                 if (i == 0) {
-                    _gb._x[j][k].resize(edges[j][k].size());
+                    _gb._x[j][k].resize(state[j][k].size());
                 }
-                for (size_t m = 0; m < edges[j][k].size(); m++) {
+                for (size_t m = 0; m < state[j][k].size(); m++) {
                     (*_particles)[i]._v[j][k][m] = 0;
                     (*_particles)[i]._x_pb[j][k][m] = 0;
                     (*_particles)[i]._x_lb[j][k][m] = 0;
@@ -83,58 +83,23 @@ void NeuralPso::buildPso() {
                     if (i == 0) {
                         _gb._x[j][k][m] = 0;
                     }
-                    if (j == 0 || j == edges.size()-1) {
+                    if (j == 1 || j == outputIt) {
                         //(*_particles)[i]._x[j][k][m] = infDist(_randomEngine.engine());
 //                        (*_particles)[i]._x[j][k][m] = _randomEngine.uniformReal(
 //                                    infWeightRange[0], infWeightRange[1]);
-                        (*_particles)[i]._x[j][k][m] = _randomEngine.uniformReal(
+                        real val = _randomEngine.uniformReal(
                                     innerWeightRange[0], innerWeightRange[1]);
+                        (*_particles)[i]._x[j][k][m] = val;
                         (*_particles)[i]._minX[j][k][m] = infWeightRange[0];
                         (*_particles)[i]._maxX[j][k][m] = infWeightRange[1];
                     } else {
                         //(*_particles)[i]._x[j][k][m] = dist(_randomEngine.engine());
-                        (*_particles)[i]._x[j][k][m] = _randomEngine.uniformReal(
+                        real val = _randomEngine.uniformReal(
                                     innerWeightRange[0], innerWeightRange[1]);
+                        (*_particles)[i]._x[j][k][m] = val;
                         (*_particles)[i]._minX[j][k][m] = innerWeightRange[0];
                         (*_particles)[i]._maxX[j][k][m] = innerWeightRange[1];
                     }
-                }
-            }
-        }
-
-        const size_t recEdgeIt = edges.size();
-
-        (*_particles)[i]._x[recEdgeIt].resize(rEdges.size());
-        (*_particles)[i]._minX[recEdgeIt].resize(rEdges.size());
-        (*_particles)[i]._maxX[recEdgeIt].resize(rEdges.size());
-        (*_particles)[i]._v[recEdgeIt].resize(rEdges.size());
-        (*_particles)[i]._x_pb[recEdgeIt].resize(rEdges.size());
-        (*_particles)[i]._x_lb[recEdgeIt].resize(rEdges.size());
-        if (i == 0) {
-            _gb._x[recEdgeIt].resize(rEdges.size());
-        }
-        for (size_t j = 0; j < rEdges.size(); j++) {
-            (*_particles)[i]._x[recEdgeIt][j].resize(rEdges[j].size());
-            (*_particles)[i]._minX[recEdgeIt][j].resize(rEdges[j].size());
-            (*_particles)[i]._maxX[recEdgeIt][j].resize(rEdges[j].size());
-            (*_particles)[i]._v[recEdgeIt][j].resize(rEdges[j].size());
-            (*_particles)[i]._x_pb[recEdgeIt][j].resize(rEdges[j].size());
-            (*_particles)[i]._x_lb[recEdgeIt][j].resize(rEdges[j].size());
-            if (i == 0) {
-                _gb._x[recEdgeIt][j].resize(rEdges[j].size());
-            }
-            for (size_t k = 0; k < rEdges[j].size(); k++) {
-                //(*_particles)[i]._x[recEdgeIt][j][k] = dist(_randomEngine.engine());
-                (*_particles)[i]._x[recEdgeIt][j][k] = _randomEngine.uniformReal(
-                            innerWeightRange[0], innerWeightRange[1]);
-                (*_particles)[i]._minX[recEdgeIt][j][k] = innerWeightRange[0];
-                (*_particles)[i]._maxX[recEdgeIt][j][k] = innerWeightRange[1];
-                (*_particles)[i]._v[recEdgeIt][j][k] = 0;
-                (*_particles)[i]._x_pb[recEdgeIt][j][k] = 0;
-                (*_particles)[i]._x_lb[recEdgeIt][j][k] = 0;
-
-                if (i == 0) {
-                    _gb._x[recEdgeIt][j][k] = 0;
                 }
             }
         }
@@ -170,7 +135,7 @@ void NeuralPso::fly() {
 
     // For each particle
     for (size_t i = 0; i < _particles->size(); i++) {
-        Particle<NeuralNet::CombEdgeType> *p = &(*_particles)[i];
+        Particle<NeuralNet::State> *p = &(*_particles)[i];
         //p->_worstFlag = false;
         worstFlag = p->_worstFlag;
 
@@ -378,7 +343,7 @@ void NeuralPso::getCost() {
 
         NeuralParticle *p = &(*_particles)[i];
 
-        if (!_neuralNet->setCombinedWeights(p->_x)) {
+        if (!_neuralNet->setState(p->_x)) {
             std::cout<< "Failure to set weights." << endl;
         }
 
@@ -721,27 +686,27 @@ void NeuralPso::printParticleLBest(size_t I) {
   Logger::write(printString);
 }
 
-bool NeuralPso::injectGb(const NeuralNet::CombEdgeType &w) {
+bool NeuralPso::injectGb(const NeuralNet::State &s) {
     if (_particles->size() < 1) {
         return false;
     }
 
-    NeuralNet::EdgeType & px = (*_particles)[0]._x;
+    NeuralNet::State & px = (*_particles)[0]._x;
 
-    if (w.size() != px.size()) {
+    if (s.size() != px.size()) {
         return false;
     }
 
     for (size_t inner_node = 0; inner_node < px.size(); inner_node++) {
-        if (w.at(inner_node).size() != px[inner_node].size()) {
+        if (s.at(inner_node).size() != px[inner_node].size()) {
             return false;
         }
         for (size_t left_node = 0; left_node < px[inner_node].size(); left_node++) {
-            if (w.at(inner_node).at(left_node).size() != px[inner_node][left_node].size()) {
+            if (s.at(inner_node).at(left_node).size() != px[inner_node][left_node].size()) {
                 return false;
             }
             for (size_t right_node = 0; right_node < px[inner_node][left_node].size(); right_node++) {
-                    px[inner_node][left_node][right_node] = w.at(inner_node).at(left_node).at(right_node);
+                    px[inner_node][left_node][right_node] = s.at(inner_node).at(left_node).at(right_node);
             }
         }
     }
@@ -755,12 +720,12 @@ void NeuralPso::setToPrintGBNet() {
 }
 
 std::unique_ptr<NeuralNet> NeuralPso::buildNeuralNetFromGb() {
-    NeuralNet::CombEdgeType & gbEdges = getGbEdges();
-    std::unique_ptr<NeuralNet> n = std::make_unique<NeuralNet>(*neuralNet()->nParams(), gbEdges);
+    NeuralNet::State & gbState = getGbState();
+    std::unique_ptr<NeuralNet> n = std::make_unique<NeuralNet>(*neuralNet()->nParams(), gbState);
     return n;
 }
 
-NeuralNet::CombEdgeType &NeuralPso::getGbEdges() {
+NeuralNet::State &NeuralPso::getGbState() {
     return gb()->_x;
 }
 
@@ -826,7 +791,7 @@ bool NeuralPso::loadStatefromString(const string &psoState) {
     std::string gbString = subStringByToken(cleanString, "_gb", it);
     if (gbString.size() == 0) return false;
 
-    Particle<NeuralNet::CombEdgeType> gb =
+    Particle<NeuralNet::State> gb =
             particleFromString(gbString);
     _gb = gb;
 

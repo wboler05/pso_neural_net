@@ -12,23 +12,27 @@ NeuralNetPlot::NeuralNetPlot(QWidget *parent) :
 }
 
 void NeuralNetPlot::updateNodes() {
-    if (_edges==nullptr) return;
+    if (_state==nullptr) return;
 
     this->detachItems();
 
     const double lineThickness = 5;
 
-    float minX = 0, maxX = 0;
-    float minY = 0, maxY = 1;
+    double minX = 0, maxX = 0;
+    double minY = 0, maxY = 1;
 
     // Plot Nodes
-    maxX = _edges->size()-1;
-    for (size_t i = 0; i < _edges->size() - 1; i++) {
-        if (_edges->at(i).size() > 0) {
-            qreal y_offset = 1.0 / static_cast<double>(_edges->at(i).size());
+    size_t edgeLayers = NeuralNet::totalEdgeLayersFromState(*_state)+1;
+    maxX = edgeLayers;
+
+    // Draw nodes and edges
+    for (size_t i = 0; i < edgeLayers; i++) {
+        size_t leftNodes = (*_state)[i+1].size();
+        if (leftNodes > 0) {
+            qreal y_offset = 1.0 / static_cast<double>(leftNodes);
             //maxY = std::max(maxY, (float)_edges->at(i).size());
 
-            for (size_t j = 0; j < _edges->at(i).size(); j++) {
+            for (size_t j = 0; j < leftNodes; j++) {
 
                 qreal x = i;
                 qreal y = y_offset * static_cast<qreal>(j);
@@ -37,8 +41,10 @@ void NeuralNetPlot::updateNodes() {
                 mark->attach(this);
 
                 // Edges
-                double next_y_offset = 1.0f / (double) _edges->at(i).at(j).size();
-                for (size_t k = 0; k < _edges->at(i).at(j).size(); k++) {
+                size_t rightNodes = (*_state)[i+1][j].size();
+                double next_y_offset = 1.0f / static_cast<double>(rightNodes);
+                for (size_t k = 0; k < rightNodes; k++) {
+                    real edgeValue = (*_state)[i+1][j][k];
                     qreal xf = i+1;
                     qreal yf = next_y_offset * (double) k;
 
@@ -48,8 +54,8 @@ void NeuralNetPlot::updateNodes() {
 
                     QwtPlotCurve * newCurve = new QwtPlotCurve();
                     newCurve->setSamples(edgeData);
-                    QColor curveColor = edgeColor(_edges->at(i).at(j).at(k));
-                    double lt = lineThickness * qAbs(_edges->at(i).at(j).at(k));
+                    QColor curveColor = edgeColor(edgeValue);
+                    double lt = lineThickness * qAbs(edgeValue);
                     //newCurve->setBrush(curveColor);
                     newCurve->setPen(curveColor, lt);
                     newCurve->attach(this);
@@ -57,13 +63,14 @@ void NeuralNetPlot::updateNodes() {
                 }
             }
 
-            if (i == _edges->size() - 2) {
-                if (_edges->at(i).size() > 0) {
-                    if (_edges->at(i).at(0).size() > 0) {
-                        y_offset = 1.0f / static_cast<double>(_edges->at(i).at(0).size());
-            //            maxY = std::max(maxY, (float)_edges->at(i).size());
+            // Don't forget to draw output nodes.
+            if (i == edgeLayers - 1) {
+                if ((*_state)[i].size() > 0) {
+                    if ((*_state)[i][0].size() > 0) {
+                        size_t totalOutputNodes = ((*_state)[i][0].size());
+                        y_offset = 1.0f / static_cast<double>(totalOutputNodes);
 
-                        for (size_t j = 0; j < _edges->at(i).at(0).size(); j++) {
+                        for (size_t j = 0; j < totalOutputNodes; j++) {
                             QwtPlotMarker * mark = getNodeMarker(QPointF(i+1, y_offset*(double)j));
                             mark->attach(this);
                         }
@@ -75,25 +82,27 @@ void NeuralNetPlot::updateNodes() {
 
     // Draw Recurrent Loops
     if (_netType == NeuralNet::Recurrent) {
-        int it = _edges->size() - 1;
+        size_t beginIt = edgeLayers + 1;
+
         const qreal rx = 0.05;
         const qreal ry = 0.03;
         const qreal rad_res = 360;
         qreal radStep = 360.0 / (2.0 * M_PI * rad_res);
         qreal maxArc = (2.0 * M_PI) * ( 300.0 / 360.0 );
 
-        for (int j = 0; j < _edges->at(it).size(); j++) {
-
-            double y_offset = 1.0f / (double) _edges->at(it)[j].size();
-
-            for (int k = 0; k < _edges->at(it)[j].size(); k++) {
-                qreal x = j+1;
-                qreal y = y_offset * (double) k;
+        for (size_t i = 0; i < edgeLayers-2; i++) {
+            size_t totalRecNodes = (*_state)[beginIt + i].size();
+            double y_offset = 1.0 / static_cast<double>(totalRecNodes);
+            for (size_t j = 0; j < totalRecNodes; j++) {
+                qreal x = i+1;
+                qreal y = y_offset * static_cast<double>(j);
+                size_t lastIt = (*_state)[beginIt + i][j].size();
+                real edgeVal = (*_state)[beginIt + i][j][lastIt];
 
                 QVector<QPointF> edgeData;
                 QwtPlotCurve * newCurve = new QwtPlotCurve();
-                QColor curveColor = edgeColor(_edges->at(it)[j][k]);
-                double lt = lineThickness * qAbs(_edges->at(it)[j][k]);
+                QColor curveColor = edgeColor(edgeVal);
+                double lt = lineThickness * qAbs(edgeVal);
                 newCurve->setPen(curveColor, lt);
 
                 for (qreal rad = 0; rad < maxArc; rad += radStep) {
@@ -132,8 +141,8 @@ QwtPlotMarker * NeuralNetPlot::getNodeMarker(const QPointF & pos) {
     return mark;
 }
 
-void NeuralNetPlot::setEdges(NeuralNet::CombEdgeType * edges, NeuralNet::Type t) {
-    _edges = edges;
+void NeuralNetPlot::setState(NeuralNet::State * state, NeuralNet::Type t) {
+    _state = state;
     _netType = t;
     updateNodes();
     replot();

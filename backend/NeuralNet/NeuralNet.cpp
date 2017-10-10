@@ -1,23 +1,26 @@
 #include "NeuralNet.h"
 
+//RandomNumberEngine NeuralNet::_randomEngine(
+//        std::chrono::system_clock::now().time_since_epoch().count());
+
 NeuralNet::NeuralNet(const NeuralNetParameters & p) :
   _nParams(p)
 {
     initialize(p);
 }
 
-NeuralNet::NeuralNet(const NeuralNetParameters &p, const CombEdgeType & n) :
+NeuralNet::NeuralNet(const NeuralNetParameters &p, const State &s) :
     _nParams(p)
 {
     initialize(p);
-    setCombinedWeights(n);
+    setState(s);
 }
 
 NeuralNet::NeuralNet(const NeuralNet &n) {
     _inputNodes = n._inputNodes;
     _innerNodes = n._innerNodes;
     _outputNodes = n._outputNodes;
-    _edges = n._edges;
+    _state = n._state;
     _localEdgesFlag = n._localEdgesFlag;
     _nParams = n._nParams;
 }
@@ -26,7 +29,7 @@ NeuralNet::NeuralNet(NeuralNet && n) :
     _inputNodes(n._inputNodes),
     _innerNodes(n._innerNodes),
     _outputNodes(n._outputNodes),
-    _edges(n._edges),
+    _state(n._state),
     _localEdgesFlag(n._localEdgesFlag),
     _nParams(n._nParams)
 {
@@ -36,7 +39,7 @@ NeuralNet & NeuralNet::operator=(const NeuralNet & n) {
     _inputNodes = n._inputNodes;
     _innerNodes = n._innerNodes;
     _outputNodes = n._outputNodes;
-    _edges = n._edges;
+    _state = n._state;
     _localEdgesFlag = n._localEdgesFlag;
     _nParams = n._nParams;
     return *this;
@@ -44,12 +47,12 @@ NeuralNet & NeuralNet::operator=(const NeuralNet & n) {
 
 NeuralNet & NeuralNet::operator=(NeuralNet && n) {
     if (this != &n) {
-        _inputNodes = n._inputNodes;
-        _innerNodes = n._innerNodes;
-        _outputNodes = n._outputNodes;
-        _edges = n._edges;
-        _localEdgesFlag = n._localEdgesFlag;
-        _nParams = n._nParams;
+        _inputNodes = std::move(n._inputNodes);
+        _innerNodes = std::move(n._innerNodes);
+        _outputNodes = std::move(n._outputNodes);
+        _state = std::move(n._state);
+        _localEdgesFlag = std::move(n._localEdgesFlag);
+        _nParams = std::move(n._nParams);
     }
     return *this;
 }
@@ -67,37 +70,56 @@ void NeuralNet::initialize(const NeuralNetParameters & p) {
     }
     setTotalOutputs(static_cast<size_t>(_nParams.outputs));
 
-    buildNets();
+    buildANN();
 
-    resetInputs();
+    resetAllNodes();
     resetWeights();
 }
 
-void NeuralNet::resetInputs() {
+void NeuralNet::resetAllNodes() {
 
-  for (size_t i = 0; i < _inputNodes.size(); i++) {
-    _inputNodes[i] = 0;
-  }
+    resetInputNodes();
+    resetInnerNodes();
+    resetRecurrentNodes();
+    resetOutputNodes();
+}
 
-  for (size_t i = 0; i < _innerNodes.size(); i++) {
-    for (size_t j = 0; j < _innerNodes[i].size(); j++) {
-      _innerNodes[i][j] = 0;
+void NeuralNet::resetInputNodes() {
+    for (size_t i = 0; i < _inputNodes.size(); i++) {
+        _inputNodes[i] = 0;
     }
-  }
+}
 
-  for (size_t i = 0; i < _outputNodes.size(); i++) {
-    _outputNodes[i] = 0;
-  }
+void NeuralNet::resetInnerNodes() {
+    for (size_t i = 0; i < _innerNodes.size(); i++) {
+        for (size_t j = 0; j < _innerNodes[i].size(); j++) {
+            _innerNodes[i][j] = 0;
+        }
+    }
+}
+
+void NeuralNet::resetRecurrentNodes() {
+    for (size_t i = 0; i < _recurrentNodes.size(); i++) {
+        for (size_t j = 0; j < _recurrentNodes[i].size(); j++) {
+            _recurrentNodes[i][j] = 0;
+        }
+    }
+}
+
+void NeuralNet::resetOutputNodes() {
+    for (size_t i = 0; i < _outputNodes.size(); i++) {
+        _outputNodes[i] = 0;
+    }
 }
 
 void NeuralNet::resetWeights() {
-  for (size_t i = 0; i < _edges.size(); i++) {
-    for (size_t j = 0; j < _edges[i].size(); j++) {
-      for (size_t k = 0; k < _edges[i][j].size(); k++) {
-        _edges[i][j][k] = 0;
-      }
+    for (size_t i = 1; i < _state.size(); i++) {
+        for (size_t j = 0; j < _state[i].size(); j++) {
+            for (size_t k = 0; k < _state[i][j].size(); k++) {
+                _state[i][j][k] = 0;
+            }
+        }
     }
-  }
 }
 
 void NeuralNet::setTotalInputs(const size_t & n) {
@@ -112,14 +134,16 @@ void NeuralNet::setTotalInputs(const size_t & n) {
 void NeuralNet::setTotalInnerNets(const size_t & n) {
     _innerNodes.clear();
     _innerNodes.resize(n);
-    _edges.clear();
-    _edges.resize(n+1);
+    _recurrentNodes.clear();
+    _recurrentNodes.resize(n);
     _modifiedFlag = true;
 }
 void NeuralNet::setInnerNetNodes(const size_t & nodes, const size_t & i) {
     if (i < static_cast<size_t>(_innerNodes.size())) {
         _innerNodes[i].clear();
         _innerNodes[i].resize(nodes, 0);
+        _recurrentNodes[i].clear();
+        _recurrentNodes[i].resize(nodes, 0);
         _modifiedFlag = true;
     }
 }
@@ -131,66 +155,214 @@ void NeuralNet::setTotalOutputs(const size_t & n) {
 }
 
 
-bool NeuralNet::buildNets() {
-  // Verify nodes have been built
-  if (_inputNodes.size() == 0 || _innerNodes.size() == 0 || _outputNodes.size() == 0) {
-    return false;
-  }
-  // Verify at least one inner net is built
-  if (_innerNodes[0].size() == 0) {
-    return false;
-  }
+bool NeuralNet::buildANN() {
 
-  //std::uniform_real_distribution<real> dist(-1,1);
+    // Verify parameters appropriately set
+    if (!validateParams()) {
+        return false;
+    }
 
-  // Connect the input to the inner nodes
-  for (size_t i = 0; i < _edges.size(); i++) {
-    if (i == 0) { // Input to inner
-      _edges[i].clear();
-      _edges[i].resize(_inputNodes.size());
-      for (size_t j = 0; j < _inputNodes.size(); j++) {
-        _edges[i][j].clear();
-        _edges[i][j].resize(_innerNodes[0].size());
-      }
-    } else if (i == _edges.size()-1) { // inner to output
-      _edges[i].clear();
-      _edges[i].resize(_innerNodes[i-1].size());
-      for (size_t j = 0; j < _innerNodes[i-1].size(); j++) {
-        _edges[i][j].clear();
-        _edges[i][j].resize(_outputNodes.size());
-      }
+    // Clear and resize State
+    prepareState();
+
+    // Build Topology
+    buildTopology();
+
+    // Build Edges
+    buildEdges();
+
+    return true;
+}
+
+bool NeuralNet::validateParams() {
+    // Verify nodes have been built
+    if (_inputNodes.size() == 0 || _innerNodes.size() == 0 || _outputNodes.size() == 0) {
+        return false;
+    }
+    // Verify at least one inner net is built
+    if (_innerNodes[0].size() == 0) {
+        return false;
+    }
+    return true;
+}
+
+void NeuralNet::prepareState() {
+    _state.clear();
+
+    // Generate First Dimension of State
+    // Topo(1) + (N+1 innerNodes) + (N-2 innerNodes) = 2N
+    size_t totalElements = totalStateElementsFromInnerNodes(_innerNodes.size());
+    _state.resize(totalElements);
+}
+
+size_t NeuralNet::totalStateElementsFromInnerNodes(const size_t & innerNodes) {
+    return 2 * (innerNodes + 1);
+}
+
+size_t NeuralNet::totalEdgeLayersFromState(const State & state) {
+    return (state.size() / 2) - 1;
+}
+
+void NeuralNet::buildTopology() {
+    InnerNodes & topology = _state[0];
+    size_t totalLayers = _innerNodes.size()+2;
+    topology.resize(totalLayers);
+
+    for (size_t i = 0; i < totalLayers; i++) {
+        if (i == 0) {
+            topology[i].resize(_inputNodes.size());
+        } else if (i == totalLayers - 1) {
+            topology[i].resize(_outputNodes.size());
+        } else {
+            topology[i].resize(_innerNodes[i-1].size());
+        }
+        for (size_t j = 0; j < topology[i].size(); j++) {
+            topology[i][j] = 1.0;
+        }
+    }
+}
+
+bool NeuralNet::buildEdges() {
+    bool goodBuild = true;
+    goodBuild |= buildForwardEdges();
+    goodBuild |= buildRecurrentEdges();
+    return goodBuild;
+}
+
+bool NeuralNet::buildForwardEdges() {
+    if (_inputNodes.size() == 0 || _outputNodes.size() == 0) {
+        return false;
+    }
+    //std::uniform_real_distribution<real> dist(-1,1);
+
+    size_t totalInnerLayers = _innerNodes.size()+1;
+
+    for (size_t i = 0, stateIt=1; i < totalInnerLayers; i++, stateIt++) {
+        if (i >= _state.size()) {
+            return false;
+        }
+        if (i == 0) {
+            // Left Input - Right Hidden0
+            _state[stateIt].resize(_inputNodes.size());
+            for (size_t left_node = 0; left_node < _state[stateIt].size(); left_node++) {
+                if (_innerNodes.size() > 0) {
+                    // At least one hidden layer
+                    _state[stateIt][left_node].resize(_innerNodes[0].size());
+                } else {
+                    // Connect to output
+                    _state[stateIt][left_node].resize(_outputNodes.size());
+                }
+            }
+        } else if (i == totalInnerLayers-1) {
+            // Left HiddenN - Right Output
+            _state[stateIt].resize(_innerNodes[i-1].size());
+            for (size_t left_node = 0; left_node < _state[stateIt].size(); left_node++) {
+                _state[stateIt][left_node].resize(_outputNodes.size(), 0);
+            }
+        } else {
+            // Inner Layer - There must be 2+ inner layers here
+            _state[stateIt].resize(_innerNodes[i-1].size());
+            for (size_t left_node = 0; left_node < _state[stateIt].size(); left_node++) {
+                _state[stateIt][left_node].resize(_innerNodes[stateIt].size(), 0);
+            }
+        }
+    }
+    return true;
+}
+
+bool NeuralNet::buildRecurrentEdges() {
+    //std::uniform_real_distribution<real> dist(-1,1);
+
+    // 0 to N-1 inner edges in layer connect to a r-node
+    // Nth edge connects back to a node
+    // Total N+1 edges per layer
+
+    // Starts at (1 + L+1)th index
+    size_t startIndex = 1 + _innerNodes.size()+1;
+    size_t totalLayers = _innerNodes.size();
+
+    qDebug() << "State: " << _state.size() << " elements: " << startIndex << " to " << startIndex + totalLayers;
+
+    for (size_t layer = startIndex, i=0; layer < totalLayers+startIndex; layer++, i++) {
+        if (layer > _state.size()) {
+            return false;
+        }
+        _state[layer].resize(_innerNodes[i].size());
+        for (size_t recNode = 0; recNode < _state[layer].size(); recNode++) {
+            _state[layer][recNode].resize(_innerNodes[i].size()+1);
+        }
+    }
+    return true;
+}
+
+void NeuralNet::enableAllNodes(const bool & t) {
+    for (size_t i = 0; i < _state[0].size(); i++) {
+        for (size_t j = 0; j < _state[0][i].size(); j++) {
+            _state[0][i][j] = enableNodeBoolToValue(t);
+        }
+    }
+}
+
+real NeuralNet::enableNodeBoolToValue(const bool & t) {
+    if (t) {
+        return 1;
     } else {
-      _edges[i].clear();
-      _edges[i].resize(_innerNodes[i-1].size());
-      for (size_t j = 0; j < _innerNodes[i-1].size(); j++) {
-        _edges[i][j].clear();
-        _edges[i][j].resize(_innerNodes[i].size());
-      }
+        return -1;
     }
-  }
+}
 
-  for (size_t i = 0; i < _edges.size(); i++) {
-    for (size_t j = 0; j < _edges[i].size(); j++) {
-      for (size_t k = 0; k < _edges[i][j].size(); k++) {
-        _edges[i][j][k] = (real) (rand() % 10000-5000) / 10000.0;
-        //_edges[i][j][k] = dist(gen);
-      }
+bool NeuralNet::enableNodeValueToBool(const real & val) {
+    return val > 0;
+}
+
+real NeuralNet::nodeEnabled(const size_t & layer, const size_t & node) {
+    if (_state.size() == 0) return 0;
+
+    if (layer < _state[0].size()) {
+        if (node < _state[0][layer].size()) {
+            return enableNodeValueToBool(_state[0][layer][node]) ? 1 : 0;
+        } else {
+            return 0;
+        }
+    } else {
+        return 0;
     }
-  }
+}
 
-  _recEdges.resize(_innerNodes.size());
-  _recBuffer.resize(_innerNodes.size());
-  for (size_t i = 0; i < _innerNodes.size(); i++) {
-      _recEdges[i].resize(_innerNodes[i].size());
-      _recBuffer[i].resize(_innerNodes[i].size());
-      for (size_t j = 0; j < _innerNodes[i].size(); j++) {
-          //_recEdges[i][j] = dist(gen);
-          _recEdges[i][j] = (real) (rand() % 10000-5000) / 10000.0;
-          _recBuffer[i][j] = 0;
-      }
-  }
+void NeuralNet::randomDropoutNodes(const real &mean=0, const real & sigma=1) {
+    std::normal_distribution<real> dist(mean, sigma);
+    //std::uniform_real_distribution<real> dist(-1, 1);
 
-  return true;
+    for (size_t i = 0; i < _state[0].size(); i++) {
+        for (size_t j = 0; j < _state[0][i].size(); j++) {
+      //      _state[0][i][j] = dist(_randomEngine.engine());
+        }
+    }
+}
+
+NeuralNet::EdgeLayer * NeuralNet::forwardEdgeLayer(const size_t & layer) {
+    if (layer < _innerNodes.size() + 1) {
+        if (layer + 1 < _state.size()) {
+            return &_state[layer+1];
+        } else {
+            return nullptr;
+        }
+    } else {
+        return nullptr;
+    }
+}
+
+NeuralNet::EdgeLayer * NeuralNet::recurrentEdgeLayer(const size_t & layer) {
+    if (layer < _innerNodes.size()) {
+        size_t layerIteration = _innerNodes.size() + 2 + layer;
+        if (layerIteration < _state.size()) {
+            return &_state[layerIteration];
+        } else {
+            return nullptr;
+        }
+    } else {
+        return nullptr;
+    }
 }
 
 void NeuralNet::loadInput(const real & in, const size_t & i) {
@@ -264,151 +436,166 @@ const vector<real> & NeuralNet::process() {
 
     if (_modifiedFlag) {
         _modifiedFlag = false;
-        buildNets();
+        buildANN();
     }
 
   // If the edges aren't built, it's broke
-  if (_edges.size() == 0)
+  if (_state.size() == 0)
     return _outputNodes;
 
 //  cout << _inputNodes.size() << "\t" << _innerNodes.size();
 
-  if (_nParams.type == Recurrent) {
-      for (size_t i = 0; i < _innerNodes.size(); i++) {
-          for (size_t j = 0; j < _innerNodes[i].size(); j++) {
-              _recBuffer[i][j] = _recEdges[i][j] * activation(_innerNodes[i][j]);
-          }
-      }
-      for (size_t i = 0; i < _innerNodes.size(); i++) {
-          for (size_t j = 0; j < _innerNodes[i].size(); j++) {
-              _innerNodes[i][j] = _recBuffer[i][j];
-          }
-      }
-  } else if (_nParams.type == Feedforward){
-      resetInnerNodes();
-  }
-
-
-  // Handle the input to the inner
-  for (size_t i = 0; i < _inputNodes.size(); i++) {
-    for (size_t j = 0; j < _innerNodes[0].size(); j++) {
-      _innerNodes[0][j] += _inputNodes[i] * _edges[0][i][j];;
-    }
-  }
-
-    // Handle the rest of the inner nodes
-  for (size_t i = 0; i < _innerNodes.size()-1; i++) {
-    for (size_t j = 0; j < _innerNodes[i].size(); j ++) {
-      for (size_t k = 0; k < _innerNodes[i+1].size(); k++) {
-        _innerNodes[i+1][k] += _edges[i+1][j][k] * activation(_innerNodes[i][j]);
-      }
-    }
-  }
-
-  // Handle the inner nodes to the output
-  for (size_t i = 0; i < _outputNodes.size(); i++) {
-    size_t innerIndex = _innerNodes.size() - 1 ;
-    size_t innerSize = _innerNodes[innerIndex].size();
-    for (size_t j = 0; j < innerSize; j++) {
-      _outputNodes[i] += _edges[_edges.size()-1][j][i] * activation(_innerNodes[innerIndex][j]);
-    }
-  }
+  processForwardPropagation();
 
   return _outputNodes;
 }
 
-void NeuralNet::resetInnerNodes() {
-  for (size_t i = 0; i < _innerNodes.size(); i++) {
-    for (size_t j = 0; j < _innerNodes[i].size(); j++) {
-      _innerNodes[i][j] = 0;
+void NeuralNet::processRecurrentNodes() {
+    if (_nParams.type == Recurrent) {
+        // For each layer
+        for (size_t layer = 0; layer < _innerNodes.size(); layer++) {
+            // For each recurrent node
+            for (size_t j = 0; j < _innerNodes[layer].size(); j++) {
+                // For each connected node;
+                for (size_t k = 0; k < _innerNodes[layer].size(); k++) {
+                    _recurrentNodes[layer][j] +=
+                            nodeEnabled(layer, k) *
+                            (*recurrentEdgeLayer(layer))[j][k] *
+                            activation(_innerNodes[layer][k]);
+                }
+            }
+        }
+    } else if (_nParams.type == Feedforward){
+        resetNodesForRerun();
     }
-  }
+}
 
-  for (size_t i = 0; i < _outputNodes.size(); i++) {
-    _outputNodes[i] = 0;
-  }
+void NeuralNet::processForwardPropagation() {
+    if (_innerNodes.size() == 0) {
+        resetOutputNodes();
+        EdgeLayer * edges = forwardEdgeLayer(0);
+        for (size_t left_node = 0; left_node < _inputNodes.size(); left_node++) {
+            for (size_t right_node = 0; right_node < _outputNodes.size(); right_node++) {
+                _outputNodes[right_node] += (*edges)[left_node][right_node]*_inputNodes[left_node];
+            }
+        }
+        return;
+    } else {
+        resetInnerNodes();
+        resetOutputNodes();
+
+        if (_nParams.type == Recurrent) {
+            resetRecurrentNodes();
+        }
+
+        for (size_t layer = 0; layer < _innerNodes.size()+1; layer++) {
+            EdgeLayer * edges = forwardEdgeLayer(layer);
+
+            if (layer == 0) {
+                // Process Input to Hidden
+                for (size_t left_node = 0; left_node < _inputNodes.size(); left_node++) {
+                    for (size_t right_node = 0; right_node < _innerNodes[0].size(); right_node++) {
+                        if (enableNodeValueToBool(nodeEnabled(0, right_node))) {
+                            _innerNodes[0][right_node] +=
+                                    (*edges)[left_node][right_node]*_inputNodes[left_node];
+                        }
+                    }
+                }
+            } else if (layer == _innerNodes.size()) {
+                // Hidden to Output
+                for (size_t left_node = 0; left_node < _innerNodes[layer-1].size(); left_node++) {
+                    if (!enableNodeValueToBool(nodeEnabled(layer-1, left_node))) {
+                        continue;
+                    }
+                    for (size_t right_node = 0; right_node < _outputNodes.size(); right_node++) {
+                        _outputNodes[right_node] +=
+                                (*edges)[left_node][right_node]*activation(_innerNodes[layer-1][left_node]);
+                    }
+                }
+            } else {
+                // Hidden Layers
+                for (size_t left_node = 0; left_node < _innerNodes[layer-1].size(); left_node++) {
+                    if (!enableNodeValueToBool(nodeEnabled(layer-1, left_node))) {
+                        continue;
+                    }
+                    for (size_t right_node = 0; right_node < _innerNodes[layer].size(); right_node++) {
+                        if (enableNodeValueToBool(nodeEnabled(layer, right_node))) {
+                            _innerNodes[layer][right_node] +=
+                                    (*edges)[left_node][right_node]*activation(_innerNodes[layer-1][left_node]);
+                        }
+                    }
+                }
+                // Apply recurrent nodes (handles check for you)
+                processRecurrentNodes(layer);
+            }
+        }
+    }
 }
 
 /**
- * @brief NeuralNet::setWeights
- * @param w
- * @return
- * @todo Change it so that it can get a pointer to weights.
+ * @brief NeuralNet::processRecurrentNodes
+ * @details Process for each layer after updating a forward layers
+ * @param layer
  */
-bool NeuralNet::setWeights(const EdgeType & w) {
-  //cout << "Edges: " << _edges.size() << " Setting: " << w->size() << endl;
-  if (_edges.size() != w.size()) return false;
-  for (size_t i = 0; i < w.size(); i++) {
-    if (w[i].size() != _edges[i].size()) return false;
-    for (size_t j = 0; j < w[i].size(); j++) {
-      if (w[i][j].size() != _edges[i][j].size()) return false;
-      for (size_t k = 0; k < w[i][j].size(); k++) {
-        _edges[i][j][k] = w[i][j][k];
- //       cout << i << ": " << j << ", " << k << ": " << _edges[i][j][k];
- //       cout << endl;
-      }
-    }
-  }
-  return true;
-}
-
-bool NeuralNet::setRecWeights(const RecEdgeType & w) {
-    if (_recEdges.size() != w.size()) {
-        return false;
-    }
-    for (size_t i = 0; i < _recEdges.size(); i++) {
-        for (size_t j = 0; j < _recEdges[i].size(); j++) {
-            _recEdges[i][j] = w[i][j];
+void NeuralNet::processRecurrentNodes(const size_t &layer) {
+    if (layer < _recurrentNodes.size() && _nParams.type == Recurrent) {
+        EdgeLayer * recEdges = recurrentEdgeLayer(layer);
+        for (size_t recNode = 0; recNode < _recurrentNodes[layer].size(); recNode++) {
+            if (!enableNodeValueToBool(nodeEnabled(layer, recNode))) {
+                continue;
+            }
+            _recurrentNodes[layer][recNode] = 0;
+            for (size_t conNode = 0; conNode < _recurrentNodes[layer].size(); conNode++) {
+                if (!enableNodeValueToBool(nodeEnabled(layer, conNode))) {
+                    continue;
+                }
+                _recurrentNodes[layer][recNode] +=
+                        (*recEdges)[recNode][conNode] * activation(_innerNodes[layer][conNode]);
+            }
+            size_t recNodeEdge = (*recEdges)[recNode].size()-1;
+            _innerNodes[layer][recNode] +=
+                    (*recEdges)[recNode][recNodeEdge] * activation(_recurrentNodes[layer][recNode]);
         }
     }
-    return true;
 }
 
-bool NeuralNet::setCombinedWeights(const EdgeType & w) {
-    if (_edges.size() == 0) return false;
-    if (_edges.size() + 1 != w.size()) {
-        return false;
-    }
-    if (_recEdges.size() != w.at(w.size()-1).size()) {
-        return false;
-    }
+void NeuralNet::resetNodesForRerun() {
+    resetInnerNodes();
+    resetRecurrentNodes();
+    resetOutputNodes();
+}
 
-    for (size_t i = 0; i < _edges.size(); i++) {
-        if (w[i].size() != _edges[i].size()) {
-            return false;
-        }
-        for (size_t j = 0; j < _edges[i].size(); j++) {
-            if (w[i][j].size() != _edges[i][j].size()) {
+bool NeuralNet::setState(const State & s) {
+    // Validate safe to transfer
+    if (_state.size() == s.size()) {
+        for (size_t i = 0; i < s.size(); i++) {
+            if (_state[i].size() == s[i].size()) {
+                for (size_t j = 0; j < s[i].size(); j++) {
+                    if (_state[i][j].size() != s[i][j].size()) {
+                        return false;
+                    }
+                }
+            } else {
                 return false;
             }
-            for (size_t k = 0; k < _edges[i][j].size(); k++) {
-                _edges[i][j][k] = w[i][j][k];
-            }
         }
-    }
-
-    size_t it = w.size() - 1;
-    for (size_t j = 0; j < w[it].size(); j++) {
-        for (size_t k = 0; k < w[it][j].size(); k++) {
-
-            _recEdges[j][k] = w[it][j][k];
-        }
-    }
-    return true;
-}
-
-bool NeuralNet::splitCombinedWeights(const CombEdgeType &c, EdgeType & e, RecEdgeType & r) {
-    if (c.size() <= 1) {
+    } else {
         return false;
     }
 
-    r = c[c.size()-1];
-    e = c;
-    e.pop_back();
-
+    // Transfer
+    for (size_t i = 0; i < s.size(); i++) {
+        for (size_t j = 0; j < s[i].size(); j++) {
+            for (size_t k = 0; k < s[i][j].size(); k++) {
+                _state[i][j][k] = s[i][j][k];
+            }
+        }
+    }
+    _modifiedFlag = false;
     return true;
 }
 
+/*
 void NeuralNet::printEdges() {
   qDebug() << "An edge: ";
   for (size_t i = 0; i < _edges.size(); i++) {
@@ -419,5 +606,16 @@ void NeuralNet::printEdges() {
       }
     }
   }
-}
+}*/
 
+void NeuralNet::printState() {
+  qDebug() << "State: ";
+  for (size_t i = 0; i < _state.size(); i++) {
+    qDebug() << "   Dimension: " << i;
+    for (size_t j = 0; j < _state[i].size(); j++) {
+      for (size_t k = 0; k < _state[i][j].size(); k++) {
+        qDebug() << "  -- " << j+1 << " : " << k+1 << " = " << _state[i][j][k];
+      }
+    }
+  }
+}
