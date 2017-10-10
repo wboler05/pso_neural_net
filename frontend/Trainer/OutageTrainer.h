@@ -14,6 +14,7 @@ struct TrainingParameters {
     CacheParameters cp;
     real alpha = 1.0L;
     real beta = 1.0L;
+    real gamma = 1.0L;
 };
 
 class OutageTrainer : public NeuralPso
@@ -33,6 +34,7 @@ public:
     real trainingRun();
     void testGB();
     void validateGB();
+    TestStatistics::ClassificationError && validateCurrentNet();
 
     size_t randomizeTrainingInputs();
     void runTrainer();

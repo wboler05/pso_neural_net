@@ -80,7 +80,7 @@ void FitnessPlotter::plotHistory(const std::vector<real> &history) {
     }
 
     setAxisScale(xBottom, window_min, history.size());
-    setAxisScale(yLeft, minY * 0.9995, maxY * 1.0005);
+    setAxisScale(yLeft, minY * 0.9995 -0.0025, maxY * 1.0005 + 0.0025);
 
     replot();
 

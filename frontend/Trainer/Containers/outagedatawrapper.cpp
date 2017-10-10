@@ -356,14 +356,18 @@ std::vector<real> OutageDataWrapper::splitMSE(const std::vector<real> & result, 
 
 real OutageDataWrapper::bool2Double(const bool &b) {
     if (b) {
-        return 1.0L;
+        return static_cast<real>(1.0);
     } else {
-        return 0.0L;
+        return static_cast<real>(-1.0);
     }
 }
 
 bool OutageDataWrapper::double2Bool(const real &d) {
-    return d < 0.5L;
+    if (d < 0) {
+        return false;
+    } else {
+        return true;
+    }
 }
 
 real OutageDataWrapper::cityToNumber(const std::string &c) {

@@ -332,6 +332,7 @@ void MainWindow::setParameterDefaults() {
 
     _params->alpha = 1.0;
     _params->beta = 1.0;
+    _params->gamma = 1.0;
 
     updateParameterGui();
 }
@@ -366,6 +367,7 @@ void MainWindow::applyParameterChanges() {
 
     _params->alpha = static_cast<real>(ui->alpha_dsb->value());
     _params->beta = static_cast<real>(ui->beta_dsb->value());
+    _params->gamma = static_cast<real>(ui->gamma_dsb->value());
 
     setNetTypeByIndex(ui->netType_cb->currentIndex());
 }
@@ -400,6 +402,7 @@ void MainWindow::updateParameterGui() {
 
     ui->alpha_dsb->setValue(static_cast<double>(_params->alpha));
     ui->beta_dsb->setValue(static_cast<double>(_params->beta));
+    ui->gamma_dsb->setValue(static_cast<double>(_params->gamma));
 
     ui->netType_cb->setCurrentIndex(getNetTypeCBIndex());
 }

@@ -59,7 +59,7 @@ void Logger::LoggingConsummer() {
                     std::unique_lock<std::mutex> lock2(_textBrowserMtx, std::defer_lock);
                     lock2.lock();
 
-                    if (_outputBrowser != nullptr) {
+                    if (_outputBrowser != nullptr && false) {
 
                         _outputBrowser->append(s);
 

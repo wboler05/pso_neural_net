@@ -189,28 +189,11 @@ real OutageTrainer::trainingRun() {
         mse[i] /= static_cast<real>(totalSetsToRun);
     }
 
-    real cost = _params->alpha * mse[0] + _params->beta * mse[1];
-    cost /= (_params->alpha + _params->beta);
-    return 1-cost;
-
-
-    /*
-
-    mse = sqrt(mse)/outputError.size() / totalSetsToRun;
-
-    //qDebug() << "MSE: " << mse;
-
-    TestStatistics::ClassificationError ce;
-    testStats.getClassError(&ce);
-
-
-
-    correctRatio = (real) correctCount / (real) totalSetsToRun;
-    totalCount = totalSetsToRun;
+    TestStatistics::ClassificationError ce = validateCurrentNet();
 
     real penalty = 1;
-    if ((1-mse) < _fParams.mse_floor)
-        penalty *= 0.00001;
+//    if ((1-mse) < _fParams.mse_floor)
+//        penalty *= 0.00001;
     if (ce.accuracy < _fParams.floors.accuracy)
         penalty *= 0.00001;
     if (ce.precision < _fParams.floors.precision)
@@ -222,86 +205,32 @@ real OutageTrainer::trainingRun() {
     if (ce.f_score < _fParams.floors.f_score)
         penalty *= 0.00001;
 
-    real cost =  penalty *
-            (_fParams.mse_weight*(1.0 - mse)
-             + (_fParams.weights.accuracy*ce.accuracy)
-             + (_fParams.weights.sensitivity*ce.sensitivity)
-             + (_fParams.weights.specificity*ce.specificity)
-             + (_fParams.weights.precision*ce.precision)
-             + (_fParams.weights.f_score*ce.f_score));
+    real costA = (_params->alpha * mse[0] + _params->beta * mse[1]) / (_params->alpha + _params->beta);
+    real costB = penalty * ((_fParams.weights.accuracy*ce.accuracy)
+                            + (_fParams.weights.sensitivity*ce.sensitivity)
+                            + (_fParams.weights.specificity*ce.specificity)
+                            + (_fParams.weights.precision*ce.precision)
+                            + (_fParams.weights.f_score*ce.f_score) + 1);
+    costB /= (_fParams.weights.accuracy +
+              _fParams.weights.sensitivity +
+              _fParams.weights.specificity +
+              _fParams.weights.precision +
+              _fParams.weights.f_score + 1);
+    real cost = (costB - _fParams.mse_weight * costA) / (1 + _fParams.mse_weight);
+
     return cost;
-*/
-  /* Previous tests
-
-//  vector<real> w = {1, 0, 100};
-//  real probSum = 0;
-//  for (size_t i = 0; i < w.size(); i++) {
-//    probSum += w[i];
-//  }
-
-  return penalty *(1.0 - mse) * (1.0 - fn) * tp;
-
-  return (5*accuracy + precision + 2*sensitivity + specificity  + f_score) * penalty * (1.0-mse);
-
-  return sqrt(pow(accuracy,2) + pow(specificity,2) + pow(sensitivity, 2))/3;
-
-  return (w[0]*((real) correctCount) + ((w[1]*confidence)+(w[2]*(1.0-mse)))) / probSum;
-
-  */
 }
-
-/*
-bool OutageTrainer::validateOutput(
-        const std::vector<real> &outputs,
-        const std::vector<real> & expectedResult,
-        std::vector<real> & outputError,
-        TestStatistics & testStats,
-        bool & correctOutput)
-{
-
-    if (outputs.size() != expectedResult.size()) {
-        std::cout<< "Error, output size does not match expected size.";
-        return false;
-    }
-
-    // Setup the output error buffer.
-    outputError.resize(outputs.size());
-
-    // Initialize to true, set to false when one breaks
-    correctOutput = true;
-
-    for (size_t i = 0; i < outputs.size(); i++) {
-        bool result = confirmOutage(outputs.at(0));
-        bool expRes = confirmOutage(expectedResult[i]);
-
-        // Collect stats
-        if (result) {
-            if (expRes) {
-                testStats.addTp();
-            } else {
-                correctOutput = false;
-                testStats.addFp();
-            }
-        } else {
-            if (expRes) {
-                correctOutput = false;
-                testStats.addFn();
-            } else {
-                testStats.addTn();
-            }
-        }
-
-        // Set the output error for sum of squares later
-        outputError[i] = expectedResult[i] - outputs[i];
-    }
-    return true;
-}
-*/
 
 void OutageTrainer::validateGB() {
     _neuralNet->setState(_gb._x);
     TestStatistics::ClassificationError ce;
     classError(_validationInputs, _validationStats, ce, _neuralNet->nParams()->validationIterations);
+}
+
+TestStatistics::ClassificationError && OutageTrainer::validateCurrentNet() {
+    TestStatistics::ClassificationError ce;
+    classError(_validationInputs, _validationStats, ce, _neuralNet->nParams()->validationIterations);
+    return std::move(ce);
 }
 
 /**
