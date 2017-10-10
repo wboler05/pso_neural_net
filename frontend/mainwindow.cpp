@@ -266,19 +266,34 @@ void MainWindow::initializeCache() {
     c.headerSize = 2;
     _inputCache = std::make_shared<InputCache>(c);
 
-    for (size_t i = 0; i < _inputCache->totalInputItemsInFile(); i++) {
-        OutageDataWrapper index = (*_inputCache)[i];
-        qDebug() <<
-            "(" << i << "): date(" <<
-            index._date.day() << "/" <<
-            index._date.month() << "/" <<
-            index._date.year() << ") Temp(" <<
-            static_cast<double>(index._temp.hi()) << "," <<
-            static_cast<double>(index._temp.avg()) << "," <<
-            static_cast<double>(index._temp.lo()) << ")\tAffected Customers: " <<
-            index._affectedCustomers << "\tOutage: " << OutageDataWrapper::bool2Double(index._outage);
+    while (!_inputCache->validFile()) {
+        c.inputFileName = QFileDialog::getOpenFileName(
+                    this,
+                    "Get input data",
+                    qApp->applicationDirPath(),
+                    "CSV (*.csv)");
+        _inputCache = std::make_shared<InputCache>(c);
     }
-    qDebug() << "Cache creation complete.";
+
+    if (_inputCache->validFile()) {
+
+        for (size_t i = 0; i < _inputCache->totalInputItemsInFile(); i++) {
+            OutageDataWrapper index = (*_inputCache)[i];
+            qDebug() <<
+                "(" << i << "): date(" <<
+                index._date.day() << "/" <<
+                index._date.month() << "/" <<
+                index._date.year() << ") Temp(" <<
+                static_cast<double>(index._temp.hi()) << "," <<
+                static_cast<double>(index._temp.avg()) << "," <<
+                static_cast<double>(index._temp.lo()) << ")\tAffected Customers: " <<
+                index._affectedCustomers << "\tOutage: " << OutageDataWrapper::bool2Double(index._outage);
+        }
+        qDebug() << "Cache creation complete.";
+    } else {
+        qDebug() << "Failed to open input file.";
+        exit(1);
+    }
 }
 
 void MainWindow::setParameterDefaults() {
