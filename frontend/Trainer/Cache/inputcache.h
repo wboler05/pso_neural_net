@@ -19,6 +19,7 @@ public:
     explicit InputCache(const CacheParameters & c);
     ~InputCache();
 
+    //This is how we access the cache
     OutageDataWrapper operator[](size_t index);
 
     const unsigned long DEFAULT_MAX_BYTES = 1024*1024*64;
