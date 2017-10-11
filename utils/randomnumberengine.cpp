@@ -1,6 +1,6 @@
 #include "randomnumberengine.h"
 
-RandomNumberEngine::RandomNumberEngine(unsigned long s = 0) : _engine(0), _seed(s)
+RandomNumberEngine::RandomNumberEngine(unsigned long s) : _engine(0), _seed(s)
 {
 
 }

@@ -7,7 +7,7 @@
 class RandomNumberEngine
 {
 public:
-    RandomNumberEngine(unsigned long s);
+    RandomNumberEngine(unsigned long s = 0);
 
     const unsigned long & seed() { return _seed; }
     const std::default_random_engine & engine() { return _engine; }
