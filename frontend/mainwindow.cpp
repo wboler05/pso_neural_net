@@ -272,6 +272,9 @@ void MainWindow::initializeCache() {
                     "Get input data",
                     qApp->applicationDirPath(),
                     "CSV (*.csv)");
+        if (c.inputFileName.isNull()) {
+            qDebug() << "Error, no input data loaded.";
+        }
         _inputCache = std::make_shared<InputCache>(c);
     }
 
@@ -326,7 +329,9 @@ void MainWindow::setParameterDefaults() {
 
     _params->np.inputs = static_cast<int>(dataWrapper.inputize().size());
     _params->np.innerNetNodes.clear();
-    _params->np.innerNetNodes.push_back(4);
+    _params->np.innerNetNodes.push_back(16);
+    _params->np.innerNetNodes.push_back(16);
+    _params->np.innerNetNodes.push_back(16);
     _params->np.innerNets = static_cast<int>(_params->np.innerNetNodes.size());
     _params->np.outputs = static_cast<int>(dataWrapper.outputize().size());
     _params->np.trainingIterations = 200;
@@ -578,6 +583,10 @@ void MainWindow::updateFitnessPlot() {
     }
 }
 
+/**
+ * @brief MainWindow::runNeuralPso
+ * @details Runs PSO trainer.
+ */
 void MainWindow::runNeuralPso() {
   if (_runPso) {
       return;
@@ -600,7 +609,7 @@ void MainWindow::runNeuralPso() {
   tellParameters();
 
   if (_neuralPsoTrainer == nullptr) {
-      clearPSOState();
+      clearPSOState();  // Initializer for PSO training
   }
 
   //NeuralNet *net = _neuralPsoTrainer->neuralNet();

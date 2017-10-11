@@ -256,6 +256,7 @@ void NeuralPso::fly() {
         }
     }
 
+    // Never happens
     // If stagnant, mix it up a bit
     if (abs(velSum) < _psoParams.vDelta) {
 

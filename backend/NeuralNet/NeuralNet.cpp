@@ -485,7 +485,7 @@ void NeuralNet::processForwardPropagation() {
         resetOutputNodes();
 
         if (_nParams.type == Recurrent) {
-            resetRecurrentNodes();
+            //resetRecurrentNodes();
         }
 
         for (size_t layer = 0; layer < _innerNodes.size()+1; layer++) {
@@ -544,7 +544,6 @@ void NeuralNet::processRecurrentNodes(const size_t &layer) {
             if (!enableNodeValueToBool(nodeEnabled(layer, recNode))) {
                 continue;
             }
-            _recurrentNodes[layer][recNode] = 0;
             for (size_t conNode = 0; conNode < _recurrentNodes[layer].size(); conNode++) {
                 if (!enableNodeValueToBool(nodeEnabled(layer, conNode))) {
                     continue;
@@ -561,7 +560,6 @@ void NeuralNet::processRecurrentNodes(const size_t &layer) {
 
 void NeuralNet::resetNodesForRerun() {
     resetInnerNodes();
-    resetRecurrentNodes();
     resetOutputNodes();
 }
 
