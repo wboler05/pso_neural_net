@@ -2,6 +2,7 @@
 #define MAXMEMORYDIALOG_H
 
 #include <QWidget>
+#include <cmath>
 
 namespace Ui {
 class MaxMemoryDialog;
