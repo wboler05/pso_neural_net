@@ -205,18 +205,22 @@ real OutageTrainer::trainingRun() {
     if (ce.f_score < _fParams.floors.f_score)
         penalty *= 0.00001;
 
-    real costA = (_params->alpha * mse[0] + _params->beta * mse[1]) / (_params->alpha + _params->beta);
+    real costA = (_params->alpha * mse[0] + _params->beta * mse[1]);
+    //real costA = (_params->alpha * mse[0] + _params->beta * mse[1]) / (_params->alpha + _params->beta);
     real costB = penalty * ((_fParams.weights.accuracy*ce.accuracy)
                             + (_fParams.weights.sensitivity*ce.sensitivity)
                             + (_fParams.weights.specificity*ce.specificity)
                             + (_fParams.weights.precision*ce.precision)
                             + (_fParams.weights.f_score*ce.f_score) + 1);
+    real costC = _params->gamma * ((std::sqrt(CustomMath::pow(ce.sensitivity, 2) +
+                                              CustomMath::pow(ce.specificity,2))/2.0));
     costB /= (_fParams.weights.accuracy +
               _fParams.weights.sensitivity +
               _fParams.weights.specificity +
               _fParams.weights.precision +
               _fParams.weights.f_score + 1);
-    real cost = (costB - _fParams.mse_weight * costA) / (1 + _fParams.mse_weight);
+    real cost = (costB - _fParams.mse_weight * costA + costC) /
+            (1 + _fParams.mse_weight + _params->alpha + _params->beta);
 
     return cost;
 }
@@ -359,8 +363,8 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
   testStats.getClassError(ce);
   testStats.setMse(mse / static_cast<real>(iterations));
 
-  string outputString = testStats.outputString(ce);
-  Logger::write(outputString);
+//  string outputString = testStats.outputString(ce);
+//  Logger::write(outputString);
 
 }
 

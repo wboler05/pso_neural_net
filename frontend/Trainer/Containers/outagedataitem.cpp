@@ -15,6 +15,7 @@ OutageDataItem::~OutageDataItem() {
 }
 
 OutageDataItem::OutageDataItem(const OutageDataItem &l) {
+    _loa = l._loa;
     _latlong = l._latlong;
     _date = l._date;
     _temp = l._temp;
@@ -39,6 +40,7 @@ OutageDataItem::OutageDataItem(const OutageDataItem &l) {
 }
 
 OutageDataItem::OutageDataItem(OutageDataItem &&r) {
+    _loa = std::move(r._loa);
     _latlong = std::move(r._latlong);
     _date = std::move(r._date);
     _temp = std::move(r._temp);
@@ -63,6 +65,7 @@ OutageDataItem::OutageDataItem(OutageDataItem &&r) {
 }
 
 OutageDataItem & OutageDataItem::operator= (OutageDataItem && r) {
+    _loa = std::move(r._loa);
     _latlong = std::move(r._latlong);
     _date = std::move(r._date);
     _temp = std::move(r._temp);
@@ -88,6 +91,7 @@ OutageDataItem & OutageDataItem::operator= (OutageDataItem && r) {
 }
 
 OutageDataItem & OutageDataItem::operator=(const OutageDataItem &l) {
+    _loa = l._loa;
     _latlong = l._latlong;
     _date = l._date;
     _temp = l._temp;

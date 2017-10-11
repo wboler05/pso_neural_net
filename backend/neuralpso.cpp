@@ -376,7 +376,7 @@ real NeuralPso::evaluate() {
         NeuralParticle *p = &(*_particles)[i];
 
         // Handle logging
-        if (printChange[i] && false) { // Disable this for now
+        if (printChange[i]) { // Disable this for now
             printChange[i] = false;
             std::string outputString;
             outputString += "Particle (";
@@ -523,18 +523,20 @@ void NeuralPso::updateNeighborBest(NeuralParticle & p, NeuralParticle & p_n) {
 } // updateNeighborBest
 
 void NeuralPso::findGlobalBest(std::vector<bool> & printChange) {
-    size_t globalBestIt=0;
+    int globalBestIt=-1;
     for (size_t i = 0; i < _particles->size(); i++) {
         NeuralParticle & p = (*_particles)[i];
         if (p._fit_pb >= _gb._fit_pb) {
             _gb._fit_pb = p._fit_pb;
-            globalBestIt = i;
+            globalBestIt = static_cast<int>(i);
         } // End global best
     }
 
-    NeuralParticle & p = (*_particles)[globalBestIt];
-    printChange[globalBestIt] = true;
-    updateGlobalBest(p);
+    if (globalBestIt > 0) {
+        NeuralParticle & p = (*_particles)[static_cast<size_t>(globalBestIt)];
+        printChange[static_cast<size_t>(globalBestIt)] = true;
+        updateGlobalBest(p);
+    }
 }
 
 void NeuralPso::updateGlobalBest(NeuralParticle &p) {

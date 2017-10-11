@@ -23,6 +23,7 @@ public:
     OutageDataItem & operator=(const OutageDataItem &l);
 
     // Inputs
+    int _loa;
     LatLongObject _latlong;
     DateSnip _date;
     DataSnip _temp;

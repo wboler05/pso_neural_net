@@ -260,7 +260,7 @@ void MainWindow::initializeData() {
 
 void MainWindow::initializeCache() {
     CacheParameters c;
-    c.inputFileName = QString ("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\test\\10_Hammond_CrownPoint_Lake_test.csv");
+    c.inputFileName = QString ("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\Final Sets\\ECE570_Final_Dataset.csv");
     c.maxBytes = 512*1024*1024;
     c.totalSlicesPerCache = 8;
     c.headerSize = 2;
@@ -287,7 +287,9 @@ void MainWindow::initializeCache() {
                 static_cast<double>(index._temp.hi()) << "," <<
                 static_cast<double>(index._temp.avg()) << "," <<
                 static_cast<double>(index._temp.lo()) << ")\tAffected Customers: " <<
-                index._affectedCustomers << "\tOutage: " << OutageDataWrapper::bool2Double(index._outage);
+                index._affectedCustomers << "\tOutage: " << OutageDataWrapper::bool2Double(index._outage) <<
+                "\tLOA: " << index._loa <<
+                "\tLat: " << index._latlong.latitude() << "\tLong: " << index._latlong.longitude();
         }
         qDebug() << "Cache creation complete.";
     } else {
