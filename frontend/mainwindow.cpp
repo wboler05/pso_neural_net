@@ -14,6 +14,7 @@ using namespace std;
 
 #define CHAR_TO_INT(x) *(int *) x
 
+// Where everything begins
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -68,6 +69,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //initializeCL(_cpuDevices, _gpuDevices, _allDevices);
 
+    // Connect signals to slots
     connect(ui->run_btn, SIGNAL(clicked(bool)), this, SLOT(runNeuralPso()));
     connect(ui->stop_btn, SIGNAL(clicked(bool)), this, SLOT(stopPso()));
     //connect(ui->actionLoad_File, SIGNAL(triggered(bool)), this, SLOT(loadFile_btn()));
@@ -87,6 +89,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(updateTimer, SIGNAL(timeout()), this, SLOT(updatePlot()));
     updateTimer->start(500);
 
+    // Init before running things
     initializeData();
 }
 
