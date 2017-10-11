@@ -385,7 +385,7 @@ bool OutageDataWrapper::double2Bool(const real &d) {
 }
 
 real OutageDataWrapper::cityToNumber(const std::string &c) {
-    std::locale loc;
+/*    std::locale loc;
     std::string newC = std::tolower(c.c_str(), loc); //!FIXME Cannot take const char!!
 
     if (newC == "monticello") {
@@ -409,10 +409,12 @@ real OutageDataWrapper::cityToNumber(const std::string &c) {
     } else {
         return static_cast<real>(-1);
     }
+    */
+    return 0;
 }
 
 real OutageDataWrapper::countyToNumber(const std::string &c) {
-    std::locale loc;
+/*    std::locale loc;
     std::string newC = std::tolower(c.c_str(), loc);
 
     if (newC == "la porte" || newC == "laporte") {
@@ -430,10 +432,12 @@ real OutageDataWrapper::countyToNumber(const std::string &c) {
     } else {
         return static_cast<real>(-1);
     }
+    */
+    return 0;
 }
 
 real OutageDataWrapper::reportedEventToNumber(const std::string &e) {
-
+/*
     std::locale loc;
     std::string newC = std::tolower(e.c_str(), loc);
 
@@ -456,7 +460,8 @@ real OutageDataWrapper::reportedEventToNumber(const std::string &e) {
     } else {
         return static_cast<real>(-1);
     }
-
+*/
+    return 0;
 }
 
 real OutageDataWrapper::stormTypeToNumber(const std::string &s) {

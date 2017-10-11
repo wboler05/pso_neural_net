@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1178</width>
-    <height>828</height>
+    <height>917</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_21">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="5,10,0,0">
+     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="5,10,10,0">
       <item>
        <widget class="QGroupBox" name="groupBox_2">
         <property name="styleSheet">
@@ -585,9 +585,7 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_22" stretch="10,1">
          <item>
-          <widget class="FitnessPlotter" name="fitnessPlot" native="true">
-           <zorder>param_gb</zorder>
-          </widget>
+          <widget class="FitnessPlotter" name="fitnessPlot" native="true"/>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_8">

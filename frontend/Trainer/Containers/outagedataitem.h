@@ -4,7 +4,7 @@
 #include "custommath.h"
 #include <vector>
 #include <string>
-#include <locale>
+//#include <locale>
 #include <memory>
 
 #include "datasnip.h"
