@@ -115,6 +115,8 @@ private:
 
     void initializeData();
     void initializeCache();
+    bool loadIniFile();
+    void saveIniFile();
     QString loadInputFileDialog();
     void enableParameterInput(bool b);
     void tryInjectGB();

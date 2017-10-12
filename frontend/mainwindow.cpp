@@ -99,6 +99,9 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
+
+    saveIniFile();
+
     if (_particlePlotWindow.size() > 0) {
         qDebug() << "Closing your plot window.";
         foreach(auto p, _particlePlotWindow) {
@@ -254,31 +257,82 @@ void MainWindow::setCurrentNet() {
 }
 
 void MainWindow::initializeData() {
-    //loadFile_btn();
-//    generateAndLabels();
-    initializeCache();
+    if (!_params) {
+        _params = std::make_shared<TrainingParameters>();
+    }
+
+    bool iniFileLoaded = loadIniFile();
+
     setParameterDefaults();
     setInputsForTrainedNetFromGui();
+
+    if (!iniFileLoaded) {
+        saveIniFile();
+    }
+}
+
+bool MainWindow::loadIniFile() {
+    QString iniFile("default.ini");
+
+    QString filePath(qApp->applicationDirPath());
+    filePath.append(QDir::separator());
+    filePath.append(iniFile);
+
+    QFile file(filePath);
+    if (!file.exists()) {
+        qWarning() << "File not found: " << filePath;
+        return false;
+    }
+
+    if (!file.open(QFile::ReadOnly)) {
+        qWarning() << "Unable to open file: " << iniFile;
+        return false;
+    }
+
+    QTextStream input(&file);
+    QString lastDataInputPath = input.readLine();
+    _params->cp.inputFileName = lastDataInputPath;
+    file.close();
+
+    return true;
+}
+
+void MainWindow::saveIniFile() {
+    QString iniFile("default.ini");
+    QString filePath(qApp->applicationDirPath());
+    filePath.append(QDir::separator());
+    filePath.append(iniFile);
+
+    QFile file(filePath);
+    if (!file.open(QFile::WriteOnly)) {
+        qWarning() << "Unable to save to file: " << filePath;
+        return;
+    } else {
+        qDebug() << "Saving to ini: " << filePath;
+    }
+
+    QTextStream output(&file);
+    output << _params->cp.inputFileName;
+    file.close();
 }
 
 void MainWindow::initializeCache() {
-    CacheParameters c;
-    c.inputFileName = QString ("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\Final Sets\\ECE570_Final_Dataset.csv");
-    c.maxBytes = 512*1024*1024;
-    c.totalSlicesPerCache = 8;
-    c.headerSize = 2;
-    _inputCache = std::make_shared<InputCache>(c);
+    if (!_params) {
+        _params = std::make_shared<TrainingParameters>();
+    }
+
+    _inputCache = std::make_shared<InputCache>(_params->cp);
 
     while (!_inputCache->validFile()) {
-        c.inputFileName = QFileDialog::getOpenFileName(
+        _params->cp.inputFileName = QFileDialog::getOpenFileName(
                     this,
                     "Get input data",
                     qApp->applicationDirPath(),
                     "CSV (*.csv)");
-        if (c.inputFileName.isNull()) {
+        if (_params->cp.inputFileName.isNull()) {
             qDebug() << "Error, no input data loaded.";
         }
-        _inputCache = std::make_shared<InputCache>(c);
+        _inputCache = std::make_shared<InputCache>(_params->cp);
     }
 
     if (_inputCache->validFile()) {
@@ -305,9 +359,13 @@ void MainWindow::initializeCache() {
 }
 
 void MainWindow::setParameterDefaults() {
-    if (!_params) {
-        _params = std::make_shared<TrainingParameters>();
-    }
+
+    //_params->cp.inputFileName = QString ("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\Final Sets\\ECE570_Final_Dataset.csv");
+    _params->cp.maxBytes = 512*1024*1024;
+    _params->cp.totalSlicesPerCache = 8;
+    _params->cp.headerSize = 2;
+
+    initializeCache();
 
     _params->pp.population = 50; // 50
     _params->pp.neighbors = 13; // 10
