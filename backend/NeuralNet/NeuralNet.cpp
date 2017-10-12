@@ -171,6 +171,9 @@ bool NeuralNet::buildANN() {
     // Build Edges
     buildEdges();
 
+    // Randomize the edges
+    randomizeState();
+
     return true;
 }
 
@@ -616,4 +619,17 @@ void NeuralNet::printState() {
       }
     }
   }
+}
+
+void NeuralNet::randomizeState() {
+    real minVal = static_cast<real>(-1.0);
+    real maxVal = static_cast<real>( 1.0);
+    for (size_t i = 1; i < _state.size(); i++) {
+        for (size_t j = 0; j < _state[i].size(); j++) {
+            for (size_t k = 0; k < _state[i][j].size(); k++) {
+                _state[i][j][k] = _randomEngine.uniformReal(minVal, maxVal);
+            }
+        }
+    }
+    enableAllNodes(true);
 }

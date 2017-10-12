@@ -25,8 +25,8 @@ private:
     NeuralNet::State * _state=nullptr;
     NeuralNet::Type _netType = NeuralNet::Feedforward;
 
-    QColor edgeColor(double val);
-    QwtPlotMarker * getNodeMarker(const QPointF & pos);
+    QColor edgeColor(const double & val, const bool & enableEdge);
+    QwtPlotMarker * getNodeMarker(const QPointF & pos, const bool & enableNode);
 };
 
 #endif // NEURALNETPLOT_H

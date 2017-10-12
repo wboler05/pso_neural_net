@@ -22,31 +22,49 @@ void NeuralNetPlot::updateNodes() {
     double minY = 0, maxY = 1;
 
     // Plot Nodes
+    std::vector<std::vector<real>> & enableNodes = (*_state)[0];  //layer : node
     size_t edgeLayers = NeuralNet::totalEdgeLayersFromState(*_state)+1;
     maxX = edgeLayers;
 
-    // Draw nodes and edges
-    for (size_t i = 0; i < edgeLayers; i++) {
-        size_t leftNodes = (*_state)[i+1].size();
+    // Draw nodes and edges (Repeated sentinels are for readability
+    for (size_t edgeLayer = 0, stateLayer = 1, nextEdgeLayer = 1;
+         edgeLayer < edgeLayers;
+         edgeLayer++, stateLayer++, nextEdgeLayer++)
+    {
+        size_t leftNodes = (*_state)[stateLayer].size();
         if (leftNodes > 0) {
             qreal y_offset = 1.0 / static_cast<double>(leftNodes);
             //maxY = std::max(maxY, (float)_edges->at(i).size());
 
-            for (size_t j = 0; j < leftNodes; j++) {
+            for (size_t leftNode = 0; leftNode < leftNodes; leftNode++) {
+                bool enableNode = true;
 
-                qreal x = i;
-                qreal y = y_offset * static_cast<qreal>(j);
+                if (edgeLayer > 0 && edgeLayer < edgeLayers-1) {
+                    if (enableNodes[edgeLayer][leftNode] <= 0) {
+                        enableNode = false;
+                    }
+                }
 
-                QwtPlotMarker * mark = getNodeMarker(QPointF(x, y));
+                qreal x = edgeLayer;
+                qreal y = y_offset * static_cast<qreal>(leftNode);
+
+                QwtPlotMarker * mark = getNodeMarker(QPointF(x, y), enableNode);
                 mark->attach(this);
 
                 // Edges
-                size_t rightNodes = (*_state)[i+1][j].size();
+                size_t rightNodes = (*_state)[stateLayer][leftNode].size();
                 double next_y_offset = 1.0f / static_cast<double>(rightNodes);
-                for (size_t k = 0; k < rightNodes; k++) {
-                    real edgeValue = (*_state)[i+1][j][k];
-                    qreal xf = i+1;
-                    qreal yf = next_y_offset * (double) k;
+                for (size_t rightNode = 0; rightNode < rightNodes; rightNode++) {
+                    bool enableEdge = enableNode;
+                    if (nextEdgeLayer < edgeLayers - 1) {
+                        if (enableNodes[nextEdgeLayer][rightNode]) {
+                            enableEdge &= false;
+                        }
+                    }
+
+                    real edgeValue = (*_state)[stateLayer][leftNode][rightNode];
+                    qreal xf = nextEdgeLayer;
+                    qreal yf = next_y_offset * static_cast<double>(rightNode);
 
                     QVector<QPointF> edgeData;
                     edgeData.append(QPointF(x, y));
@@ -54,7 +72,7 @@ void NeuralNetPlot::updateNodes() {
 
                     QwtPlotCurve * newCurve = new QwtPlotCurve();
                     newCurve->setSamples(edgeData);
-                    QColor curveColor = edgeColor(edgeValue);
+                    QColor curveColor = edgeColor(edgeValue, enableEdge);
                     double lt = lineThickness * qAbs(edgeValue);
                     //newCurve->setBrush(curveColor);
                     newCurve->setPen(curveColor, lt);
@@ -64,15 +82,16 @@ void NeuralNetPlot::updateNodes() {
             }
 
             // Don't forget to draw output nodes.
-            if (i == edgeLayers - 1) {
-                size_t it = i+1;
-                if ((*_state)[it].size() > 0) {
-                    if ((*_state)[it][0].size() > 0) {
-                        size_t totalOutputNodes = ((*_state)[it][0].size());
+            if (edgeLayer == edgeLayers - 1) {
+                if ((*_state)[stateLayer].size() > 0) {
+                    if ((*_state)[stateLayer][0].size() > 0) {
+                        size_t totalOutputNodes = ((*_state)[stateLayer][0].size());
                         y_offset = 1.0f / static_cast<double>(totalOutputNodes);
 
-                        for (size_t j = 0; j < totalOutputNodes; j++) {
-                            QwtPlotMarker * mark = getNodeMarker(QPointF(it, y_offset*(double)j));
+                        for (size_t outputNode = 0; outputNode < totalOutputNodes; outputNode++) {
+                            QwtPlotMarker * mark = getNodeMarker(
+                                        QPointF(nextEdgeLayer, y_offset*static_cast<double>(outputNode)),
+                                        true);
                             mark->attach(this);
                         }
                     }
@@ -102,7 +121,7 @@ void NeuralNetPlot::updateNodes() {
 
                 QVector<QPointF> edgeData;
                 QwtPlotCurve * newCurve = new QwtPlotCurve();
-                QColor curveColor = edgeColor(edgeVal);
+                QColor curveColor = edgeColor(edgeVal, true);
                 double lt = lineThickness * qAbs(edgeVal);
                 newCurve->setPen(curveColor, lt);
 
@@ -124,17 +143,26 @@ void NeuralNetPlot::updateNodes() {
 
 }
 
-QColor NeuralNetPlot::edgeColor(double val) {
+QColor NeuralNetPlot::edgeColor(const double & val, const bool & enableEdge) {
+    if (!enableEdge || val == 0) {
+        return QColor(Qt::black);
+    }
+
     if (val > 0) {
         return QColor(Qt::blue);
     } else if (val < 0) {
         return QColor(Qt::red);
-    } else {
-        return QColor(Qt::black);
     }
 }
 
-QwtPlotMarker * NeuralNetPlot::getNodeMarker(const QPointF & pos) {
+QwtPlotMarker * NeuralNetPlot::getNodeMarker(const QPointF & pos, const bool & enableNode) {
+    QColor nodeColor;
+    if (enableNode) {
+        nodeColor = QColor(Qt::green);
+    } else {
+        nodeColor = QColor(Qt::black);
+    }
+
     QwtSymbol *symbol = new QwtSymbol(QwtSymbol::Ellipse, QBrush(Qt::green), QPen(Qt::green), QSize(5,5));
     QwtPlotMarker *mark = new QwtPlotMarker();
     mark->setSymbol(symbol);

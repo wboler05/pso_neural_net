@@ -12,6 +12,7 @@
 #include <memory>
 #include <random>
 #include <string>
+#include <algorithm>
 
 #include "logger.h"
 #include "neuralpsostream.h"

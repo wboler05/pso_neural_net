@@ -83,6 +83,7 @@ public:
 
     bool setState(const State & s);
     State & state() { return _state; }
+    void randomizeState();
 
     void loadInput(const real &in, const size_t & i);
     void loadInputs(const ExternalNodes & in);

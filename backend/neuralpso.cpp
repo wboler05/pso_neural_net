@@ -36,11 +36,15 @@ void NeuralPso::buildPso() {
     // Create N particles
     _particles->resize(_psoParams.population);
     for (size_t i = 0; i < _psoParams.population; i++) {
+        _neuralNet->randomizeState();
+        const NeuralNet::State & randomState = _neuralNet->state();
+
         // Create the number of inner columns
         (*_particles)[i]._fit_pb = -numeric_limits<real>::max();
         (*_particles)[i]._fit_lb = -numeric_limits<real>::max();
 
-        (*_particles)[i]._x.resize(state.size());
+        //(*_particles)[i]._x.resize(state.size());
+        (*_particles)[i]._x = randomState;
         (*_particles)[i]._minX.resize(state.size());
         (*_particles)[i]._maxX.resize(state.size());
         (*_particles)[i]._v.resize(state.size());
@@ -55,7 +59,7 @@ void NeuralPso::buildPso() {
         // Create each inner column edge
         for (size_t j = 0; j < state.size(); j++) {
             // Create left edges
-            (*_particles)[i]._x[j].resize(state[j].size());
+            //(*_particles)[i]._x[j].resize(state[j].size());
             (*_particles)[i]._minX[j].resize(state[j].size());
             (*_particles)[i]._maxX[j].resize(state[j].size());
             (*_particles)[i]._v[j].resize(state[j].size());
@@ -66,7 +70,7 @@ void NeuralPso::buildPso() {
             }
             for (size_t k = 0; k < state[j].size(); k++) {
                 // Create right edges
-                (*_particles)[i]._x[j][k].resize(state[j][k].size());
+                //(*_particles)[i]._x[j][k].resize(state[j][k].size());
                 (*_particles)[i]._minX[j][k].resize(state[j][k].size());
                 (*_particles)[i]._maxX[j][k].resize(state[j][k].size());
                 (*_particles)[i]._v[j][k].resize(state[j][k].size());
@@ -76,7 +80,8 @@ void NeuralPso::buildPso() {
                     _gb._x[j][k].resize(state[j][k].size());
                 }
                 for (size_t m = 0; m < state[j][k].size(); m++) {
-                    (*_particles)[i]._v[j][k][m] = 0;
+                    (*_particles)[i]._v[j][k][m] = _randomEngine.uniformReal(
+                                innerWeightRange[0], innerWeightRange[1]);
                     (*_particles)[i]._x_pb[j][k][m] = 0;
                     (*_particles)[i]._x_lb[j][k][m] = 0;
 
@@ -84,19 +89,15 @@ void NeuralPso::buildPso() {
                         _gb._x[j][k][m] = 0;
                     }
                     if (j == 1 || j == outputIt) {
-                        //(*_particles)[i]._x[j][k][m] = infDist(_randomEngine.engine());
-//                        (*_particles)[i]._x[j][k][m] = _randomEngine.uniformReal(
-//                                    infWeightRange[0], infWeightRange[1]);
-                        real val = _randomEngine.uniformReal(
-                                    innerWeightRange[0], innerWeightRange[1]);
-                        (*_particles)[i]._x[j][k][m] = val;
+                        //real val = _randomEngine.uniformReal(
+                        //            innerWeightRange[0], innerWeightRange[1]);
+                        //(*_particles)[i]._x[j][k][m] = val;
                         (*_particles)[i]._minX[j][k][m] = infWeightRange[0];
                         (*_particles)[i]._maxX[j][k][m] = infWeightRange[1];
                     } else {
-                        //(*_particles)[i]._x[j][k][m] = dist(_randomEngine.engine());
-                        real val = _randomEngine.uniformReal(
-                                    innerWeightRange[0], innerWeightRange[1]);
-                        (*_particles)[i]._x[j][k][m] = val;
+                        //real val = _randomEngine.uniformReal(
+                        //            innerWeightRange[0], innerWeightRange[1]);
+                        //(*_particles)[i]._x[j][k][m] = val;
                         (*_particles)[i]._minX[j][k][m] = innerWeightRange[0];
                         (*_particles)[i]._maxX[j][k][m] = innerWeightRange[1];
                     }
