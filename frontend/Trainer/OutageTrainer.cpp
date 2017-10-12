@@ -64,7 +64,7 @@ void OutageTrainer::biasAgainstOutputs() {
         }
 
         // Count the true and false outages
-        bool outage = confirmOutage(dataItem.outputize());
+        bool outage = confirmOutage(dataItem.outputize(_outputSkips));
         if (outage) {
             _biasedTrainingInputsCounts[1]++;
             _biasedTrainingInputs[1].push_back(it);
@@ -133,7 +133,7 @@ real OutageTrainer::trainingRun() {
 
         //expectedOutput = _output->at(I);
         OutageDataWrapper dataItem = (*_inputCache)[I];
-        expectedOutput = dataItem.outputize();
+        expectedOutput = dataItem.outputize(_outputSkips);
 
         //    real maxVal = -1.0;
         //    int maxNode = 0;
@@ -253,7 +253,7 @@ size_t OutageTrainer::randomizeTrainingInputs() {
     size_t it = _biasedTrainingInputs[uniformOutputIt][I];
 
     OutageDataWrapper item =(*_inputCache)[it];
-    std::vector<real> inputItems = item.inputize();
+    std::vector<real> inputItems = item.inputize(_inputSkips);
 
     for (size_t i = 0; i < inputItems.size(); i++) {
         _neuralNet->loadInput(inputItems[i], i);
@@ -272,7 +272,7 @@ OutageDataWrapper && OutageTrainer::loadTestInput(const size_t & I) {
     _neuralNet->resetAllNodes();
 
     OutageDataWrapper item = (*_inputCache)[it];
-    std::vector<real> inputItems = item.inputize();
+    std::vector<real> inputItems = item.inputize(_inputSkips);
 
     for (size_t i = 0; i < inputItems.size(); i++) {
         _neuralNet->loadInput(inputItems[i], i);
@@ -290,7 +290,7 @@ OutageDataWrapper && OutageTrainer::loadValidationInput(const size_t & I) {
     _neuralNet->resetAllNodes();
 
     OutageDataWrapper item = (*_inputCache)[it];
-    std::vector<real> inputItems = item.inputize();
+    std::vector<real> inputItems = item.inputize(_inputSkips);
 
     for (size_t i = 0; i < inputItems.size(); i++) {
       _neuralNet->loadInput(inputItems[i], i);
@@ -332,12 +332,12 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
         _neuralNet->resetAllNodes();
 
         OutageDataWrapper outageData = (*_inputCache)[it];
-        std::vector<real> inputItems = outageData.inputize();
+        std::vector<real> inputItems = outageData.inputize(_inputSkips);
         for (size_t i = 0; i < inputItems.size(); i++) {
             _neuralNet->loadInput(inputItems[i], i);
         }
 
-        std::vector<real> expectedOutput = outageData.outputize();
+        std::vector<real> expectedOutput = outageData.outputize(_outputSkips);
         std::vector<real> output = _neuralNet->process();
 
         mse += OutageDataWrapper::MSE(output, expectedOutput) / static_cast<real>(2.0);
@@ -374,4 +374,54 @@ bool OutageTrainer::confirmOutage(const std::vector<real> & output) {
         return false;
     }
     return OutageDataWrapper::double2Bool(output[0]);
+}
+
+/**
+ * @brief OutageTrainer::updateEnableParameters
+ * @details Generate which elements to skip.
+ */
+void OutageTrainer::updateEnableParameters() {
+    _inputSkips = _params->ep.inputSkips();
+    _outputSkips = _params->ep.outputSkips();
+}
+
+std::vector<size_t> EnableParameters::inputSkips() {
+    std::vector<size_t> _inputSkips;
+    if (!year) { _inputSkips.push_back(0); }
+    if (!month) { _inputSkips.push_back(1); }
+    if (!day) { _inputSkips.push_back(2); }
+    if (!temp_high) { _inputSkips.push_back(3); }
+    if (!temp_avg) { _inputSkips.push_back(4); }
+    if (!temp_low) { _inputSkips.push_back(5); }
+    if (!dew_high) { _inputSkips.push_back(6); }
+    if (!dew_avg) { _inputSkips.push_back(7); }
+    if (!dew_low) { _inputSkips.push_back(8); }
+    if (!humidity_high) { _inputSkips.push_back(9); }
+    if (!humidity_avg) { _inputSkips.push_back(10); }
+    if (!humidity_low) { _inputSkips.push_back(11); }
+    if (!press_high) { _inputSkips.push_back(12); }
+    if (!press_avg) { _inputSkips.push_back(13); }
+    if (!press_low) { _inputSkips.push_back(14); }
+    if (!visibility_high) { _inputSkips.push_back(15); }
+    if (!visibility_avg) { _inputSkips.push_back(16); }
+    if (!visibility_low) { _inputSkips.push_back(17); }
+    if (!wind_high) { _inputSkips.push_back(18); }
+    if (!wind_avg) { _inputSkips.push_back(19); }
+    if (!wind_gust) { _inputSkips.push_back(20); }
+    if (!precipitation) { _inputSkips.push_back(21); }
+    if (!fog) { _inputSkips.push_back(22); }
+    if (!rain) { _inputSkips.push_back(23); }
+    if (!snow) { _inputSkips.push_back(24); }
+    if (!thunderstorm) { _inputSkips.push_back(25); }
+    if (!loa) { _inputSkips.push_back(26); }
+    if (!latitude) { _inputSkips.push_back(27); }
+    if (!longitude) { _inputSkips.push_back(28); }
+    return _inputSkips;
+}
+
+std::vector<size_t> EnableParameters::outputSkips() {
+    std::vector<size_t> _outputSkips;
+    if (!outage) { _outputSkips.push_back(0); }
+    if (!affected_people) { _outputSkips.push_back(1); }
+    return _outputSkips;
 }

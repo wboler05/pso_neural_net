@@ -123,6 +123,8 @@ private:
     void clearPSOState();
     int getNetTypeCBIndex();
     void setNetTypeByIndex(const int & i);
+    void applyElementSkips();
+    void updateElementSkips();
 };
 
 #endif // MAINWINDOW_H

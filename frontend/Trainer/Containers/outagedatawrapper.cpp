@@ -204,7 +204,7 @@ void OutageDataWrapper::parseStormEvents(
     item._thunderstorm = parsedEvents.contains("thunderstorm", Qt::CaseInsensitive);
 }
 
-std::vector<real> OutageDataWrapper::inputize() {
+std::vector<real> OutageDataWrapper::inputize(const std::vector<size_t> & skips) {
     std::vector<real> input;
 
     input.push_back(_loa);
@@ -261,16 +261,30 @@ std::vector<real> OutageDataWrapper::inputize() {
     input.push_back(bool2Double(_snow));
     input.push_back(bool2Double(_thunderstorm));
 
+    size_t offset = 0;
+    for (size_t i = 0; i < skips.size(); i++) {
+        size_t skipElement = skips[i] - offset;
+        input.erase(input.begin() + skipElement);
+        ++offset;
+    }
+
     return input;
 }
 
-std::vector<real> OutageDataWrapper::outputize() {
+std::vector<real> OutageDataWrapper::outputize(const std::vector<size_t> & skips) {
     std::vector<real> output;
-    output.resize(2, 0);
+    if (skips.size() != 1) {
+        output.resize(2, 0);
 
-    output[0] = bool2Double(_outage);
-    output[1] = static_cast<real>(_affectedCustomers);
-
+        output[0] = bool2Double(_outage);
+        output[1] = static_cast<real>(_affectedCustomers);
+    } else {
+        if (skips[0] == 0) {
+            output.push_back(static_cast<real>(_affectedCustomers));
+        } else {
+            output.push_back(bool2Double(_outage));
+        }
+    }
     return output;
 }
 

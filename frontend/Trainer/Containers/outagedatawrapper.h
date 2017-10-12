@@ -17,8 +17,8 @@ public:
     static void parseStormEvents(const QStringList & events,
                                  const size_t & bIt, OutageDataItem & item);
 
-    std::vector<real> inputize();
-    std::vector<real> outputize();
+    std::vector<real> inputize(const std::vector<size_t> &skips);
+    std::vector<real> outputize(const std::vector<size_t> &skips);
 
     static real bool2Double(const bool & b);
     static bool double2Bool(const real & d);

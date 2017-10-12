@@ -89,8 +89,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(updateTimer, SIGNAL(timeout()), this, SLOT(updatePlot()));
     updateTimer->start(500);
 
+    ui->OutageInputBox->setVisible(false);
+
     // Init before running things
     initializeData();
+
+    this->resize(this->minimumSize());
 }
 
 MainWindow::~MainWindow()
@@ -317,9 +321,6 @@ void MainWindow::saveIniFile() {
 }
 
 void MainWindow::initializeCache() {
-    if (!_params) {
-        _params = std::make_shared<TrainingParameters>();
-    }
 
     _inputCache = std::make_shared<InputCache>(_params->cp);
 
@@ -359,6 +360,9 @@ void MainWindow::initializeCache() {
 }
 
 void MainWindow::setParameterDefaults() {
+    if (!_params) {
+        _params = std::make_shared<TrainingParameters>();
+    }
 
     //_params->cp.inputFileName = QString ("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\Final Sets\\ECE570_Final_Dataset.csv");
     _params->cp.maxBytes = 512*1024*1024;
@@ -388,13 +392,15 @@ void MainWindow::setParameterDefaults() {
 
     OutageDataWrapper dataWrapper = (*_inputCache)[0];
 
-    _params->np.inputs = static_cast<int>(dataWrapper.inputize().size());
+    _params->np.inputs = static_cast<int>(
+                dataWrapper.inputize(_params->ep.inputSkips()).size());
     _params->np.innerNetNodes.clear();
     _params->np.innerNetNodes.push_back(16);
     _params->np.innerNetNodes.push_back(16);
     _params->np.innerNetNodes.push_back(16);
     _params->np.innerNets = static_cast<int>(_params->np.innerNetNodes.size());
-    _params->np.outputs = static_cast<int>(dataWrapper.outputize().size());
+    _params->np.outputs = static_cast<int>(
+                dataWrapper.outputize(_params->ep.outputSkips()).size());
     _params->np.trainingIterations = 200;
     _params->np.validationIterations = 200;
     _params->np.testIterations = 500; //500
@@ -453,6 +459,8 @@ void MainWindow::applyParameterChanges() {
     _params->gamma = static_cast<real>(ui->gamma_dsb->value());
 
     setNetTypeByIndex(ui->netType_cb->currentIndex());
+
+    applyElementSkips();
 }
 
 void MainWindow::updateParameterGui() {
@@ -488,6 +496,82 @@ void MainWindow::updateParameterGui() {
     ui->gamma_dsb->setValue(static_cast<double>(_params->gamma));
 
     ui->netType_cb->setCurrentIndex(getNetTypeCBIndex());
+
+    updateElementSkips();
+}
+
+void MainWindow::applyElementSkips() {
+    _params->ep.year = ui->enDateYear_cb->isChecked();
+    _params->ep.month = ui->enDateMonth_cb->isChecked();
+    _params->ep.day = ui->enDateDay_cb->isChecked();
+    _params->ep.temp_high = ui->enTempHigh_cb->isChecked();
+    _params->ep.temp_avg = ui->enTempAvg_cb->isChecked();
+    _params->ep.temp_low = ui->enTempLow_cb->isChecked();
+    _params->ep.dew_high = ui->enDewHigh_cb->isChecked();
+    _params->ep.dew_avg = ui->enDewAvg_cb->isChecked();
+    _params->ep.dew_low = ui->enDewLow_cb->isChecked();
+    _params->ep.humidity_high = ui->enHumidityHigh_cb->isChecked();
+    _params->ep.humidity_avg = ui->enHumidityAvg_cb->isChecked();
+    _params->ep.humidity_low = ui->enHumidityLow_cb->isChecked();
+    _params->ep.press_high = ui->enPressHigh_cb->isChecked();
+    _params->ep.press_avg = ui->enPressAvg_cb->isChecked();
+    _params->ep.press_low = ui->enPressLow_cb->isChecked();
+    _params->ep.visibility_high = ui->enVisibilityHigh_cb->isChecked();
+    _params->ep.visibility_avg = ui->enVisibilityAvg_cb->isChecked();
+    _params->ep.visibility_low = ui->enVisibilityLow_cb->isChecked();
+    _params->ep.wind_high = ui->enWindHigh_cb->isChecked();
+    _params->ep.wind_avg = ui->enWindAvg_cb->isChecked();
+    _params->ep.wind_gust = ui->enWindGust_cb->isChecked();
+    _params->ep.precipitation = ui->enPrec_cb->isChecked();
+    _params->ep.fog = ui->enStormFog_cb->isChecked();
+    _params->ep.rain = ui->enStormRain_cb->isChecked();
+    _params->ep.snow = ui->enStormSnow_cb->isChecked();
+    _params->ep.thunderstorm = ui->enStormTS_cb->isChecked();
+    _params->ep.loa = ui->enLocLOA_cb->isChecked();
+    _params->ep.latitude = ui->enLocLat_cb->isChecked();
+    _params->ep.longitude = ui->enLocLong_cb->isChecked();
+    _params->ep.outage = ui->enOutputOutage_cb->isChecked();
+    _params->ep.affected_people = ui->enOutputAC_cb->isChecked();
+
+    OutageDataWrapper dataWrapper = (*_inputCache)[0];
+    _params->np.inputs = static_cast<int>(
+                dataWrapper.inputize(_params->ep.inputSkips()).size());
+    _params->np.outputs = static_cast<int>(
+                dataWrapper.outputize(_params->ep.outputSkips()).size());
+}
+
+void MainWindow::updateElementSkips() {
+    ui->enDateYear_cb->setChecked(_params->ep.year);
+    ui->enDateMonth_cb->setChecked(_params->ep.month);
+    ui->enDateDay_cb->setChecked(_params->ep.day);
+    ui->enTempHigh_cb->setChecked(_params->ep.temp_high);
+    ui->enTempAvg_cb->setChecked(_params->ep.temp_avg);
+    ui->enTempLow_cb->setChecked(_params->ep.temp_low);
+    ui->enDewHigh_cb->setChecked(_params->ep.dew_high);
+    ui->enDewAvg_cb->setChecked(_params->ep.dew_avg);
+    ui->enDewLow_cb->setChecked(_params->ep.dew_low);
+    ui->enHumidityHigh_cb->setChecked(_params->ep.humidity_high);
+    ui->enHumidityAvg_cb->setChecked(_params->ep.humidity_avg);
+    ui->enHumidityLow_cb->setChecked(_params->ep.humidity_low);
+    ui->enPressHigh_cb->setChecked(_params->ep.press_high);
+    ui->enPressAvg_cb->setChecked(_params->ep.press_avg);
+    ui->enPressLow_cb->setChecked(_params->ep.press_low);
+    ui->enVisibilityHigh_cb->setChecked(_params->ep.visibility_high);
+    ui->enVisibilityAvg_cb->setChecked(_params->ep.visibility_avg);
+    ui->enVisibilityLow_cb->setChecked(_params->ep.visibility_low);
+    ui->enWindHigh_cb->setChecked(_params->ep.wind_high);
+    ui->enWindAvg_cb->setChecked(_params->ep.wind_avg);
+    ui->enWindGust_cb->setChecked(_params->ep.wind_gust);
+    ui->enPrec_cb->setChecked(_params->ep.precipitation);
+    ui->enStormFog_cb->setChecked(_params->ep.fog);
+    ui->enStormRain_cb->setChecked(_params->ep.rain);
+    ui->enStormSnow_cb->setChecked(_params->ep.snow);
+    ui->enStormTS_cb->setChecked(_params->ep.thunderstorm);
+    ui->enLocLOA_cb->setChecked(_params->ep.loa);
+    ui->enLocLat_cb->setChecked(_params->ep.latitude);
+    ui->enLocLong_cb->setChecked(_params->ep.longitude);
+    ui->enOutputOutage_cb->setChecked(_params->ep.outage);
+    ui->enOutputAC_cb->setChecked(_params->ep.affected_people);
 }
 
 int MainWindow::getNetTypeCBIndex() {
