@@ -97,10 +97,8 @@ public:
     void enableAllNodes(const bool & t);
     void randomDropoutNodes(const real & mean, const real & sigma);
 
-    real enableNodeBoolToValue(const bool &t);
-    bool enableNodeValueToBool(const real &val);
-
-    real nodeEnabled(const size_t & layer, const size_t & node);
+    static real enableNodeBoolToValue(const bool &t);
+    static bool enableNodeValueToBool(const real &val);
 
     EdgeLayer * forwardEdgeLayer(const size_t & i);
     EdgeLayer * recurrentEdgeLayer(const size_t & i);
@@ -115,6 +113,12 @@ public:
 
     static size_t totalStateElementsFromInnerNodes(const size_t & innerNodes);
     static size_t totalEdgeLayersFromState(const State & state);
+
+    bool isSkipNode(const size_t & layer, const size_t & node);
+    bool isSkipEdge(const size_t & leftLayer, const size_t & leftNode, const size_t & rightNode);
+
+    static bool isSkipNode(const State & state, const size_t & layer, const size_t & node);
+    bool isSkipEdge(const State & state, const size_t & leftLayer, const size_t & leftNode, const size_t & rightNode);
 
 private:
     // Weights and Data

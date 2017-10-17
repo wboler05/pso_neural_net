@@ -28,6 +28,9 @@ namespace CustomMath
                                   const double &long2);
 
     int ceilDiv(int a, int b);
+
+    template <class T>
+    T getSign(const T & val);
 }
 
 #endif // CUSTOMMATH_H

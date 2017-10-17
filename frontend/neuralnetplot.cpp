@@ -37,16 +37,11 @@ void NeuralNetPlot::updateNodes() {
             //maxY = std::max(maxY, (float)_edges->at(i).size());
 
             for (size_t leftNode = 0; leftNode < leftNodes; leftNode++) {
-                bool enableNode = true;
-
-                if (edgeLayer > 0 && edgeLayer < edgeLayers-1) {
-                    if (enableNodes[edgeLayer][leftNode] <= 0) {
-                        enableNode = false;
-                    }
-                }
 
                 qreal x = edgeLayer;
                 qreal y = y_offset * static_cast<qreal>(leftNode);
+
+                bool enableNode = !NeuralNet::isSkipNode(*_state, edgeLayer, leftNode);
 
                 QwtPlotMarker * mark = getNodeMarker(QPointF(x, y), enableNode);
                 mark->attach(this);
@@ -55,12 +50,7 @@ void NeuralNetPlot::updateNodes() {
                 size_t rightNodes = (*_state)[stateLayer][leftNode].size();
                 double next_y_offset = 1.0f / static_cast<double>(rightNodes);
                 for (size_t rightNode = 0; rightNode < rightNodes; rightNode++) {
-                    bool enableEdge = enableNode;
-                    if (nextEdgeLayer < edgeLayers - 1) {
-                        if (enableNodes[nextEdgeLayer][rightNode]) {
-                            enableEdge &= false;
-                        }
-                    }
+                    enableNode &= !NeuralNet::isSkipNode(*_state, nextEdgeLayer, rightNode);
 
                     real edgeValue = (*_state)[stateLayer][leftNode][rightNode];
                     qreal xf = nextEdgeLayer;
@@ -72,7 +62,7 @@ void NeuralNetPlot::updateNodes() {
 
                     QwtPlotCurve * newCurve = new QwtPlotCurve();
                     newCurve->setSamples(edgeData);
-                    QColor curveColor = edgeColor(edgeValue, enableEdge);
+                    QColor curveColor = edgeColor(edgeValue, enableNode);
                     double lt = lineThickness * qAbs(edgeValue);
                     //newCurve->setBrush(curveColor);
                     newCurve->setPen(curveColor, lt);
@@ -91,7 +81,7 @@ void NeuralNetPlot::updateNodes() {
                         for (size_t outputNode = 0; outputNode < totalOutputNodes; outputNode++) {
                             QwtPlotMarker * mark = getNodeMarker(
                                         QPointF(nextEdgeLayer, y_offset*static_cast<double>(outputNode)),
-                                        true);
+                                        !NeuralNet::isSkipNode(*_state, nextEdgeLayer, outputNode));
                             mark->attach(this);
                         }
                     }
@@ -145,7 +135,7 @@ void NeuralNetPlot::updateNodes() {
 
 QColor NeuralNetPlot::edgeColor(const double & val, const bool & enableEdge) {
     if (!enableEdge || val == 0) {
-        return QColor(Qt::black);
+        return QColor(0, 0, 0, 0);
     }
 
     if (val > 0) {
@@ -160,10 +150,10 @@ QwtPlotMarker * NeuralNetPlot::getNodeMarker(const QPointF & pos, const bool & e
     if (enableNode) {
         nodeColor = QColor(Qt::green);
     } else {
-        nodeColor = QColor(Qt::black);
+        nodeColor = QColor(0, 0, 0, 0);
     }
 
-    QwtSymbol *symbol = new QwtSymbol(QwtSymbol::Ellipse, QBrush(Qt::green), QPen(Qt::green), QSize(5,5));
+    QwtSymbol *symbol = new QwtSymbol(QwtSymbol::Ellipse, QBrush(nodeColor), QPen(nodeColor), QSize(5,5));
     QwtPlotMarker *mark = new QwtPlotMarker();
     mark->setSymbol(symbol);
     mark->setValue(pos);

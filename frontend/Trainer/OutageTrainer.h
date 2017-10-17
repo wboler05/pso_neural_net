@@ -111,6 +111,13 @@ private:
 
     std::string _functionMsg;
 
+    std::vector<real> _minData;
+    std::vector<real> _maxData;
+
+    void updateMinMax();
+    std::vector<real> normalizeInput(const size_t & id);
+    std::vector<real> normalizeInput(std::vector<real> & input);
+
     bool validateOutput(
             const std::vector<real> & outputs,
             const std::vector<real> &expectedResult,

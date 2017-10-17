@@ -88,7 +88,8 @@ void NeuralPso::buildPso() {
                     if (i == 0) {
                         _gb._x[j][k][m] = 0;
                     }
-                    if (j == 1 || j == outputIt) {
+ //                   if (j == 1 || j == outputIt) {
+                      if (j == outputIt) {
                         //real val = _randomEngine.uniformReal(
                         //            innerWeightRange[0], innerWeightRange[1]);
                         //(*_particles)[i]._x[j][k][m] = val;
@@ -134,8 +135,13 @@ void NeuralPso::fly() {
     //std::uniform_real_distribution<real> dist(0, 1);
     //std::uniform_real_distribution<real> negPosRange(-1, 1);
 
+    size_t startLayer = 0;
+    if (_fParams.enableTopologyTraining) {
+        startLayer = 1;
+    }
+
     // For each particle
-    for (size_t i = 0; i < _particles->size(); i++) {
+    for (size_t i = startLayer; i < _particles->size(); i++) {
         Particle<NeuralNet::State> *p = &(*_particles)[i];
         //p->_worstFlag = false;
         worstFlag = p->_worstFlag;
@@ -167,7 +173,7 @@ void NeuralPso::fly() {
         }
 
         // For each inner net
-        for (size_t inner_net = 0; inner_net < p->_v.size(); inner_net++) {
+        for (size_t inner_net = 1; inner_net < p->_v.size(); inner_net++) {
             if (checkTermProcess())
                 return;
 
@@ -222,7 +228,7 @@ void NeuralPso::fly() {
                                 inertia * (*w_v)
                                 + (c1*(*w_pb - *w_x))
                                 + (c2*(*w_lb - *w_x))
-                                + (c3*(*w_gb - *w_x))
+//                                + (c3*(*w_gb - *w_x))
                                 ) * dt;
 
                     velSum += *w_v;
@@ -480,6 +486,7 @@ void NeuralPso::updatePersonalBest(NeuralParticle & p) {
 void NeuralPso::findLocalBest(std::vector<bool> & printChange) {
     for (size_t i = 0; i < _particles->size(); i++) {
         NeuralParticle &p = (*_particles)[i];
+        bool goodNeighbor = false;
 
         int left_i = static_cast<int> (i - (_psoParams.neighbors / 2));
         if (left_i < 0) left_i += _particles->size();
@@ -494,14 +501,17 @@ void NeuralPso::findLocalBest(std::vector<bool> & printChange) {
             }
 
             NeuralParticle &p_n = (*_particles)[static_cast<size_t>(it)];
-            if (p_n._fit_pb >= p._fit_lb) {
+            if (p_n._fit_pb > p._fit_lb) {
                 p._fit_lb = p_n._fit_pb;
+                goodNeighbor = true;
                 bestNeighborIt = static_cast<size_t>(it);
             }
         }
 
         NeuralParticle &p_n = (*_particles)[bestNeighborIt];
-        //printChange[i] = true;
+        if (goodNeighbor) {
+            //printChange[i] = true;
+        }
         updateNeighborBest(p, p_n);
     }
 }
@@ -528,13 +538,13 @@ void NeuralPso::findGlobalBest(std::vector<bool> & printChange) {
     int globalBestIt=-1;
     for (size_t i = 0; i < _particles->size(); i++) {
         NeuralParticle & p = (*_particles)[i];
-        if (p._fit_pb >= _gb._fit_pb) {
+        if (p._fit_pb > _gb._fit_pb) {
             _gb._fit_pb = p._fit_pb;
             globalBestIt = static_cast<int>(i);
         } // End global best
     }
 
-    if (globalBestIt > 0) {
+    if (globalBestIt >= 0) {
         NeuralParticle & p = (*_particles)[static_cast<size_t>(globalBestIt)];
         printChange[static_cast<size_t>(globalBestIt)] = true;
         updateGlobalBest(p);

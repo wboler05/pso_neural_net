@@ -22,7 +22,7 @@ struct PsoParams {
   size_t maxEpochs=100;
   real delta=5E-3L;
   real vDelta=5E-20L;
-  real vLimit = 0.5L;
+  real vLimit = 0.75L;
   size_t windowSize = 50;
 
   bool termIterationFlag;

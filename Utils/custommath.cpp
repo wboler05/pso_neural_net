@@ -165,3 +165,11 @@ int CustomMath::ceilDiv(int a, int b) {
     }
 }
 
+template <class T>
+T CustomMath::getSign(const T & val) {
+    if (val >= 0) {
+        return static_cast<T>(1);
+    } else {
+        return static_cast<T>(-1);
+    }
+}

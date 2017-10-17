@@ -419,7 +419,7 @@ void MainWindow::setParameterDefaults() {
     _params->fp.weights.specificity = 0.0L;
     _params->fp.weights.f_score = 0.0L;
 
-    _params->alpha = 1.0;
+    _params->alpha = 160000.0;
     _params->beta = 1.0;
     _params->gamma = 1.0;
 

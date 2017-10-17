@@ -41,6 +41,12 @@ void Pso<T>::run() {
 
   do {
 
+      //std::string msg;
+      //msg.append("Epochs: " );
+      //msg.append(stringPut(epochs));
+      //msg.append("\n");
+      //Logger::write(msg);
+
     _epochs = ++epochs;     // Count the iterations
 
  //   processEvents();        // Virtual function for GUI updates
@@ -75,6 +81,7 @@ void Pso<T>::run() {
 
 template <class T>
 real Pso<T>::getDelta() {
+
     real lowCost = std::numeric_limits<real>::max();
     real highCost = -std::numeric_limits<real>::max();
 

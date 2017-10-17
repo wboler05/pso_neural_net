@@ -22,6 +22,8 @@ void OutageTrainer::build() {
     //biasAgainstLOA();
 
     buildPso();
+
+    updateMinMax();
 }
 
 void OutageTrainer::randomlyDistributeData() {
@@ -106,89 +108,41 @@ real OutageTrainer::trainingRun() {
     std::vector<real> mse;
     mse.resize(outputNodes, 0);
 
-//    vector<real> outputError;
     std::vector<real> expectedOutput;
     expectedOutput.resize(outputNodes);
 
     size_t totalSetsToRun = static_cast<size_t>(_neuralNet->nParams()->trainingIterations);
-//    size_t correctCount = totalSetsToRun;
-
-//    TestStatistics testStats;
 
     // First, test each output and store to the vector of results;
     for (size_t someSets = 0; someSets < totalSetsToRun; someSets++) {
         qApp->processEvents();
         // Set a random input
         size_t I = randomizeTrainingInputs();
-        //    real tConfidence = (real) outputNodes;
-        //int I = It[someSets];
-        //loadTestInput(I);
 
         // Get the result from random input
         vector<real> output = _neuralNet->process();
         if (output.size() != outputNodes) {
             cout << "Size mismatch on nodes. " << endl;
             cout << " - Output: " << output.size() << ", Expected: " << outputNodes << endl;
+            exit(1);
         }
 
         //expectedOutput = _output->at(I);
         OutageDataWrapper dataItem = (*_inputCache)[I];
         expectedOutput = dataItem.outputize(_outputSkips);
 
-        //    real maxVal = -1.0;
-        //    int maxNode = 0;
-        //    // Compare the output to expected
-        //    for (int i = 0; i < outputSize; i++) {
-        //      real expected = expectedOutput[i];
-        //      real got = output[i];
-        //      if (output[i] > maxVal) {
-        //        maxVal = output[i];
-        //        maxNode = i;
-        //      }
-        //       real dif = expectedOutput[i] - output[i];
-        //       tConfidence -= output[i];
-        //       outputError[i] += pow(dif,2);
-        //    }
-
         std::vector<real> mse_outputs = OutageDataWrapper::splitMSE(output, expectedOutput);
         for (size_t output_nodes = 0; output_nodes < mse_outputs.size(); output_nodes++) {
             mse[output_nodes] += mse_outputs[output_nodes];
         }
 
-        /*
-        bool correctOutput;
-        if (!validateOutput(output, expectedOutput, outputError, testStats, correctOutput)) {
-            cout << "Validation failed to complete.";
-            return 0;
-        }
-
-        // Get the MSE
-        for (size_t i = 0; i < outputError.size(); i++) {
-            mse += pow(outputError[i], 2);
-        }
-
-        // If we have a correct answer, then we're heading in the right direction
-        if (!correctOutput) {
-            correctCount--;
-        }
-
-        // Expand the search if we get 100% correct
-        if ((totalSetsToRun == correctCount) && (someSets == (totalSetsToRun - 1))) {
-            if (totalSetsToRun < _input->size()) {
-                ++totalSetsToRun;
-                ++correctCount;
-            }
-        }
-
-        //confidence += tConfidence;
-        */
     }
-    //confidence /= totalSetsToRun;
 
     for (size_t i = 0; i < mse.size(); i++) {
         mse[i] /= static_cast<real>(totalSetsToRun);
     }
 
+    /*
     TestStatistics::ClassificationError ce = validateCurrentNet();
 
     real penalty = 1;
@@ -204,10 +158,18 @@ real OutageTrainer::trainingRun() {
         penalty *= 0.00001;
     if (ce.f_score < _fParams.floors.f_score)
         penalty *= 0.00001;
+    */
 
-    real costA = (_params->alpha * mse[0] + _params->beta * mse[1]);
-    //real costA = (_params->alpha * mse[0] + _params->beta * mse[1]) / (_params->alpha + _params->beta);
-    real costB = penalty * ((_fParams.weights.accuracy*ce.accuracy)
+    real costA = -std::numeric_limits<real>::max();
+    if (mse.size() == 2) {
+        costA = (_params->alpha * mse[0] + _params->beta * mse[1]);
+    } else {
+        costA = mse[0];
+    }
+
+    return -costA;
+/*
+    real costB = ((_fParams.weights.accuracy*ce.accuracy)
                             + (_fParams.weights.sensitivity*ce.sensitivity)
                             + (_fParams.weights.specificity*ce.specificity)
                             + (_fParams.weights.precision*ce.precision)
@@ -223,6 +185,7 @@ real OutageTrainer::trainingRun() {
             (1 + _fParams.mse_weight + _params->alpha + _params->beta);
 
     return cost;
+*/
 }
 
 void OutageTrainer::validateGB() {
@@ -252,8 +215,9 @@ size_t OutageTrainer::randomizeTrainingInputs() {
     size_t I = _randomEngine.uniformUnsignedInt(minIt, maxBiasIt);
     size_t it = _biasedTrainingInputs[uniformOutputIt][I];
 
-    OutageDataWrapper item =(*_inputCache)[it];
-    std::vector<real> inputItems = item.inputize(_inputSkips);
+//    OutageDataWrapper item =(*_inputCache)[it];
+//    std::vector<real> inputItems = item.inputize(_inputSkips);
+    std::vector<real> inputItems = normalizeInput(it);
 
     for (size_t i = 0; i < inputItems.size(); i++) {
         _neuralNet->loadInput(inputItems[i], i);
@@ -272,7 +236,8 @@ OutageDataWrapper && OutageTrainer::loadTestInput(const size_t & I) {
     _neuralNet->resetAllNodes();
 
     OutageDataWrapper item = (*_inputCache)[it];
-    std::vector<real> inputItems = item.inputize(_inputSkips);
+//    std::vector<real> inputItems = item.inputize(_inputSkips);
+    std::vector<real> inputItems = normalizeInput(it);
 
     for (size_t i = 0; i < inputItems.size(); i++) {
         _neuralNet->loadInput(inputItems[i], i);
@@ -290,7 +255,8 @@ OutageDataWrapper && OutageTrainer::loadValidationInput(const size_t & I) {
     _neuralNet->resetAllNodes();
 
     OutageDataWrapper item = (*_inputCache)[it];
-    std::vector<real> inputItems = item.inputize(_inputSkips);
+//    std::vector<real> inputItems = item.inputize(_inputSkips);
+    std::vector<real> inputItems = normalizeInput(it);
 
     for (size_t i = 0; i < inputItems.size(); i++) {
       _neuralNet->loadInput(inputItems[i], i);
@@ -304,6 +270,10 @@ void OutageTrainer::testGB() {
 
     TestStatistics::ClassificationError ce;
     classError(_testInputs, _testStats, ce, _neuralNet->nParams()->testIterations);
+
+    if (ce.accuracy > 0.95) {
+        interruptProcess();
+    }
 }
 
 /**
@@ -332,7 +302,8 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
         _neuralNet->resetAllNodes();
 
         OutageDataWrapper outageData = (*_inputCache)[it];
-        std::vector<real> inputItems = outageData.inputize(_inputSkips);
+//        std::vector<real> inputItems = outageData.inputize(_inputSkips);
+        std::vector<real> inputItems = normalizeInput(it);
         for (size_t i = 0; i < inputItems.size(); i++) {
             _neuralNet->loadInput(inputItems[i], i);
         }
@@ -424,4 +395,32 @@ std::vector<size_t> EnableParameters::outputSkips() {
     if (!outage) { _outputSkips.push_back(0); }
     if (!affected_people) { _outputSkips.push_back(1); }
     return _outputSkips;
+}
+
+void OutageTrainer::updateMinMax() {
+    std::vector<real> testVector = (*_inputCache)[0].inputize(_inputSkips);
+    _minData.resize(testVector.size(),  std::numeric_limits<real>::max());
+    _maxData.resize(testVector.size(), -std::numeric_limits<real>::max());
+
+    for (size_t i = 0; i < _inputCache->totalInputItemsInFile(); i++) {
+        std::vector<real> input = (*_inputCache)[i].inputize(_inputSkips);
+        for (size_t j = 0; j < input.size(); j++) {
+            _minData[j] = min(_minData[j], input[j]);
+            _maxData[j] = max(_maxData[j], input[j]);
+        }
+    }
+}
+
+std::vector<real> OutageTrainer::normalizeInput(const size_t & id) {
+    return normalizeInput((*_inputCache)[id].inputize(_inputSkips));
+}
+
+std::vector<real> OutageTrainer::normalizeInput(std::vector<real> & input) {
+    for (size_t i = 0; i < input.size(); i++) {
+        if (_maxData[i] - _minData[i] != 0) {
+            input[i] = (2.0*input[i] - (_minData[i] + _maxData[i])) /
+                    (_maxData[i] - _minData[i]);
+        }
+    }
+    return input;   // Yes, it's passing reference AND returning.  Look at polymorphic method.
 }

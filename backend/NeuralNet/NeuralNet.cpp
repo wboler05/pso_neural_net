@@ -208,17 +208,11 @@ size_t NeuralNet::totalEdgeLayersFromState(const State & state) {
 
 void NeuralNet::buildTopology() {
     InnerNodes & topology = _state[0];
-    size_t totalLayers = _innerNodes.size()+2;
+    size_t totalLayers = _innerNodes.size();
     topology.resize(totalLayers);
 
     for (size_t i = 0; i < totalLayers; i++) {
-        if (i == 0) {
-            topology[i].resize(_inputNodes.size());
-        } else if (i == totalLayers - 1) {
-            topology[i].resize(_outputNodes.size());
-        } else {
-            topology[i].resize(_innerNodes[i-1].size());
-        }
+        topology[i].resize(_innerNodes[i].size());
         for (size_t j = 0; j < topology[i].size(); j++) {
             topology[i][j] = 1.0;
         }
@@ -318,20 +312,6 @@ bool NeuralNet::enableNodeValueToBool(const real & val) {
     return val > 0;
 }
 
-real NeuralNet::nodeEnabled(const size_t & layer, const size_t & node) {
-    if (_state.size() == 0) return 0;
-
-    if (layer < _state[0].size()) {
-        if (node < _state[0][layer].size()) {
-            return enableNodeValueToBool(_state[0][layer][node]) ? 1 : 0;
-        } else {
-            return 0;
-        }
-    } else {
-        return 0;
-    }
-}
-
 void NeuralNet::randomDropoutNodes(const real &mean=0, const real & sigma=1) {
     std::normal_distribution<real> dist(mean, sigma);
     //std::uniform_real_distribution<real> dist(-1, 1);
@@ -421,7 +401,7 @@ real NeuralNet::activation(real in) {
         0.500000000000000
     };
     real act = CustomMath::poly(in, coeffs, 9);
-    act = max(min(act, (real)1.0), (real) 0);
+    act = max(min(act, (real)1.0), (real) -0);
 
 
   return act;
@@ -458,13 +438,18 @@ void NeuralNet::processRecurrentNodes() {
         // For each layer
         for (size_t layer = 0; layer < _innerNodes.size(); layer++) {
             // For each recurrent node
-            for (size_t j = 0; j < _innerNodes[layer].size(); j++) {
+            for (size_t recNode = 0; recNode < _innerNodes[layer].size(); recNode++) {
+                if (isSkipNode(layer, recNode)) {
+                    continue;
+                }
                 // For each connected node;
-                for (size_t k = 0; k < _innerNodes[layer].size(); k++) {
-                    _recurrentNodes[layer][j] +=
-                            nodeEnabled(layer, k) *
-                            (*recurrentEdgeLayer(layer))[j][k] *
-                            activation(_innerNodes[layer][k]);
+                for (size_t conNode = 0; conNode < _innerNodes[layer].size(); conNode++) {
+                    if (isSkipNode(layer, conNode)) {
+                        continue;
+                    }
+                    _recurrentNodes[layer][recNode] +=
+                            (*recurrentEdgeLayer(layer))[recNode][conNode] *
+                            activation(_innerNodes[layer][conNode]);
                 }
             }
         }
@@ -498,34 +483,39 @@ void NeuralNet::processForwardPropagation() {
                 // Process Input to Hidden
                 for (size_t left_node = 0; left_node < _inputNodes.size(); left_node++) {
                     for (size_t right_node = 0; right_node < _innerNodes[0].size(); right_node++) {
-                        if (enableNodeValueToBool(nodeEnabled(0, right_node))) {
-                            _innerNodes[0][right_node] +=
-                                    (*edges)[left_node][right_node]*_inputNodes[left_node];
+                        if (isSkipNode(layer+1, right_node)) {
+                            continue;
                         }
+                        _innerNodes[0][right_node] +=
+                               (*edges)[left_node][right_node]*_inputNodes[left_node] /
+                                static_cast<real>(_inputNodes.size());
                     }
                 }
             } else if (layer == _innerNodes.size()) {
                 // Hidden to Output
                 for (size_t left_node = 0; left_node < _innerNodes[layer-1].size(); left_node++) {
-                    if (!enableNodeValueToBool(nodeEnabled(layer-1, left_node))) {
+                    if (isSkipNode(layer, left_node)) {
                         continue;
                     }
                     for (size_t right_node = 0; right_node < _outputNodes.size(); right_node++) {
                         _outputNodes[right_node] +=
-                                (*edges)[left_node][right_node]*activation(_innerNodes[layer-1][left_node]);
+                                (*edges)[left_node][right_node]*activation(_innerNodes[layer-1][left_node]) /
+                                static_cast<real>(_innerNodes[layer-1].size());
                     }
                 }
             } else {
                 // Hidden Layers
                 for (size_t left_node = 0; left_node < _innerNodes[layer-1].size(); left_node++) {
-                    if (!enableNodeValueToBool(nodeEnabled(layer-1, left_node))) {
+                    if (isSkipNode(layer, left_node)) {
                         continue;
                     }
                     for (size_t right_node = 0; right_node < _innerNodes[layer].size(); right_node++) {
-                        if (enableNodeValueToBool(nodeEnabled(layer, right_node))) {
-                            _innerNodes[layer][right_node] +=
-                                    (*edges)[left_node][right_node]*activation(_innerNodes[layer-1][left_node]);
+                        if (isSkipNode(layer+1, right_node)) {
+                            continue;
                         }
+                            _innerNodes[layer][right_node] +=
+                                    (*edges)[left_node][right_node]*activation(_innerNodes[layer-1][left_node]) /
+                                    static_cast<real>(_innerNodes[layer-1].size());
                     }
                 }
                 // Apply recurrent nodes (handles check for you)
@@ -533,6 +523,58 @@ void NeuralNet::processForwardPropagation() {
             }
         }
     }
+}
+
+/**
+ * @brief NeuralNet::isSkipNode
+ * @details Returns true if node is to be skipped
+ * @details Returns default of false for all other situations
+ * @param layer - size_t
+ * @param node - size_t
+ * @return
+ */
+bool NeuralNet::isSkipNode(const size_t & layer, const size_t & node) {
+    if (_state.size() == 0) return false;
+    if (layer >= _state[0].size()+1 || layer == 0) return false; // Inner Nodes Only
+    if (node >= _state[0][layer-1].size()) return false;
+
+    return !enableNodeValueToBool(_state[0][layer-1][node]);
+}
+
+/**
+ * @brief NeuralNet::isSkipEdge
+ * @details Returns true if edge contains skip node
+ * @param leftLayer - size_t
+ * @param leftNode - size_t
+ * @param rightNode - size_t
+ * @return
+ */
+bool NeuralNet::isSkipEdge(const size_t & leftLayer, const size_t & leftNode, const size_t & rightNode) {
+    bool skipEdge = isSkipNode(leftLayer, leftNode);
+    skipEdge |= isSkipNode(leftLayer+1, rightNode);
+    return skipEdge;
+}
+
+/**
+ * @brief NeuralNet::isSkipNode
+ * @details static function for skip node detection.
+ * @param state
+ * @param layer
+ * @param node
+ * @return
+ */
+bool NeuralNet::isSkipNode(const State & state, const size_t & layer, const size_t & node) {
+    if (state.size() == 0) return false;
+    if (layer >= state[0].size()) return false;
+    if (node >= state[0][layer].size()) return false;
+
+    return !enableNodeValueToBool(state[0][layer][node]);
+}
+
+bool NeuralNet::isSkipEdge(const State & state, const size_t & leftLayer, const size_t & leftNode, const size_t & rightNode) {
+    bool skipEdge = isSkipNode(state, leftLayer, leftNode);
+    skipEdge |= isSkipNode(state, leftLayer+1, rightNode);
+    return skipEdge;
 }
 
 /**
@@ -544,11 +586,11 @@ void NeuralNet::processRecurrentNodes(const size_t &layer) {
     if (layer < _recurrentNodes.size() && _nParams.type == Recurrent) {
         EdgeLayer * recEdges = recurrentEdgeLayer(layer);
         for (size_t recNode = 0; recNode < _recurrentNodes[layer].size(); recNode++) {
-            if (!enableNodeValueToBool(nodeEnabled(layer, recNode))) {
+            if (isSkipNode(layer, recNode)) {
                 continue;
             }
             for (size_t conNode = 0; conNode < _recurrentNodes[layer].size(); conNode++) {
-                if (!enableNodeValueToBool(nodeEnabled(layer, conNode))) {
+                if (isSkipNode(layer, conNode)) {
                     continue;
                 }
                 _recurrentNodes[layer][recNode] +=
@@ -556,7 +598,11 @@ void NeuralNet::processRecurrentNodes(const size_t &layer) {
             }
             size_t recNodeEdge = (*recEdges)[recNode].size()-1;
             _innerNodes[layer][recNode] +=
-                    (*recEdges)[recNode][recNodeEdge] * activation(_recurrentNodes[layer][recNode]);
+                    (*recEdges)[recNode][recNodeEdge] * activation(_recurrentNodes[layer][recNode]) /
+                    static_cast<real>(_recurrentNodes[layer].size());
+        }
+        for (size_t i = 0; i < _innerNodes[layer].size(); i++) {
+            _innerNodes[layer][i] /= static_cast<real>(2.0);
         }
     }
 }

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1178</width>
+    <width>1271</width>
     <height>1073</height>
    </rect>
   </property>
@@ -1067,7 +1067,7 @@
               <number>6</number>
              </property>
              <property name="maximum">
-              <double>10000.000000000000000</double>
+              <double>1000000.000000000000000</double>
              </property>
             </widget>
            </item>
@@ -1084,7 +1084,7 @@
               <number>6</number>
              </property>
              <property name="maximum">
-              <double>10000.000000000000000</double>
+              <double>1000000.000000000000000</double>
              </property>
             </widget>
            </item>
@@ -1101,7 +1101,7 @@
               <number>6</number>
              </property>
              <property name="maximum">
-              <double>10000.000000000000000</double>
+              <double>1000000.000000000000000</double>
              </property>
             </widget>
            </item>
@@ -1765,7 +1765,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1178</width>
+     <width>1271</width>
      <height>21</height>
     </rect>
    </property>
@@ -1840,321 +1840,14 @@
     <bool>true</bool>
    </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::BottomDockWidgetArea</set>
+    <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
    <attribute name="dockWidgetArea">
-    <number>8</number>
+    <number>2</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QGridLayout" name="gridLayout_3">
-     <item row="2" column="3">
-      <widget class="QGroupBox" name="location_gb">
-       <property name="title">
-        <string>Location</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_17">
-        <item>
-         <widget class="QCheckBox" name="enLocLOA_cb">
-          <property name="text">
-           <string>LOA</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enLocLat_cb">
-          <property name="text">
-           <string>Latitude</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enLocLong_cb">
-          <property name="text">
-           <string>Longitude</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item row="2" column="2">
-      <widget class="QGroupBox" name="storm_gb">
-       <property name="title">
-        <string>Storm</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_16">
-        <item>
-         <widget class="QCheckBox" name="enStormFog_cb">
-          <property name="text">
-           <string>Fog</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enStormRain_cb">
-          <property name="text">
-           <string>Rain</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enStormSnow_cb">
-          <property name="text">
-           <string>Snow</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enStormTS_cb">
-          <property name="text">
-           <string>ThunderStorm</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item row="2" column="5">
-      <widget class="QGroupBox" name="enOutput_gb">
-       <property name="title">
-        <string>Output</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_18">
-        <item>
-         <widget class="QCheckBox" name="enOutputOutage_cb">
-          <property name="text">
-           <string>Outage</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enOutputAC_cb">
-          <property name="text">
-           <string>Aff Cust</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QGroupBox" name="temp_gb">
-       <property name="title">
-        <string>Temperature</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_11">
-        <item>
-         <widget class="QCheckBox" name="enTempHigh_cb">
-          <property name="text">
-           <string>High</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enTempAvg_cb">
-          <property name="text">
-           <string>Avg</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enTempLow_cb">
-          <property name="text">
-           <string>Low</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QGroupBox" name="wing_gb">
-       <property name="title">
-        <string>Wind</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_15">
-        <item>
-         <widget class="QCheckBox" name="enWindHigh_cb">
-          <property name="text">
-           <string>High</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enWindAvg_cb">
-          <property name="text">
-           <string>Avg</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enWindGust_cb">
-          <property name="text">
-           <string>Gust</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item row="0" column="2">
-      <widget class="QGroupBox" name="dewpoint_gb">
-       <property name="title">
-        <string>Dew Point</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_20">
-        <item>
-         <widget class="QCheckBox" name="enDewHigh_cb">
-          <property name="text">
-           <string>High</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enDewAvg_cb">
-          <property name="text">
-           <string>Avg</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enDewLow_cb">
-          <property name="text">
-           <string>Low</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enPrec_cb">
-          <property name="text">
-           <string>Prec.</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item row="0" column="3">
-      <widget class="QGroupBox" name="humidity_gb">
-       <property name="title">
-        <string>Humidity</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_12">
-        <item>
-         <widget class="QCheckBox" name="enHumidityHigh_cb">
-          <property name="text">
-           <string>High</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enHumidityAvg_cb">
-          <property name="text">
-           <string>Avg</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enHumidityLow_cb">
-          <property name="text">
-           <string>Low</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item row="0" column="0">
+    <layout class="QVBoxLayout" name="verticalLayout_23">
+     <item>
       <widget class="QGroupBox" name="date_gb">
        <property name="title">
         <string>Date</string>
@@ -2196,17 +1889,17 @@
        </layout>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QGroupBox" name="visibility_gb">
+     <item>
+      <widget class="QGroupBox" name="temp_gb">
        <property name="title">
-        <string>Visibility</string>
+        <string>Temperature</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
        </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_14">
+       <layout class="QHBoxLayout" name="horizontalLayout_11">
         <item>
-         <widget class="QCheckBox" name="enVisibilityHigh_cb">
+         <widget class="QCheckBox" name="enTempHigh_cb">
           <property name="text">
            <string>High</string>
           </property>
@@ -2216,7 +1909,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="enVisibilityAvg_cb">
+         <widget class="QCheckBox" name="enTempAvg_cb">
           <property name="text">
            <string>Avg</string>
           </property>
@@ -2226,7 +1919,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="enVisibilityLow_cb">
+         <widget class="QCheckBox" name="enTempLow_cb">
           <property name="text">
            <string>Low</string>
           </property>
@@ -2238,7 +1931,101 @@
        </layout>
       </widget>
      </item>
-     <item row="0" column="5">
+     <item>
+      <widget class="QGroupBox" name="humidity_gb">
+       <property name="title">
+        <string>Humidity</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_12">
+        <item>
+         <widget class="QCheckBox" name="enHumidityHigh_cb">
+          <property name="text">
+           <string>High</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="enHumidityAvg_cb">
+          <property name="text">
+           <string>Avg</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="enHumidityLow_cb">
+          <property name="text">
+           <string>Low</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="dewpoint_gb">
+       <property name="title">
+        <string>Dew Point</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_6">
+        <item row="0" column="1">
+         <widget class="QCheckBox" name="enDewHigh_cb">
+          <property name="text">
+           <string>High</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QCheckBox" name="enDewAvg_cb">
+          <property name="text">
+           <string>Avg</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QCheckBox" name="enDewLow_cb">
+          <property name="text">
+           <string>Low</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QCheckBox" name="enPrec_cb">
+          <property name="text">
+           <string>Prec.</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
       <widget class="QGroupBox" name="pressure_gb">
        <property name="title">
         <string>Pressure</string>
@@ -2280,18 +2067,221 @@
        </layout>
       </widget>
      </item>
-     <item row="1" column="5">
+     <item>
+      <widget class="QGroupBox" name="visibility_gb">
+       <property name="title">
+        <string>Visibility</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_14">
+        <item>
+         <widget class="QCheckBox" name="enVisibilityHigh_cb">
+          <property name="text">
+           <string>High</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="enVisibilityAvg_cb">
+          <property name="text">
+           <string>Avg</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="enVisibilityLow_cb">
+          <property name="text">
+           <string>Low</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="storm_gb">
+       <property name="title">
+        <string>Storm</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="1">
+         <widget class="QCheckBox" name="enStormFog_cb">
+          <property name="text">
+           <string>Fog</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QCheckBox" name="enStormRain_cb">
+          <property name="text">
+           <string>Rain</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QCheckBox" name="enStormSnow_cb">
+          <property name="text">
+           <string>Snow</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QCheckBox" name="enStormTS_cb">
+          <property name="text">
+           <string>ThunderStorm</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="wing_gb">
+       <property name="title">
+        <string>Wind</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_15">
+        <item>
+         <widget class="QCheckBox" name="enWindHigh_cb">
+          <property name="text">
+           <string>High</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="enWindAvg_cb">
+          <property name="text">
+           <string>Avg</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="enWindGust_cb">
+          <property name="text">
+           <string>Gust</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="location_gb">
+       <property name="title">
+        <string>Location</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_17">
+        <item>
+         <widget class="QCheckBox" name="enLocLOA_cb">
+          <property name="text">
+           <string>LOA</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="enLocLat_cb">
+          <property name="text">
+           <string>Latitude</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="enLocLong_cb">
+          <property name="text">
+           <string>Longitude</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
       <widget class="Line" name="line_15">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
       </widget>
      </item>
-     <item row="2" column="4">
-      <widget class="Line" name="line_16">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
+     <item>
+      <widget class="QGroupBox" name="enOutput_gb">
+       <property name="title">
+        <string>Output</string>
        </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_18">
+        <item>
+         <widget class="QCheckBox" name="enOutputOutage_cb">
+          <property name="text">
+           <string>Outage</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="enOutputAC_cb">
+          <property name="text">
+           <string>Aff Cust</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
     </layout>
