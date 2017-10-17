@@ -50,7 +50,7 @@ void NeuralNetPlot::updateNodes() {
                 size_t rightNodes = (*_state)[stateLayer][leftNode].size();
                 double next_y_offset = 1.0f / static_cast<double>(rightNodes);
                 for (size_t rightNode = 0; rightNode < rightNodes; rightNode++) {
-                    enableNode &= !NeuralNet::isSkipNode(*_state, nextEdgeLayer, rightNode);
+                    bool nextEnableNode = enableNode && !NeuralNet::isSkipNode(*_state, nextEdgeLayer, rightNode);
 
                     real edgeValue = (*_state)[stateLayer][leftNode][rightNode];
                     qreal xf = nextEdgeLayer;
@@ -62,7 +62,7 @@ void NeuralNetPlot::updateNodes() {
 
                     QwtPlotCurve * newCurve = new QwtPlotCurve();
                     newCurve->setSamples(edgeData);
-                    QColor curveColor = edgeColor(edgeValue, enableNode);
+                    QColor curveColor = edgeColor(edgeValue, nextEnableNode);
                     double lt = lineThickness * qAbs(edgeValue);
                     //newCurve->setBrush(curveColor);
                     newCurve->setPen(curveColor, lt);

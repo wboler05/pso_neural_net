@@ -11,7 +11,6 @@ void TestStatistics::clear() {
     _test.falseNegative = 0;
     _test.falsePositive = 0;
     _population = 0;
-    _mse = 0;
 }
 
 void TestStatistics::getClassError(ClassificationError & ce) {

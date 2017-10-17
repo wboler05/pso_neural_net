@@ -113,6 +113,8 @@ real OutageTrainer::trainingRun() {
 
     size_t totalSetsToRun = static_cast<size_t>(_neuralNet->nParams()->trainingIterations);
 
+    TestStatistics trainingStats;
+
     // First, test each output and store to the vector of results;
     for (size_t someSets = 0; someSets < totalSetsToRun; someSets++) {
         qApp->processEvents();
@@ -136,15 +138,53 @@ real OutageTrainer::trainingRun() {
             mse[output_nodes] += mse_outputs[output_nodes];
         }
 
+        bool result = confirmOutage(output);
+        bool expectedResult = confirmOutage(expectedOutput);
+
+        if (expectedResult) {
+            if (result) {
+                trainingStats.addTp();
+            } else {
+                trainingStats.addFn();
+            }
+        } else {
+            if (result) {
+                trainingStats.addFp();
+            } else {
+                trainingStats.addTn();
+            }
+        }
+
     }
 
     for (size_t i = 0; i < mse.size(); i++) {
         mse[i] /= static_cast<real>(totalSetsToRun);
     }
 
-    /*
     TestStatistics::ClassificationError ce = validateCurrentNet();
+    trainingStats.getClassError(ce);
 
+    real costA = -std::numeric_limits<real>::max();
+    if (mse.size() == 2) {
+        costA = (_params->alpha * mse[0] + _params->beta * mse[1]) /
+                (2.0 * (_params->alpha + _params->beta));
+    } else {
+        costA = mse[0];
+    }
+
+    // With this cost function, 0 means terminate.
+    if (abs(costA) < _psoParams.delta && _psoParams.termDeltaFlag) {
+        interruptProcess();
+    }
+
+    return -costA;
+
+
+
+
+
+
+    /*
     real penalty = 1;
 //    if ((1-mse) < _fParams.mse_floor)
 //        penalty *= 0.00001;
@@ -158,7 +198,6 @@ real OutageTrainer::trainingRun() {
         penalty *= 0.00001;
     if (ce.f_score < _fParams.floors.f_score)
         penalty *= 0.00001;
-    */
 
     real costA = -std::numeric_limits<real>::max();
     if (mse.size() == 2) {
@@ -167,8 +206,6 @@ real OutageTrainer::trainingRun() {
         costA = mse[0];
     }
 
-    return -costA;
-/*
     real costB = ((_fParams.weights.accuracy*ce.accuracy)
                             + (_fParams.weights.sensitivity*ce.sensitivity)
                             + (_fParams.weights.specificity*ce.specificity)
@@ -271,9 +308,27 @@ void OutageTrainer::testGB() {
     TestStatistics::ClassificationError ce;
     classError(_testInputs, _testStats, ce, _neuralNet->nParams()->testIterations);
 
-    if (ce.accuracy > 0.95) {
-        interruptProcess();
+    _recent_gb.state = _gb._x;
+    _recent_gb.testStats = _testStats;
+    _recent_gb.ce = ce;
+
+    if (_testStats.tn() > 0 &&
+        _testStats.tp() > 0
+        ) {
+        if (ce.accuracy > _best_gb.ce.accuracy || _best_gb.state.size() == 0) {
+            _best_gb.state = _gb._x;
+            _best_gb.testStats = _testStats;
+            _best_gb.ce = ce;
+        }
     }
+}
+
+void OutageTrainer::testSelectedGB() {
+    _neuralNet->setState(_best_gb.state);
+    TestStatistics::ClassificationError ce;
+    classError(_testInputs, _testStats, ce, _neuralNet->nParams()->testIterations);
+    _best_gb.testStats = _testStats;
+    _best_gb.ce = ce;
 }
 
 /**
@@ -332,7 +387,7 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
     }
 
   testStats.getClassError(ce);
-  testStats.setMse(mse / static_cast<real>(iterations));
+  ce.mse = mse / static_cast<real>(iterations);
 
 //  string outputString = testStats.outputString(ce);
 //  Logger::write(outputString);

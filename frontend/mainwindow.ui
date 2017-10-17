@@ -30,6 +30,12 @@
           <layout class="QGridLayout" name="gridLayout_5">
            <item row="1" column="1" rowspan="2">
             <widget class="QWidget" name="widget_8" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>60</width>
+               <height>60</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">background-color: green</string>
              </property>
@@ -132,6 +138,12 @@
            </item>
            <item row="5" column="1">
             <widget class="QWidget" name="widget_22" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>60</width>
+               <height>60</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">background-color:white</string>
              </property>
@@ -161,6 +173,12 @@
            </item>
            <item row="3" column="3">
             <widget class="QWidget" name="widget_21" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>60</width>
+               <height>60</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">background-color:white</string>
              </property>
@@ -190,6 +208,12 @@
            </item>
            <item row="5" column="3">
             <widget class="QWidget" name="widget_23" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>60</width>
+               <height>60</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">background-color: #B2B2B2</string>
              </property>
@@ -219,6 +243,12 @@
            </item>
            <item row="3" column="1">
             <widget class="QWidget" name="widget_20" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>60</width>
+               <height>60</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">background-color: #B2B2B2</string>
              </property>
@@ -248,6 +278,12 @@
            </item>
            <item row="3" column="0">
             <widget class="QWidget" name="widget_18" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>60</width>
+               <height>60</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">background-color: green</string>
              </property>
@@ -296,6 +332,12 @@
            </item>
            <item row="5" column="0">
             <widget class="QWidget" name="widget_19" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>60</width>
+               <height>60</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">background-color: red</string>
              </property>
@@ -344,6 +386,12 @@
            </item>
            <item row="1" column="3" rowspan="2">
             <widget class="QWidget" name="widget_17" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>60</width>
+               <height>60</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">background-color: RED</string>
              </property>
@@ -429,6 +477,12 @@
           <layout class="QGridLayout" name="gridLayout_4">
            <item row="0" column="0">
             <widget class="QLabel" name="label_31">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
              <property name="text">
               <string>Accuracy</string>
              </property>
@@ -439,6 +493,12 @@
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_32">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
              <property name="text">
               <string>Precision</string>
              </property>
@@ -449,6 +509,12 @@
            </item>
            <item row="1" column="0">
             <widget class="QLabel" name="acc_lbl">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">background-color:white</string>
              </property>
@@ -462,6 +528,12 @@
            </item>
            <item row="0" column="2">
             <widget class="QLabel" name="label_35">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
              <property name="text">
               <string>F-Score</string>
              </property>
@@ -472,6 +544,12 @@
            </item>
            <item row="1" column="1">
             <widget class="QLabel" name="sens_lbl">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">background-color:white</string>
              </property>
@@ -485,6 +563,12 @@
            </item>
            <item row="0" column="1">
             <widget class="QLabel" name="label_33">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
              <property name="text">
               <string>Sensitivity</string>
              </property>
@@ -495,6 +579,12 @@
            </item>
            <item row="1" column="2">
             <widget class="QLabel" name="fscore_lbl">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">background-color:white</string>
              </property>
@@ -508,6 +598,12 @@
            </item>
            <item row="3" column="0">
             <widget class="QLabel" name="prec_lbl">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">background-color:white</string>
              </property>
@@ -521,6 +617,12 @@
            </item>
            <item row="2" column="1">
             <widget class="QLabel" name="label_34">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
              <property name="text">
               <string>Specificity</string>
              </property>
@@ -531,6 +633,12 @@
            </item>
            <item row="3" column="1">
             <widget class="QLabel" name="spec_lbl">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">background-color:white</string>
              </property>
@@ -542,7 +650,69 @@
              </property>
             </widget>
            </item>
+           <item row="3" column="2">
+            <widget class="QLabel" name="mse_lbl">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color:white</string>
+             </property>
+             <property name="text">
+              <string>val</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QLabel" name="label_40">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>MSE</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
           </layout>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QComboBox" name="globalBestSelection_cb">
+           <item>
+            <property name="text">
+             <string>Global Best</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Selected Best</string>
+            </property>
+           </item>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -669,30 +839,6 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label">
-             <property name="text">
-              <string>Particles</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="label_3">
-             <property name="text">
-              <string>Max Epochs</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QSpinBox" name="maxEpochs_sb">
-             <property name="minimum">
-              <number>1</number>
-             </property>
-             <property name="maximum">
-              <number>1000000</number>
-             </property>
-            </widget>
-           </item>
            <item row="4" column="0">
             <widget class="QLabel" name="label_5">
              <property name="text">
@@ -707,6 +853,37 @@
              </property>
             </widget>
            </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>Max Epochs</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Particles</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QSpinBox" name="maxEpochs_sb">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>1000000</number>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <widget class="QLabel" name="label_6">
+             <property name="text">
+              <string>Window Size</string>
+             </property>
+            </widget>
+           </item>
            <item row="4" column="1">
             <widget class="QDoubleSpinBox" name="delta_dsb">
              <property name="decimals">
@@ -717,13 +894,6 @@
              </property>
             </widget>
            </item>
-           <item row="7" column="0">
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string>Test Iterations</string>
-             </property>
-            </widget>
-           </item>
            <item row="8" column="1">
             <widget class="QSpinBox" name="window_sb">
              <property name="maximum">
@@ -731,10 +901,10 @@
              </property>
             </widget>
            </item>
-           <item row="8" column="0">
-            <widget class="QLabel" name="label_6">
+           <item row="7" column="0">
+            <widget class="QLabel" name="label_4">
              <property name="text">
-              <string>Window Size</string>
+              <string>Test Iterations</string>
              </property>
             </widget>
            </item>
@@ -775,17 +945,17 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_28">
-             <property name="text">
-              <string>Min Epochs</string>
-             </property>
-            </widget>
-           </item>
            <item row="9" column="0">
             <widget class="QPushButton" name="innerNet_btn">
              <property name="text">
               <string>Inner Nets</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_28">
+             <property name="text">
+              <string>Min Epochs</string>
              </property>
             </widget>
            </item>
@@ -799,10 +969,10 @@
              </property>
             </widget>
            </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="label_29">
-             <property name="text">
-              <string>Valid Iterations</string>
+           <item row="5" column="1">
+            <widget class="QSpinBox" name="trainingIterations_sb">
+             <property name="maximum">
+              <number>10000</number>
              </property>
             </widget>
            </item>
@@ -820,10 +990,24 @@
              </property>
             </widget>
            </item>
-           <item row="5" column="1">
-            <widget class="QSpinBox" name="trainingIterations_sb">
-             <property name="maximum">
-              <number>10000</number>
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_29">
+             <property name="text">
+              <string>Valid Iterations</string>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="2">
+            <widget class="QCheckBox" name="topoTraining_cb">
+             <property name="text">
+              <string>Enable</string>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="0">
+            <widget class="QLabel" name="label_41">
+             <property name="text">
+              <string>Topo. Training</string>
              </property>
             </widget>
            </item>

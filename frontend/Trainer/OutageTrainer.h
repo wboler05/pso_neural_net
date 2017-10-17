@@ -8,40 +8,46 @@
 #include "util.h"
 
 struct EnableParameters {
-    bool year=true;
-    bool month=true;
-    bool day=true;
+    bool year=false;
+    bool month=false;
+    bool day=false;
     bool temp_high=true;
     bool temp_avg=true;
     bool temp_low=true;
     bool dew_high=true;
     bool dew_avg=true;
     bool dew_low=true;
-    bool humidity_high=true;
-    bool humidity_avg=true;
-    bool humidity_low=true;
-    bool press_high=true;
-    bool press_avg=true;
-    bool press_low=true;
-    bool visibility_high=true;
-    bool visibility_avg=true;
-    bool visibility_low=true;
+    bool humidity_high=false;
+    bool humidity_avg=false;
+    bool humidity_low=false;
+    bool press_high=false;
+    bool press_avg=false;
+    bool press_low=false;
+    bool visibility_high=false;
+    bool visibility_avg=false;
+    bool visibility_low=false;
     bool wind_high=true;
-    bool wind_avg=true;
+    bool wind_avg=false;
     bool wind_gust=true;
     bool precipitation=true;
-    bool fog=true;
+    bool fog=false;
     bool rain=true;
-    bool snow=true;
+    bool snow=false;
     bool thunderstorm=true;
-    bool loa=true;
-    bool latitude=true;
-    bool longitude=true;
+    bool loa=false;
+    bool latitude=false;
+    bool longitude=false;
     bool outage=true;
     bool affected_people=true;
 
     std::vector<size_t> inputSkips();
     std::vector<size_t> outputSkips();
+};
+
+struct SelectedGlobalBest {
+    NeuralNet::State state;
+    TestStatistics testStats;
+    TestStatistics::ClassificationError ce;
 };
 
 struct TrainingParameters {
@@ -53,6 +59,7 @@ struct TrainingParameters {
     real alpha = 1.0L;
     real beta = 1.0L;
     real gamma = 1.0L;
+    bool showBestSelected = false;
 };
 
 class OutageTrainer : public NeuralPso
@@ -71,6 +78,7 @@ public:
 
     real trainingRun();
     void testGB();
+    void testSelectedGB();
     void validateGB();
     TestStatistics::ClassificationError && validateCurrentNet();
 
@@ -96,10 +104,16 @@ public:
     void updateEnableParameters();
     const EnableParameters & enableParameters() { return _params->ep; }
 
+    const SelectedGlobalBest & getRecentGlobalBest() { return _recent_gb; }
+    const SelectedGlobalBest & getSelectedGlobalBest() { return _best_gb; }
+
 private:
+    SelectedGlobalBest _recent_gb;
+    SelectedGlobalBest _best_gb;
     std::shared_ptr<TrainingParameters> _params;
     TestStatistics _testStats;
     TestStatistics _validationStats;
+    TestStatistics _selectedTestStats;
     std::shared_ptr<InputCache> _inputCache;
     std::vector<size_t> _trainingInputs;
     std::vector<size_t> _testInputs;

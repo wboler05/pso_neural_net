@@ -31,6 +31,7 @@ public:
         real sensitivity = 0;
         real specificity = 0;
         real f_score = 0;
+        real mse = 0;
     };
 
     const TestStruct & testStruct() { return _test; }
@@ -57,12 +58,8 @@ public:
     void getClassError(ClassificationError & ce);
     std::string outputString(const ClassificationError &ce);
 
-    void setMse(const real & mse) { _mse = mse; }
-    const real & mse() { return _mse; }
-
 private:
     TestStruct _test;
-    real _mse = 0;
     uint64_t _population=0;
 };
 

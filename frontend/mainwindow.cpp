@@ -371,15 +371,15 @@ void MainWindow::setParameterDefaults() {
 
     initializeCache();
 
-    _params->pp.population = 50; // 50
-    _params->pp.neighbors = 13; // 10
-    _params->pp.minEpochs = 10;
+    _params->pp.population = 150; // 50
+    _params->pp.neighbors = 30; // 10
+    _params->pp.minEpochs = 50;
     _params->pp.maxEpochs = 1000;
     _params->pp.delta = 5E-8L;
     _params->pp.vDelta = 5E-200L;
     _params->pp.termIterationFlag = false;
     _params->pp.termDeltaFlag = true;
-    _params->pp.windowSize = 500;
+    _params->pp.windowSize = 1500;
 
     /*
     NeuralNetParameters nParams;
@@ -405,6 +405,8 @@ void MainWindow::setParameterDefaults() {
     _params->np.validationIterations = 200;
     _params->np.testIterations = 500; //500
 
+    _params->fp.enableTopologyTraining = true;
+
     _params->fp.floors.accuracy = .05L;
     _params->fp.floors.precision = 0.05L;
     _params->fp.floors.sensitivity = 0.05L;
@@ -424,6 +426,7 @@ void MainWindow::setParameterDefaults() {
     _params->gamma = 1.0;
 
     updateParameterGui();
+    setGlobalBestSelectionBox();
 }
 
 void MainWindow::applyParameterChanges() {
@@ -439,6 +442,8 @@ void MainWindow::applyParameterChanges() {
     _params->np.trainingIterations = ui->trainingIterations_sb->value();
     _params->np.validationIterations = ui->validationIterations_sb->value();
     _params->np.testIterations = ui->testIt_sb->value();
+
+    _params->fp.enableTopologyTraining = ui->topoTraining_cb->isChecked();
 
     _params->fp.mse_floor = static_cast<real>(ui->mse_floor_dsb->value());
     _params->fp.floors.accuracy = static_cast<real>(ui->acc_floor_dsb->value());
@@ -477,6 +482,8 @@ void MainWindow::updateParameterGui() {
     ui->validationIterations_sb->setValue(_params->np.validationIterations);
     ui->testIt_sb->setValue(_params->np.testIterations);
 
+    ui->topoTraining_cb->setChecked(_params->fp.enableTopologyTraining);
+
     ui->mse_floor_dsb->setValue(static_cast<double>(_params->fp.mse_floor));
     ui->acc_floor_dsb->setValue(static_cast<double>(_params->fp.floors.accuracy));
     ui->pre_floor_dsb->setValue(static_cast<double>(_params->fp.floors.precision));
@@ -498,6 +505,23 @@ void MainWindow::updateParameterGui() {
     ui->netType_cb->setCurrentIndex(getNetTypeCBIndex());
 
     updateElementSkips();
+    getGlobalBestSelectionFromBox();
+}
+
+void MainWindow::setGlobalBestSelectionBox() {
+    if (_params->showBestSelected) {
+        ui->globalBestSelection_cb->setCurrentIndex(1);
+    } else {
+        ui->globalBestSelection_cb->setCurrentIndex(0);
+    }
+}
+
+void MainWindow::getGlobalBestSelectionFromBox() {
+    if (ui->globalBestSelection_cb->currentIndex() == 0) {
+        _params->showBestSelected = false;
+    } else {
+        _params->showBestSelected = true;
+    }
 }
 
 void MainWindow::applyElementSkips() {
@@ -607,10 +631,28 @@ void MainWindow::setInputsForTrainedNetFromGui() {
     //_inputCache.b = ui->b_cb->isChecked();
 }
 
+bool MainWindow::showBestSelected() {
+    if (ui->globalBestSelection_cb->currentIndex() == 0) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
 void MainWindow::updateConfusionMatrix() {
-    TestStatistics & ts = _neuralPsoTrainer->testStats();
+
+    TestStatistics ts;
     TestStatistics::ClassificationError ce;
-    ts.getClassError(ce);
+
+    if (showBestSelected()) {
+        SelectedGlobalBest selGb = _neuralPsoTrainer->getSelectedGlobalBest();
+        ts = selGb.testStats;
+        ce = selGb.ce;
+    } else {
+        SelectedGlobalBest recGb = _neuralPsoTrainer->getRecentGlobalBest();
+        ts = recGb.testStats;
+        ce = recGb.ce;
+    }
 
     double actPos = static_cast<double>(ts.tp() + ts.fn());
     double actNeg = static_cast<double>(ts.fp() + ts.tn());
@@ -623,6 +665,7 @@ void MainWindow::updateConfusionMatrix() {
     ui->sens_lbl->setText(QString::number(static_cast<double>(ce.sensitivity)));
     ui->spec_lbl->setText(QString::number(static_cast<double>(ce.specificity)));
     ui->fscore_lbl->setText(QString::number(static_cast<double>(ce.f_score)));
+    ui->mse_lbl->setText(QString::number(static_cast<double>(ce.mse)));
 
     ui->actPosNum_lbl->setText(QString::number(actPos));
     ui->actPosPerc_lbl->setText(QString::number(actPos / pop));

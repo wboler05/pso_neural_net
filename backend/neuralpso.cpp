@@ -26,8 +26,7 @@ void NeuralPso::buildPso() {
     //std::uniform_real_distribution<real> infDist(-std::numeric_limits<real>::max(),
     //                                             std::numeric_limits<real>::max());
     std::vector<real> innerWeightRange = {-1, 1};
-    std::vector<real> infWeightRange = {-std::numeric_limits<real>::max()*.1,
-                                        std::numeric_limits<real>::max()*.1};
+    std::vector<real> infWeightRange = { _fParams.edgeWeightMin,_fParams.edgeWeightMax };
 
     _particles->empty();
     const NeuralNet::State &state = _neuralNet->state();
@@ -109,7 +108,12 @@ void NeuralPso::buildPso() {
 }
 
 void NeuralPso::fly() {
+    flySerial();
+    //flyParallel();
 
+}
+
+void NeuralPso::flySerial() {
     real velSum = 0;
 
     if (_particles->size() == 0) return;
@@ -132,16 +136,14 @@ void NeuralPso::fly() {
     std::vector<real> probRange = { 0.0L, 1.0L};
     std::vector<real> negRange =  {-1.0L, 1.0L};
     std::vector<real> inertiaRange = {0.5L, 1.0L};
-    //std::uniform_real_distribution<real> dist(0, 1);
-    //std::uniform_real_distribution<real> negPosRange(-1, 1);
 
     size_t startLayer = 0;
-    if (_fParams.enableTopologyTraining) {
+    if (!_fParams.enableTopologyTraining) {
         startLayer = 1;
     }
 
     // For each particle
-    for (size_t i = startLayer; i < _particles->size(); i++) {
+    for (size_t i = 0; i < _particles->size(); i++) {
         Particle<NeuralNet::State> *p = &(*_particles)[i];
         //p->_worstFlag = false;
         worstFlag = p->_worstFlag;
@@ -173,7 +175,7 @@ void NeuralPso::fly() {
         }
 
         // For each inner net
-        for (size_t inner_net = 1; inner_net < p->_v.size(); inner_net++) {
+        for (size_t inner_net = startLayer; inner_net < p->_v.size(); inner_net++) {
             if (checkTermProcess())
                 return;
 
@@ -186,71 +188,7 @@ void NeuralPso::fly() {
             for (size_t left_edge = 0; left_edge < p->_v[inner_net].size(); left_edge++) {
                 // For each edge (right side) of that inner net
                 for (size_t right_edge = 0; right_edge < p->_v[inner_net][left_edge].size(); right_edge++) {
-                    /// Concept based on Genetic Algorithms, idea based on Alex
-                    /// Find the worst of the particles and reset it.
-                    if (worstFlag) { // Reset the worst one
-                        if (choice < cdf[0]) {
-                            //p->_x[inner_net][left_edge][right_edge] = negPosRange(_randomEngine.engine());
-                            p->_x[inner_net][left_edge][right_edge] =
-                                    _randomEngine.uniformReal(negRange[0], negRange[1]);
-                        } else if (choice < cdf[1]) {
-                            p->_x[inner_net][left_edge][right_edge] = p->_x_pb[inner_net][left_edge][right_edge];
-                        } else if (choice < cdf[2]) {
-                            p->_x[inner_net][left_edge][right_edge] = p->_x_lb[inner_net][left_edge][right_edge];
-                        } else {
-                            p->_x[inner_net][left_edge][right_edge] = _gb._x[inner_net][left_edge][right_edge];
-                        }
-                        //p->_v[inner_net][left_edge][right_edge] = negPosRange(_randomEngine.engine());
-                        p->_v[inner_net][left_edge][right_edge] =
-                                _randomEngine.uniformReal(negRange[0], negRange[1]);
-                        continue;
-                    }
-
-                    //flyIteration(i, inner_net, left_edge, right_edge);
-                    real *w_v = &p->_v[inner_net][left_edge][right_edge];
-                    real *w_x = &p->_x[inner_net][left_edge][right_edge];
-                    real *w_pb = &p->_x_pb[inner_net][left_edge][right_edge];
-                    real *w_lb = &p->_x_lb[inner_net][left_edge][right_edge];
-                    real *w_gb = &_gb._x[inner_net][left_edge][right_edge];
-                    real *w_x_min = &p->_minX[inner_net][left_edge][right_edge];
-                    real *w_x_max = &p->_maxX[inner_net][left_edge][right_edge];
-
-                    //real inertia = (dist(_randomEngine.engine())*0.5) + 0.5;
-                    //real c1 = C1 * dist(_randomEngine.engine());
-                    //real c2 = C2 * dist(_randomEngine.engine());
-                    //real c3 = C3 * dist(_randomEngine.engine());
-                    real inertia = _randomEngine.uniformReal(inertiaRange[0], inertiaRange[1]);
-                    real c1 = C1 * _randomEngine.uniformReal(probRange[0], probRange[1]);
-                    real c2 = C2 * _randomEngine.uniformReal(probRange[0], probRange[1]);
-                    real c3 = C3 * _randomEngine.uniformReal(probRange[0], probRange[1]);
-
-                    *w_v = (
-                                inertia * (*w_v)
-                                + (c1*(*w_pb - *w_x))
-                                + (c2*(*w_lb - *w_x))
-//                                + (c3*(*w_gb - *w_x))
-                                ) * dt;
-
-                    velSum += *w_v;
-
-                    if (*w_v > vLimit) {
-                        *w_v = vLimit;
-                    } else if (*w_v < -vLimit) {
-                        *w_v = -vLimit;
-                    }
-
-                    *w_x += *w_v;
-
-                    *w_x = std::min(*w_x, *w_x_max);
-                    *w_x = std::max(*w_x, *w_x_min);
-
-//                    if (*w_x > fitnessParams()->edgeWeightMax) {
-//                        *w_x = fitnessParams()->edgeWeightMax;
-//                        //*w_v *= -0.01;
-//                    } else if (*w_x < fitnessParams()->edgeWeightMin) {
-//                        *w_x = fitnessParams()->edgeWeightMin;
-//                        //*w_v *= -0.01;
-//                    }
+                    velSum += flyIteration(i, inner_net, left_edge, right_edge, choice);
                 }
             }
         }
@@ -274,15 +212,148 @@ void NeuralPso::fly() {
             for (size_t j = 0; j < (*_particles)[i]._x.size(); j++) {
                 for (size_t k = 0; k < (*_particles)[i]._x[j].size(); k++) {
                     for (size_t m = 0; m < (*_particles)[i]._x[j][k].size(); m++) {
-                        //(*_particles)[i]._x[j][k][m] = ((real)(rand() % 20000)/10000.0) - 1.0;
-                        //(*_particles)[i]._x[j][k][m] = negPosRange(_randomEngine.engine());
                         (*_particles)[i]._x[j][k][m] = _randomEngine.uniformReal(negRange[0], negRange[1]);
                     }
                 }
             }
         }
     }
-    //cout << velSum << endl;
+
+    /// For termination through user control
+    if (stopProcessing) {
+        interruptProcess();
+    }
+
+}
+
+void NeuralPso::flyParallel() {
+    const size_t num_threads = std::thread::hardware_concurrency() * 2;
+
+    real velSum = 0;
+
+    if (_particles->size() == 0) return;
+    if ((*_particles)[0]._v.size() == 0) return;
+
+    static int innerNetAccessCount = _psoParams.iterationsPerLevel;
+    static size_t innerNetIt = (*_particles)[0]._v.size()-1;
+
+    real choice=0;
+    bool worstFlag;
+
+    const real C1 = 2.495L, C2 = 2.495L, C3 = 0.05L;
+    real dt = 1;
+    real vLimit = _psoParams.vLimit;
+
+    // Random, pb, lb, gb
+    static std::vector<real> pdf = {.001L, 2.0L, 8.0L, 4.0L};
+    static std::vector<real> cdf = cdfUniform(pdf);
+
+    std::vector<real> probRange = { 0.0L, 1.0L};
+    std::vector<real> negRange =  {-1.0L, 1.0L};
+    std::vector<real> inertiaRange = {0.5L, 1.0L};
+
+    size_t startLayer = 0;
+    if (!_fParams.enableTopologyTraining) {
+        startLayer = 1;
+    }
+
+    std::vector<std::thread> particleThreads;
+
+    // For each particle
+    for (size_t i = 0; i < _particles->size(); i++) {
+        Particle<NeuralNet::State> *p = &(*_particles)[i];
+        //p->_worstFlag = false;
+        worstFlag = p->_worstFlag;
+
+        if (worstFlag) {
+            p->_worstFlag = false;
+            if (p->_points <= 0) {
+                //choice = (real) (rand() % 10000) / 10000.0;
+                //choice = dist(_randomEngine.engine());
+                choice = _randomEngine.uniformReal(
+                            probRange[0], probRange[1]);
+                p->_fit_pb = 0;
+                p->_fit_lb = 0;
+                p->_points = _psoParams.startPoints;
+                /*
+                std::string callWeak;
+                callWeak += "Switching particle ";
+                callWeak += stringPut(i);
+                callWeak += " with option ";
+                callWeak += stringPut(choice);
+                callWeak += "\n";
+                Logger::write(callWeak);
+                */
+
+            } else {
+                worstFlag = false;
+                p->_points -= _psoParams.weakPoints;
+            }
+        }
+
+        // For each inner net
+        for (size_t inner_net = startLayer; inner_net < p->_v.size(); inner_net++) {
+            if (checkTermProcess())
+                return;
+
+            if (_psoParams.backPropagation && (inner_net != innerNetIt)) {
+                innerNetIt = 0;
+            }
+            // For each edge (left side) of that inner net
+
+            //#pragma omp parallel for
+            for (size_t left_edge = 0; left_edge < p->_v[inner_net].size(); left_edge++) {
+                // For each edge (right side) of that inner net
+                for (size_t right_edge = 0; right_edge < p->_v[inner_net][left_edge].size(); right_edge++) {
+                    particleThreads.push_back(std::thread(&NeuralPso::flyIteration, this,
+                                i, inner_net, left_edge, right_edge, choice));
+                }
+            }
+        }
+    }
+
+    /*
+    if (particleThreads.size() > 0) {
+        for (size_t i = 0; i <= (particleThreads.size() / num_threads); i++) {
+            for (size_t j = 0; j < num_threads; j++) {
+                size_t threadId = i * num_threads + j;
+                if (threadId > particleThreads.size()) {
+                    break;
+                } else {
+                    particleThreads[threadId].join();
+                }
+            }
+        }
+    }*/
+    for (size_t t = 0; t < particleThreads.size(); t++) {
+        particleThreads[t].join();
+    }
+    particleThreads.clear();
+
+    if (innerNetAccessCount-- == 0) {
+        innerNetAccessCount = _psoParams.iterationsPerLevel;
+        if (innerNetIt-- == 0) {
+            innerNetIt = _neuralNet->nParams()->innerNetNodes.size()-1;
+        }
+    }
+
+    // Never happens
+    // If stagnant, mix it up a bit
+    if (abs(velSum) < _psoParams.vDelta) {
+
+        for (size_t i = 0; i < _particles->size(); i++) {
+            // Reset bests
+            (*_particles)[i]._fit_pb = -numeric_limits<real>::max();
+            (*_particles)[i]._fit_lb = -numeric_limits<real>::max();
+            for (size_t j = 0; j < (*_particles)[i]._x.size(); j++) {
+                for (size_t k = 0; k < (*_particles)[i]._x[j].size(); k++) {
+                    for (size_t m = 0; m < (*_particles)[i]._x[j][k].size(); m++) {
+                        (*_particles)[i]._x[j][k][m] = _randomEngine.uniformReal(negRange[0], negRange[1]);
+                    }
+                }
+            }
+        }
+    }
 
     /// For termination through user control
     if (stopProcessing) {
@@ -290,53 +361,72 @@ void NeuralPso::fly() {
     }
 }
 
-/*
-void NeuralPso::flyIteration(
-        size_t particle,
-        size_t inner_net,
-        size_t left_edge,
-        size_t right_edge) {
-//    const real C1 = 2.495, C2 = 2.495, C3 = 0.5;
-//    real dt = 1;
-//    Particle<NeuralNet::CombEdgeType> *p = &(*_particles)[particle];
-//    real *w_v = &p->_v[inner_net][left_edge][right_edge];
-//    real *w_x = &p->_x[inner_net][left_edge][right_edge];
-//    real *w_pb = &p->_x_pb[inner_net][left_edge][right_edge];
-//    real *w_lb = &p->_x_lb[inner_net][left_edge][right_edge];
+real NeuralPso::flyIteration(const size_t & particleId,
+                             const size_t & inner_net,
+                             const size_t & left_edge,
+                             const size_t & right_edge,
+                             const real & choice)
+{
+    NeuralParticle * p = &(*_particles)[particleId];
+    const std::vector<real> probRange = { 0.0L, 1.0L};
+    const std::vector<real> negRange =  {-1.0L, 1.0L};
+    const std::vector<real> inertiaRange = {0.5L, 1.0L};
+    const std::vector<real> pdf = {.001L, 2.0L, 8.0L, 4.0L};
+    const std::vector<real> cdf = cdfUniform(pdf);
+    const real C1 = 2.495L, C2 = 2.495L, C3 = 0.05L;
+
+    if (p->_worstFlag) { // Reset the worst one
+        if (choice < cdf[0]) {
+            //p->_x[inner_net][left_edge][right_edge] = negPosRange(_randomEngine.engine());
+            p->_x[inner_net][left_edge][right_edge] =
+                    _randomEngine.uniformReal(negRange[0], negRange[1]);
+        } else if (choice < cdf[1]) {
+            p->_x[inner_net][left_edge][right_edge] = p->_x_pb[inner_net][left_edge][right_edge];
+        } else if (choice < cdf[2]) {
+            p->_x[inner_net][left_edge][right_edge] = p->_x_lb[inner_net][left_edge][right_edge];
+        } else {
+            p->_x[inner_net][left_edge][right_edge] = _gb._x[inner_net][left_edge][right_edge];
+        }
+        //p->_v[inner_net][left_edge][right_edge] = negPosRange(_randomEngine.engine());
+        p->_v[inner_net][left_edge][right_edge] =
+                _randomEngine.uniformReal(negRange[0], negRange[1]);
+        return p->_v[inner_net][left_edge][right_edge];
+    }
+
+    real *w_v = &p->_v[inner_net][left_edge][right_edge];
+    real *w_x = &p->_x[inner_net][left_edge][right_edge];
+    real *w_pb = &p->_x_pb[inner_net][left_edge][right_edge];
+    real *w_lb = &p->_x_lb[inner_net][left_edge][right_edge];
 //    real *w_gb = &_gb._x[inner_net][left_edge][right_edge];
+    real *w_x_min = &p->_minX[inner_net][left_edge][right_edge];
+    real *w_x_max = &p->_maxX[inner_net][left_edge][right_edge];
 
-//    real inertia = ((real) ((rand() % 50000) + 50000)) / 100000.0;
-//    real c1 = C1 * ((real) (rand() % 10000)) / 10000.0;
-//    real c2 = C2 * ((real) (rand() % 10000)) / 10000.0;
-//    real c3 = C3 * ((real) (rand() % 10000)) / 10000.0;
+    real inertia = _randomEngine.uniformReal(inertiaRange[0], inertiaRange[1]);
+    real c1 = C1 * _randomEngine.uniformReal(probRange[0], probRange[1]);
+    real c2 = C2 * _randomEngine.uniformReal(probRange[0], probRange[1]);
+//    real c3 = C3 * _randomEngine.uniformReal(probRange[0], probRange[1]);
 
-//    *w_v = (
-//                inertia * (*w_v)
-//            + (c1*(*w_pb - *w_x))
-//            + (c2*(*w_lb - *w_x))
-//            + (c3*(*w_gb - *w_x))
-//            ) * dt;
+    *w_v = (
+                inertia * (*w_v)
+                + (c1*(*w_pb - *w_x))
+                + (c2*(*w_lb - *w_x))
+//                + (c3*(*w_gb - *w_x))
+                );
 
-//    velSum += *w_v;
-//    term = term && (*w_pb == *w_x) && (*w_lb == *w_x);
+    if (*w_v > _psoParams.vLimit) {
+        *w_v = _psoParams.vLimit;
+    } else if (*w_v < -_psoParams.vLimit) {
+        *w_v = -_psoParams.vLimit;
+    }
 
-//    if (*w_v > vLimit) {
-//      *w_v = vLimit;
-//    } else if (*w_v < -vLimit) {
-//      *w_v = -vLimit;
-//    }
+    *w_x += *w_v;
 
-//    *w_x += *w_v;
+    *w_x = std::min(*w_x, *w_x_max);
+    *w_x = std::max(*w_x, *w_x_min);
 
-//    if (*w_x > 1.0) {
-//      *w_x = -1.0;
-//      // *w_v *= -0.01;
-//    } else if (*w_x < -1.0) {
-//      *w_x = 1.0;
-//      // *w_v *= -0.01;
-//    }
+    return *w_v;
 }
-*/
+
 
 /**
  * @brief NeuralPso::getCost

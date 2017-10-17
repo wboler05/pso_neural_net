@@ -125,6 +125,9 @@ private:
     void setNetTypeByIndex(const int & i);
     void applyElementSkips();
     void updateElementSkips();
+    void setGlobalBestSelectionBox();
+    void getGlobalBestSelectionFromBox();
+    bool showBestSelected();
 };
 
 #endif // MAINWINDOW_H

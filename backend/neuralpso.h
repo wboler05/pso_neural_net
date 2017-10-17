@@ -13,6 +13,7 @@
 #include <random>
 #include <string>
 #include <algorithm>
+#include <thread>
 
 #include "logger.h"
 #include "neuralpsostream.h"
@@ -32,6 +33,8 @@ struct FitnessParameters {
 
     real edgeWeightMax = 10E5L;
     real edgeWeightMin = -10E5L;
+
+    bool enableTopologyTraining = false;
 };
 
 class NeuralPso : public Pso<NeuralNet::State> {
@@ -48,6 +51,9 @@ public:
   void getCost();
   real evaluate();
   void processEvents();
+
+  void flySerial();
+  void flyParallel();
 
   void evaluatePoints(std::vector<bool> & printChange);
   void findPersonalBest(std::vector<bool> & printChange);
@@ -88,7 +94,11 @@ private:
   static std::mutex printGBMtx;
   static volatile bool stopProcessing;
 
-  void flyIteration(size_t particle, size_t inner_net, size_t left_edge, size_t right_edge);
+  real flyIteration(const size_t & particleId,
+                    const size_t & inner_net,
+                    const size_t & left_edge,
+                    const size_t & right_edge,
+                    const real & choice);
 
 };
 
