@@ -14,16 +14,54 @@ void OutageTrainer::build() {
     /** TEST **/
     //_inputCache = std::make_shared<InputCache>(_params->cp);
 
-    // Split between training, testing, and validation sets
-    randomlyDistributeData(); //replace with inputPartitioner
-
-    // Setup bias for rare events
-    biasAgainstOutputs(); //remove
-    //biasAgainstLOA();
+    // Split between training, testing, and validation set.
+    partitionData();
 
     buildPso();
 
     updateMinMax();
+}
+
+void OutageTrainer::partitionData(){
+
+    std::vector<int> indicies;
+    int numInputSamples = _inputCache->totalInputItemsInFile();
+    int swpIdx;
+    int temp;
+
+    // Initialize the vector
+    for (int i = 0; i < numInputSamples; i++){
+        indicies.push_back(i);
+    }
+
+    // Shuffle it
+    for (int i = 1; i < numInputSamples; i++){
+        swpIdx = _randomEngine.uniformUnsignedInt(0,i);
+        if (swpIdx == i){
+            continue;
+        }
+        else{
+            temp = indicies[swpIdx];
+            indicies[swpIdx] = indicies[i];
+            indicies[i] = temp;
+        }
+    }
+
+    // Calculate the bounding index (inclusive)
+    int testBound = numInputSamples * .90;
+
+    // Clear input lists
+    _trainingInputs.clear();
+    _testInputs.clear();
+    _validationInputs.clear(); // Unused as of yet
+
+    // Fill the vectors
+    for (int i = 0; i < testBound; i++){
+        _trainingInputs.push_back(indicies[i]);
+    }
+    for (int i = testBound; i < numInputSamples; i++){
+        _testInputs.push_back(indicies[i]);
+    }
 }
 
 void OutageTrainer::randomlyDistributeData() {
@@ -144,8 +182,9 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
     // First, test each output and store to the vector of results;
     for (size_t someSets = 0; someSets < trainingIterations; someSets++) {
         qApp->processEvents();
-        // Set a random input
-        size_t I = randomizeTrainingInputs();
+
+        // Get the appropiate training input index
+        size_t I = _trainingInputs[((_epochs-1)*trainingIterations + someSets) % _trainingInputs.size()];
 
         // Get the result from random input
         vector<real> output = _neuralNet->process();
@@ -184,7 +223,7 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
     }
 
     for (size_t i = 0; i < mse.size(); i++) {
-        mse[i] /= static_cast<real>(totalSetsToRun);
+        mse[i] /= static_cast<real>(trainingIterations);
     }
 
     TestStatistics::ClassificationError ce = validateCurrentNet();

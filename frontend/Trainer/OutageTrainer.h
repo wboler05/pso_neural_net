@@ -72,6 +72,7 @@ public:
 
     void build();
     void randomlyDistributeData();
+    void partitionData();
 
     void biasAgainstOutputs();
     void biasAgainstLOA();

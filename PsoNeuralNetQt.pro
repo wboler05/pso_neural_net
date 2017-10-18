@@ -200,8 +200,7 @@ SOURCES += \
     frontend/slicenumberdialog.cpp \
     utils/randomnumberengine.cpp \
     frontend/particleplot.cpp \
-    frontend/particleplotwindow.cpp \
-    frontend/Trainer/inputpartitioner.cpp
+    frontend/particleplotwindow.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -232,8 +231,7 @@ HEADERS += \
     frontend/slicenumberdialog.h \
     utils/randomnumberengine.h \
     frontend/particleplot.h \
-    frontend/particleplotwindow.h \
-    frontend/Trainer/inputpartitioner.h
+    frontend/particleplotwindow.h
 
 FORMS += \
     frontend/mainwindow.ui \
