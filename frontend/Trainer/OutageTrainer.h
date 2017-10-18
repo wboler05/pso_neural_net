@@ -104,8 +104,8 @@ public:
     void updateEnableParameters();
     const EnableParameters & enableParameters() { return _params->ep; }
 
-    const SelectedGlobalBest & getRecentGlobalBest() { return _recent_gb; }
-    const SelectedGlobalBest & getSelectedGlobalBest() { return _best_gb; }
+    SelectedGlobalBest & getRecentGlobalBest() { return _recent_gb; }
+    SelectedGlobalBest & getSelectedGlobalBest() { return _best_gb; }
 
 private:
     SelectedGlobalBest _recent_gb;

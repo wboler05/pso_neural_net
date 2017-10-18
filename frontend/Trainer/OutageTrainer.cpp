@@ -181,6 +181,7 @@ real OutageTrainer::trainingRun() {
         penalty *= 10 + trainingStats.fn();
     }
 
+    // Calculate the weigted MSE
     real costA = -std::numeric_limits<real>::max();
     if (mse.size() == 2) {
         costA = (_params->alpha * mse[0] + _params->beta * mse[1]) /
@@ -189,10 +190,18 @@ real OutageTrainer::trainingRun() {
         costA = mse[0];
     }
 
+    // Life is a balancing act
+    real costB = sqrt(pow(ce.specificity, 2) + pow(ce.sensitivity, 2));
+
+    real cost = (_params->gamma * (-costA) - costB) * penalty;
+    return cost;
+
+    /*
     // With this cost function, 0 means terminate.
     if (abs(costA) < _psoParams.delta && _psoParams.termDeltaFlag) {
         interruptProcess();
     }
+    */
 
     return -costA * penalty;
 

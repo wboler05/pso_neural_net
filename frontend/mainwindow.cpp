@@ -164,7 +164,7 @@ void MainWindow::updateCacheMaxBytes(const int & bytes) {
 void MainWindow::on_actionSlices_Per_Cache_triggered() {
     /**TEST**/
     SliceNumberDialog * sDialog = new SliceNumberDialog(
-                static_cast<int>(_params->cp.totalSlicesPerCache), this);
+                static_cast<int>(_params->cp.totalSlicesPerCache));
     connect(sDialog, SIGNAL(slicesUpdated(int)), this, SLOT(updateSlicesPerCache(int)));
 }
 
@@ -884,7 +884,12 @@ void MainWindow::tryInjectGB() {
 
 void MainWindow::updatePlot() {
     if (_neuralPsoTrainer != nullptr) {
-        NeuralNet::State * state = &(_neuralPsoTrainer->gb()->_x);
+        NeuralNet::State * state = nullptr;
+        if (ui->globalBestSelection_cb->currentIndex() == 0) {
+            state = &(_neuralPsoTrainer->getRecentGlobalBest().state);
+        } else {
+            state = &(_neuralPsoTrainer->getSelectedGlobalBest().state);
+        }
         ui->neuralNetPlot->setState(state, _params->np.type);
         updateConfusionMatrix();
 
@@ -896,7 +901,11 @@ void MainWindow::updatePlot() {
                 QString completionMsg;
                 completionMsg.append("Training running. ");
                 completionMsg.append(QString::number(_neuralPsoTrainer->epochs(), 10));
-                completionMsg.append(" epochs");
+                completionMsg.append(" epochs\t");
+                completionMsg.append(QString::number(
+                    _neuralPsoTrainer->epochs() * static_cast<size_t>(_params->np.trainingIterations),
+                    10));
+                completionMsg.append(" total iterations");
                 setOutputLabel(completionMsg);
             }
         }

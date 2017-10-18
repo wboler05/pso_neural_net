@@ -33,28 +33,28 @@ void NeuralNetPlot::updateNodes() {
     {
         size_t leftNodes = (*_state)[stateLayer].size();
         if (leftNodes > 0) {
-            qreal y_offset = 1.0 / static_cast<double>(leftNodes);
+            qreal y_offset = 1.0 / (static_cast<double>(leftNodes));
             //maxY = std::max(maxY, (float)_edges->at(i).size());
 
             for (size_t leftNode = 0; leftNode < leftNodes; leftNode++) {
 
                 qreal x = edgeLayer;
-                qreal y = y_offset * static_cast<qreal>(leftNode);
+                qreal y = y_offset * (static_cast<qreal>(leftNode) + 0.5);
 
-                bool enableNode = !NeuralNet::isSkipNode(*_state, edgeLayer, leftNode);
+                bool enableNode = !NeuralNet::isSkipNode(*_state, edgeLayer-1, leftNode);
 
                 QwtPlotMarker * mark = getNodeMarker(QPointF(x, y), enableNode);
                 mark->attach(this);
 
                 // Edges
                 size_t rightNodes = (*_state)[stateLayer][leftNode].size();
-                double next_y_offset = 1.0f / static_cast<double>(rightNodes);
+                qreal next_y_offset = 1.0 / (static_cast<qreal>(rightNodes));
                 for (size_t rightNode = 0; rightNode < rightNodes; rightNode++) {
-                    bool nextEnableNode = enableNode && !NeuralNet::isSkipNode(*_state, nextEdgeLayer, rightNode);
+                    bool nextEnableNode = enableNode && !NeuralNet::isSkipNode(*_state, nextEdgeLayer-1, rightNode);
 
                     real edgeValue = (*_state)[stateLayer][leftNode][rightNode];
                     qreal xf = nextEdgeLayer;
-                    qreal yf = next_y_offset * static_cast<double>(rightNode);
+                    qreal yf = next_y_offset * (static_cast<qreal>(rightNode) + 0.5);
 
                     QVector<QPointF> edgeData;
                     edgeData.append(QPointF(x, y));
@@ -76,11 +76,11 @@ void NeuralNetPlot::updateNodes() {
                 if ((*_state)[stateLayer].size() > 0) {
                     if ((*_state)[stateLayer][0].size() > 0) {
                         size_t totalOutputNodes = ((*_state)[stateLayer][0].size());
-                        y_offset = 1.0f / static_cast<double>(totalOutputNodes);
+                        y_offset = 1.0 / (static_cast<qreal>(totalOutputNodes));
 
                         for (size_t outputNode = 0; outputNode < totalOutputNodes; outputNode++) {
                             QwtPlotMarker * mark = getNodeMarker(
-                                        QPointF(nextEdgeLayer, y_offset*static_cast<double>(outputNode)),
+                                        QPointF(nextEdgeLayer, y_offset*(static_cast<qreal>(outputNode)+.5)),
                                         !NeuralNet::isSkipNode(*_state, nextEdgeLayer, outputNode));
                             mark->attach(this);
                         }
@@ -89,7 +89,7 @@ void NeuralNetPlot::updateNodes() {
             }
         }
     }
-
+/*
     // Draw Recurrent Loops
     if (_netType == NeuralNet::Recurrent) {
         size_t beginIt = edgeLayers + 1;
@@ -127,7 +127,7 @@ void NeuralNetPlot::updateNodes() {
             }
         }
     }
-
+*/
     setAxisScale(xBottom, minX-0.25, maxX+0.25);
     setAxisScale(yLeft, minY-0.05, maxY+0.05);
 
@@ -147,13 +147,17 @@ QColor NeuralNetPlot::edgeColor(const double & val, const bool & enableEdge) {
 
 QwtPlotMarker * NeuralNetPlot::getNodeMarker(const QPointF & pos, const bool & enableNode) {
     QColor nodeColor;
+    QColor outlineColor;
     if (enableNode) {
         nodeColor = QColor(Qt::green);
+        outlineColor = QColor(Qt::green);
     } else {
         nodeColor = QColor(0, 0, 0, 0);
+        outlineColor = QColor(Qt::black);
     }
 
-    QwtSymbol *symbol = new QwtSymbol(QwtSymbol::Ellipse, QBrush(nodeColor), QPen(nodeColor), QSize(5,5));
+    QwtSymbol *symbol = new QwtSymbol(QwtSymbol::Ellipse, QBrush(nodeColor),
+                                QPen(outlineColor), QSize(5,5));
     QwtPlotMarker *mark = new QwtPlotMarker();
     mark->setSymbol(symbol);
     mark->setValue(pos);
