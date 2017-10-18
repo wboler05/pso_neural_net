@@ -126,12 +126,16 @@ private:
 
     std::string _functionMsg;
 
-    std::vector<real> _minData;
-    std::vector<real> _maxData;
+    std::vector<real> _minInputData;
+    std::vector<real> _maxInputData;
+    real _minOutputRegression;
+    real _maxOutputRegression;
 
     void updateMinMax();
     std::vector<real> normalizeInput(const size_t & id);
     std::vector<real> normalizeInput(std::vector<real> & input);
+
+    void postProcess(std::vector<real> & outputs);
 
     bool validateOutput(
             const std::vector<real> & outputs,

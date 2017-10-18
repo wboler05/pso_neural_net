@@ -30,7 +30,8 @@ void NeuralPso::buildPso() {
 
     _particles->empty();
     const NeuralNet::State &state = _neuralNet->state();
-    size_t outputIt = NeuralNet::totalEdgeLayersFromState(state);
+    size_t outputIt = state.size() / 2;
+    //size_t outputIt = NeuralNet::totalEdgeLayersFromState(state);
 
     // Create N particles
     _particles->resize(_psoParams.population);
@@ -89,9 +90,9 @@ void NeuralPso::buildPso() {
                     }
  //                   if (j == 1 || j == outputIt) {
                       if (j == outputIt) {
-                        //real val = _randomEngine.uniformReal(
-                        //            innerWeightRange[0], innerWeightRange[1]);
-                        //(*_particles)[i]._x[j][k][m] = val;
+                        real val = _randomEngine.uniformReal(
+                                    innerWeightRange[0], innerWeightRange[1]);
+                        (*_particles)[i]._x[j][k][m] = val;
                         (*_particles)[i]._minX[j][k][m] = infWeightRange[0];
                         (*_particles)[i]._maxX[j][k][m] = infWeightRange[1];
                     } else {

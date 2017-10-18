@@ -149,6 +149,7 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
 
         // Get the result from random input
         vector<real> output = _neuralNet->process();
+        postProcess(output);
         if (output.size() != outputNodes) {
             cout << "Size mismatch on nodes. " << endl;
             cout << " - Output: " << output.size() << ", Expected: " << outputNodes << endl;
@@ -418,12 +419,13 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
 
         std::vector<real> expectedOutput = outageData.outputize(_outputSkips);
         std::vector<real> output = _neuralNet->process();
+        postProcess(output);
 
         mse += OutageDataWrapper::MSE(output, expectedOutput) / static_cast<real>(2.0);
 
         bool result = confirmOutage(output);
         bool expectedResult = confirmOutage(expectedOutput);
-
+//qDebug() << "Affected People: \t-Expected: " << expectedOutput[1] << "\t-Predicted: " << output[1] << "\t-Exp Outage: " << expectedOutput[0] << "\t-Act Outage: " << output[0];
         if (expectedResult) {
             if (result) {
                 testStats.addTp();
@@ -507,15 +509,21 @@ std::vector<size_t> EnableParameters::outputSkips() {
 
 void OutageTrainer::updateMinMax() {
     std::vector<real> testVector = (*_inputCache)[0].inputize(_inputSkips);
-    _minData.resize(testVector.size(),  std::numeric_limits<real>::max());
-    _maxData.resize(testVector.size(), -std::numeric_limits<real>::max());
+    _minInputData.resize(testVector.size(),  std::numeric_limits<real>::max());
+    _maxInputData.resize(testVector.size(), -std::numeric_limits<real>::max());
+
+    _minOutputRegression =  std::numeric_limits<real>::max();
+    _maxOutputRegression = -std::numeric_limits<real>::max();
 
     for (size_t i = 0; i < _inputCache->totalInputItemsInFile(); i++) {
         std::vector<real> input = (*_inputCache)[i].inputize(_inputSkips);
         for (size_t j = 0; j < input.size(); j++) {
-            _minData[j] = min(_minData[j], input[j]);
-            _maxData[j] = max(_maxData[j], input[j]);
+            _minInputData[j] = min(_minInputData[j], input[j]);
+            _maxInputData[j] = max(_maxInputData[j], input[j]);
         }
+        real outputVal = (*_inputCache)[i].outputize(_outputSkips)[1];
+        _minOutputRegression = min(outputVal, _minOutputRegression);
+        _maxOutputRegression = max(outputVal, _maxOutputRegression);
     }
 }
 
@@ -526,10 +534,21 @@ std::vector<real> OutageTrainer::normalizeInput(const size_t & id) {
 
 std::vector<real> OutageTrainer::normalizeInput(std::vector<real> & input) {
     for (size_t i = 0; i < input.size(); i++) {
-        if (_maxData[i] - _minData[i] != 0) {
-            input[i] = (2.0*input[i] - (_minData[i] + _maxData[i])) /
-                    (_maxData[i] - _minData[i]);
+        if (_maxInputData[i] - _minInputData[i] != 0) {
+            input[i] = (2.0*input[i] - (_minInputData[i] + _maxInputData[i])) /
+                    (_maxInputData[i] - _minInputData[i]);
         }
     }
     return input;   // Yes, it's passing reference AND returning.  Look at polymorphic method.
+}
+
+void OutageTrainer::postProcess(std::vector<real> & outputs) {
+    if (outputs.size() < 2) {
+        qWarning( )<< "Warning: unknown output size for post processing.";
+        return;
+    }
+    outputs[1] = (
+                (_maxOutputRegression - _minOutputRegression) * outputs[1] +
+                (_maxOutputRegression + _minOutputRegression)
+                 ) / 2.0;
 }
