@@ -79,9 +79,9 @@ protected:
   Particle<T> _gb;
 
   PsoParams _psoParams;
+  size_t _epochs=0;
 
 private:
-  size_t _epochs=0;
   std::vector<real> _history;
 
   static bool _overideTermFlag;
