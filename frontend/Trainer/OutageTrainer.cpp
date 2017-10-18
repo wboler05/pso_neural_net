@@ -90,6 +90,27 @@ void OutageTrainer::runTrainer() {
   _neuralNet->setState(gb()->_x);
 }
 
+void OutageTrainer::trainingRun() {
+
+    // Get the cost for each particle's current position
+    for (size_t i = 0; i < _particles->size(); i++) {
+        if (checkTermProcess()) {
+            return;
+        }
+
+        NeuralParticle *p = &(*_particles)[i];
+
+        if (!_neuralNet->setState(p->_x)) {
+            std::cout<< "Failure to set weights." << endl;
+        }
+
+        // Get fitness
+        real fit = trainingStep(_trainingInputs);
+        p->_fit = fit;
+    }
+}
+
+
 /// Passing null parameters to return stored values.
 /// Correct ratio gives the ratio of correct runs.
 /// Total Count gives the total runs that were executed.
@@ -103,12 +124,10 @@ void OutageTrainer::runTrainer() {
 * @return
 * @todo Need to swap iterators.  Train all particles on same dataset
 */
-real OutageTrainer::trainingRun() {
+real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
     // Validate that a path is good first
-    if (_fParams.enableTopologyTraining) {
-        if (!_neuralNet->validatePaths()) {
-            return -std::numeric_limits<real>::max();
-        }
+    if (!networkPathValidation()) {
+        return -std::numeric_limits<real>::max();
     }
 
     size_t outputNodes = static_cast<size_t>(_neuralNet->nParams()->outputs);
@@ -249,6 +268,14 @@ real OutageTrainer::trainingRun() {
 
     return cost;
 */
+}
+
+bool OutageTrainer::networkPathValidation() {
+    if (_fParams.enableTopologyTraining) {
+        return _neuralNet->validatePaths();
+    } else {
+        return true;
+    }
 }
 
 void OutageTrainer::validateGB() {

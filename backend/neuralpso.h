@@ -64,7 +64,7 @@ public:
   void updateNeighborBest(NeuralParticle & p, NeuralParticle & p_n);
   void updateGlobalBest(NeuralParticle & p);
 
-  virtual real trainingRun();
+  virtual void trainingRun();
   virtual void testGB();
 
   NeuralNet * neuralNet() { return _neuralNet; }

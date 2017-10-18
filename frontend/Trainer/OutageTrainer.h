@@ -76,7 +76,8 @@ public:
     void biasAgainstOutputs();
     void biasAgainstLOA();
 
-    real trainingRun();
+    void trainingRun();
+    real trainingStep(const std::vector<size_t> & trainingInputs);
     void testGB();
     void testSelectedGB();
     void validateGB();
@@ -138,6 +139,7 @@ private:
             std::vector<real> & outputError,
             TestStatistics & testStats,
             bool & correctOutput);
+    bool networkPathValidation();
 
 };
 

@@ -86,6 +86,7 @@ protected slots:
     void updateSlicesPerCache(const int & slices);
     void on_actionParticle_Plotter_triggered();
     void updateFitnessPlotWindowSize();
+    void resizeEvent(QResizeEvent * event);
 
 private:
     Ui::MainWindow *ui;

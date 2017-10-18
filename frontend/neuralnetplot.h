@@ -26,6 +26,8 @@ private:
     NeuralNet::Type _netType = NeuralNet::Feedforward;
     bool _modified=false;
 
+    void attachGrid();
+
     QColor edgeColor(const double & val, const bool & enableEdge);
     QwtPlotMarker * getNodeMarker(const QPointF & pos, const bool & enableNode);
 };
