@@ -679,3 +679,87 @@ void NeuralNet::randomizeState() {
     }
     enableAllNodes(true);
 }
+
+/**
+ * @brief NeuralNet::validatePaths
+ * @details Returns true if each output is connected to at least one input
+ * @return bool
+ * @todo We can get rid of BFS and just scan the enable nodes for an entire disabled layer
+ */
+bool NeuralNet::validatePaths() {
+    return validateEnabledLayers();
+    bool outputPath = true;
+
+    for (size_t o = 0; o < totalOutputs(); o++) {
+        for (size_t i = 0; i < totalInputs(); i++) {
+            outputPath &= validatePath(i, o);
+            if (!outputPath) return false;
+        }
+    }
+    return outputPath;
+
+}
+
+bool NeuralNet::validateEnabledLayers() {
+    std::vector<std::vector<real>> &enableLayers = _state[0];
+    bool ok = true;
+    for (size_t i = 0; i < enableLayers.size(); i++) {
+        bool goodLayer = false;
+        for (size_t j = 0; j < enableLayers[i].size(); j++) {
+            goodLayer |= !isSkipNode(i+1, j);
+            if (goodLayer) {
+                break;
+            }
+        }
+        ok &= goodLayer;
+        if (!ok) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool NeuralNet::validatePath(const size_t & inputNode, const size_t & outputNode) {
+    if (_state.size() == 0) return false;
+
+    size_t totalNodeLayers = _innerNodes.size() + 2;
+
+    struct Node {
+        size_t layer;
+        size_t vertex;
+    };
+
+    struct Edge {
+        Node fromNode;
+        Node toNode;
+    };
+
+    std::queue<Node> frontier;
+
+    Node inNode;
+    inNode.layer = 0;
+    inNode.vertex = inputNode;
+    frontier.push(inNode);
+
+    while (frontier.size() > 0) {
+        Node parent = frontier.front();
+        frontier.pop();
+        std::vector<real> & rightNodes = _state[parent.layer+1][parent.vertex];
+        size_t nextLayer = parent.layer + 1;
+        for (size_t rightNode = 0; rightNode < rightNodes.size(); rightNode++) {
+            bool nodeEnabled = !isSkipNode(nextLayer, rightNode);
+            if (nodeEnabled) {
+                if (nextLayer == totalNodeLayers-1 && rightNode == outputNode) {
+                    return true;
+                } else {
+                    Node newFrontier;
+                    newFrontier.layer = nextLayer;
+                    newFrontier.vertex = rightNode;
+                    frontier.push(newFrontier);
+                }
+            }
+        }
+    }
+    return false;
+
+}

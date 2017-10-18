@@ -104,6 +104,13 @@ void OutageTrainer::runTrainer() {
 * @todo Need to swap iterators.  Train all particles on same dataset
 */
 real OutageTrainer::trainingRun() {
+    // Validate that a path is good first
+    if (_fParams.enableTopologyTraining) {
+        if (!_neuralNet->validatePaths()) {
+            return -std::numeric_limits<real>::max();
+        }
+    }
+
     size_t outputNodes = static_cast<size_t>(_neuralNet->nParams()->outputs);
     std::vector<real> mse;
     mse.resize(outputNodes, 0);
@@ -164,6 +171,16 @@ real OutageTrainer::trainingRun() {
     TestStatistics::ClassificationError ce = validateCurrentNet();
     trainingStats.getClassError(ce);
 
+    real penalty = 1.0;
+    if (trainingStats.tp() < 1)
+    {
+        penalty *= 10 + trainingStats.fp();
+    }
+    if (trainingStats.tn() < 1)
+    {
+        penalty *= 10 + trainingStats.fn();
+    }
+
     real costA = -std::numeric_limits<real>::max();
     if (mse.size() == 2) {
         costA = (_params->alpha * mse[0] + _params->beta * mse[1]) /
@@ -177,7 +194,7 @@ real OutageTrainer::trainingRun() {
         interruptProcess();
     }
 
-    return -costA;
+    return -costA * penalty;
 
 
 

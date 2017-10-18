@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <memory>
 #include <vector>
+#include <queue>
 #include <cmath>
 #include <ctime>
 #include <chrono>
@@ -120,6 +121,8 @@ public:
     static bool isSkipNode(const State & state, const size_t & layer, const size_t & node);
     bool isSkipEdge(const State & state, const size_t & leftLayer, const size_t & leftNode, const size_t & rightNode);
 
+    bool validatePaths();
+
 private:
     // Weights and Data
     ExternalNodes _inputNodes;  // Nodes
@@ -150,6 +153,9 @@ private:
     void processRecurrentNodes();
     void processRecurrentNodes(const size_t &layer);
     void processForwardPropagation();
+
+    bool validateEnabledLayers();
+    bool validatePath(const size_t & inputNode, const size_t & outputNode);
 };
 
 
