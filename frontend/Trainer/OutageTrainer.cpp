@@ -15,10 +15,10 @@ void OutageTrainer::build() {
     //_inputCache = std::make_shared<InputCache>(_params->cp);
 
     // Split between training, testing, and validation sets
-    randomlyDistributeData();
+    randomlyDistributeData(); //replace with inputPartitioner
 
     // Setup bias for rare events
-    biasAgainstOutputs();
+    biasAgainstOutputs(); //remove
     //biasAgainstLOA();
 
     buildPso();
@@ -118,12 +118,12 @@ real OutageTrainer::trainingRun() {
     std::vector<real> expectedOutput;
     expectedOutput.resize(outputNodes);
 
-    size_t totalSetsToRun = static_cast<size_t>(_neuralNet->nParams()->trainingIterations);
+    size_t trainingIterations = static_cast<size_t>(_neuralNet->nParams()->trainingIterations);
 
     TestStatistics trainingStats;
 
     // First, test each output and store to the vector of results;
-    for (size_t someSets = 0; someSets < totalSetsToRun; someSets++) {
+    for (size_t someSets = 0; someSets < trainingIterations; someSets++) {
         qApp->processEvents();
         // Set a random input
         size_t I = randomizeTrainingInputs();
