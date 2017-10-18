@@ -433,22 +433,7 @@ real NeuralPso::flyIteration(const size_t & particleId,
  * @details Update each particle's current cost at current position
  */
 void NeuralPso::getCost() {
-    // Get the cost for each particle's current position
-    for (size_t i = 0; i < _particles->size(); i++) {
-        if (checkTermProcess()) {
-            return;
-        }
-
-        NeuralParticle *p = &(*_particles)[i];
-
-        if (!_neuralNet->setState(p->_x)) {
-            std::cout<< "Failure to set weights." << endl;
-        }
-
-        // Get fitness
-        real fit = trainingRun();
-        p->_fit = fit;
-    }
+    trainingRun();
 } // end getCost()
 
 /**
@@ -653,9 +638,9 @@ void NeuralPso::updateGlobalBest(NeuralParticle &p) {
     }
 }
 
-real NeuralPso::trainingRun() {
+void NeuralPso::trainingRun() {
     std::cout << "Error, must be implemented via inherited training class." << std::endl;
-    return 0;
+    return;
 }
 
 void NeuralPso::testGB() {

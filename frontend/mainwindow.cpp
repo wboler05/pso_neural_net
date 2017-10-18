@@ -94,7 +94,13 @@ MainWindow::MainWindow(QWidget *parent) :
     // Init before running things
     initializeData();
 
-    this->resize(this->minimumSize());
+    QSize windowSize(1500, 850);
+    QPoint dockOffset(100, 75);
+    QPoint dockPos = pos() + dockOffset;
+    dockPos.rx() += size().rwidth();
+    ui->dockWidget->move(dockPos);
+
+    this->resize(windowSize);
 }
 
 MainWindow::~MainWindow()
@@ -971,6 +977,15 @@ void MainWindow::keyPressEvent(QKeyEvent * e) {
         NeuralPso::setToPrintGBNet();
     }
     QMainWindow::keyPressEvent(e);
+}
+
+void MainWindow::resizeEvent(QResizeEvent * event) {
+    qDebug() << "MainWindow Size: " << this->size();
+    qDebug() << "MainWindow Pos: " << this->pos();
+    qDebug() << "Dock Position: " << ui->dockWidget->pos();
+    QPoint relativePosition = pos() - ui->dockWidget->pos();
+    relativePosition.rx() -= size().rwidth();
+    qDebug() << "Dock Relative Position: " << relativePosition;
 }
 
 uint32_t MainWindow::readUnsignedInt(ifstream &input) {

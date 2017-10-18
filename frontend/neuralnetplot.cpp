@@ -1,6 +1,7 @@
 #include "neuralnetplot.h"
 
 #include <qwt_plot_curve.h>
+#include <qwt_plot_grid.h>
 
 NeuralNetPlot::NeuralNetPlot(QWidget *parent) :
     QwtPlot(parent)
@@ -15,6 +16,8 @@ void NeuralNetPlot::updateNodes() {
     if (_state==nullptr) return;
 
     this->detachItems();
+
+    void attachGrid();
 
     const double lineThickness = 5;
 
@@ -131,6 +134,13 @@ void NeuralNetPlot::updateNodes() {
     setAxisScale(xBottom, minX-0.25, maxX+0.25);
     setAxisScale(yLeft, minY-0.05, maxY+0.05);
 
+}
+
+void NeuralNetPlot::attachGrid() {
+    QwtPlotGrid * grid = new QwtPlotGrid();
+    grid->enableX(true);
+    grid->enableY(true);
+    grid->attach(this);
 }
 
 QColor NeuralNetPlot::edgeColor(const double & val, const bool & enableEdge) {
