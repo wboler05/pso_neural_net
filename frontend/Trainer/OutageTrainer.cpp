@@ -493,7 +493,8 @@ void OutageTrainer::updateMinMax() {
 }
 
 std::vector<real> OutageTrainer::normalizeInput(const size_t & id) {
-    return normalizeInput((*_inputCache)[id].inputize(_inputSkips));
+    std::vector<real> inputVector = (*_inputCache)[id].inputize(_inputSkips);
+    return normalizeInput(inputVector);
 }
 
 std::vector<real> OutageTrainer::normalizeInput(std::vector<real> & input) {
