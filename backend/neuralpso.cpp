@@ -53,6 +53,13 @@ void NeuralPso::buildPso() {
         (*_particles)[i]._worstFlag = false;
         (*_particles)[i]._points = _psoParams.startPoints;
 
+        (*_particles)[i].totalEvents = 0;
+        (*_particles)[i].noneCount = 0;
+        (*_particles)[i].pbCount = 0;
+        (*_particles)[i].lbCount = 0;
+        (*_particles)[i].gbCount = 0;
+        (*_particles)[i].noneFlag = true;
+
         if (i == 0) {
             _gb._x.resize(state.size()+1);
         }
@@ -88,20 +95,19 @@ void NeuralPso::buildPso() {
                     if (i == 0) {
                         _gb._x[j][k][m] = 0;
                     }
- //                   if (j == 1 || j == outputIt) {
-                      if (j == outputIt) {
-                        real val = _randomEngine.uniformReal(
-                                    innerWeightRange[0], innerWeightRange[1]);
-                        (*_particles)[i]._x[j][k][m] = val;
-                        (*_particles)[i]._minX[j][k][m] = infWeightRange[0];
-                        (*_particles)[i]._maxX[j][k][m] = infWeightRange[1];
-                    } else {
+                    //if (j == outputIt) {
+                        //real val = _randomEngine.uniformReal(
+                        //            innerWeightRange[0], innerWeightRange[1]);
+                        //(*_particles)[i]._x[j][k][m] = val;
+                        //(*_particles)[i]._minX[j][k][m] = infWeightRange[0];
+                        //(*_particles)[i]._maxX[j][k][m] = infWeightRange[1];
+                    //} else {
                         //real val = _randomEngine.uniformReal(
                         //            innerWeightRange[0], innerWeightRange[1]);
                         //(*_particles)[i]._x[j][k][m] = val;
                         (*_particles)[i]._minX[j][k][m] = innerWeightRange[0];
                         (*_particles)[i]._maxX[j][k][m] = innerWeightRange[1];
-                    }
+                    //}
                 }
             }
         }
@@ -533,12 +539,15 @@ void NeuralPso::evaluatePoints(std::vector<bool> & printChange) {
 void NeuralPso::findPersonalBest(std::vector<bool> & printChange) {
     // Find personal best for each particle
     for (size_t i = 0; i < _particles->size(); i++) {
+        _particles->at(i).noneFlag = true;
+        _particles->at(i).totalEvents++;
         // Check if personal best has surpassed remembered fitness
         if ((*_particles)[i]._fit > (*_particles)[i]._fit_pb) {
             (*_particles)[i]._fit_pb = (*_particles)[i]._fit;
             (*_particles)[i]._points += _psoParams.pbPoints;
             //printChange[i] = true;
             updatePersonalBest((*_particles)[i]);
+            _particles->at(i).pbCount++;
         }
     }
 }
@@ -587,8 +596,8 @@ void NeuralPso::findLocalBest(std::vector<bool> & printChange) {
         NeuralParticle &p_n = (*_particles)[bestNeighborIt];
         if (goodNeighbor) {
             //printChange[i] = true;
+            updateNeighborBest(p, p_n);
         }
-        updateNeighborBest(p, p_n);
     }
 }
 
@@ -599,12 +608,13 @@ void NeuralPso::findLocalBest(std::vector<bool> & printChange) {
  * @param p_n   - Best neighbor Particle
  */
 void NeuralPso::updateNeighborBest(NeuralParticle & p, NeuralParticle & p_n) {
-    p_n._fit_lb = p._fit_pb;
-    p_n._points += _psoParams.lbPoints;
+    p._fit_lb = p_n._fit_pb;
+    p._points += _psoParams.lbPoints;
+    p.lbCount++;
     for (size_t i = 0; i < p_n._x_lb.size(); i++) {
         for (size_t j = 0; j < p_n._x_lb[i].size(); j++) {
             for (size_t k = 0; k < p_n._x_lb[i][j].size(); k++) {
-                p_n._x_lb[i][j][k] = p._x_pb[i][j][k];
+                p._x_lb[i][j][k] = p_n._x_pb[i][j][k];
             } // for k
         } // for j
     } // for i
@@ -630,6 +640,7 @@ void NeuralPso::findGlobalBest(std::vector<bool> & printChange) {
 void NeuralPso::updateGlobalBest(NeuralParticle &p) {
     _gb._fit_pb = p._fit_pb;
     p._points += _psoParams.gbPoints;
+    p.pbCount++;
     for (size_t i = 0; i < p._x.size(); i++) {
         for (size_t j = 0; j < p._x[i].size(); j++) {
             for (size_t k = 0; k < p._x[i][j].size(); k++) {

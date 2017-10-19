@@ -14,6 +14,13 @@ struct Particle {
   T _x_pb;
   T _x_lb;
 
+  int totalEvents = 0;
+  int noneCount = 0;
+  int noneFlag = true;
+  int pbCount = 0;
+  int lbCount = 0;
+  int gbCount = 0;
+
   real _fit;
   real _fit_pb;
   real _fit_lb;

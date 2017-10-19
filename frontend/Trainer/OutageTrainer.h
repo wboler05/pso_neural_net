@@ -5,6 +5,7 @@
 #include "outagedataitem.h"
 
 #include "inputcache.h"
+#include "statobject.h"
 #include "util.h"
 
 struct EnableParameters {
@@ -108,6 +109,10 @@ public:
 
     SelectedGlobalBest & getRecentGlobalBest() { return _recent_gb; }
     SelectedGlobalBest & getSelectedGlobalBest() { return _best_gb; }
+
+    // Test
+    StatObject classifierNode;
+    StatObject regressionNode;
 
 private:
     SelectedGlobalBest _recent_gb;

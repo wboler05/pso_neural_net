@@ -1251,10 +1251,10 @@
            <item row="0" column="1">
             <widget class="QDoubleSpinBox" name="alpha_dsb">
              <property name="decimals">
-              <number>6</number>
+              <number>9</number>
              </property>
              <property name="maximum">
-              <double>1000000.000000000000000</double>
+              <double>1000000000.000000000000000</double>
              </property>
              <property name="singleStep">
               <double>0.050000000000000</double>
@@ -1271,10 +1271,10 @@
            <item row="1" column="1">
             <widget class="QDoubleSpinBox" name="beta_dsb">
              <property name="decimals">
-              <number>6</number>
+              <number>9</number>
              </property>
              <property name="maximum">
-              <double>1000000.000000000000000</double>
+              <double>1000000000.000000000000000</double>
              </property>
              <property name="singleStep">
               <double>0.050000000000000</double>
@@ -1291,10 +1291,10 @@
            <item row="2" column="1">
             <widget class="QDoubleSpinBox" name="gamma_dsb">
              <property name="decimals">
-              <number>6</number>
+              <number>9</number>
              </property>
              <property name="maximum">
-              <double>1000000.000000000000000</double>
+              <double>1000000000.000000000000000</double>
              </property>
              <property name="singleStep">
               <double>0.050000000000000</double>
@@ -2036,7 +2036,7 @@
     <bool>true</bool>
    </property>
    <property name="features">
-    <set>QDockWidget::AllDockWidgetFeatures</set>
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>

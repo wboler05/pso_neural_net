@@ -227,6 +227,9 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
         mse[i] /= static_cast<real>(trainingIterations);
     }
 
+    classifierNode.add_val(mse[0]);
+    regressionNode.add_val(mse[1]);
+
     TestStatistics::ClassificationError ce = validateCurrentNet();
     trainingStats.getClassError(ce);
 
@@ -414,6 +417,10 @@ void OutageTrainer::testGB() {
             _best_gb.ce = ce;
         }
     }
+    /// test
+    qDebug() << "Test GB For: " << _epochs;
+    qDebug() << " - Classifier Stats: Mean: " << classifierNode.avg() << "\tStd: " << classifierNode.std_dev();
+    qDebug() << " - Regression Stats: Mean: " << regressionNode.avg() << "\tStd: " << regressionNode.std_dev();
 }
 
 void OutageTrainer::testSelectedGB() {
@@ -460,7 +467,7 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
         std::vector<real> output = _neuralNet->process();
         postProcess(output);
 
-        mse += OutageDataWrapper::MSE(output, expectedOutput) / static_cast<real>(2.0);
+        mse += OutageDataWrapper::MSE(output, expectedOutput);
 
         bool result = confirmOutage(output);
         bool expectedResult = confirmOutage(expectedOutput);
