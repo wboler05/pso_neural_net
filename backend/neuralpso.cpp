@@ -608,7 +608,7 @@ void NeuralPso::findLocalBest(std::vector<bool> & printChange) {
  * @param p_n   - Best neighbor Particle
  */
 void NeuralPso::updateNeighborBest(NeuralParticle & p, NeuralParticle & p_n) {
-    p._fit_lb = p_n._fit_pb;
+    //p._fit_lb = p_n._fit_pb;
     p._points += _psoParams.lbPoints;
     p.lbCount++;
     for (size_t i = 0; i < p_n._x_lb.size(); i++) {
@@ -638,9 +638,9 @@ void NeuralPso::findGlobalBest(std::vector<bool> & printChange) {
 }
 
 void NeuralPso::updateGlobalBest(NeuralParticle &p) {
-    _gb._fit_pb = p._fit_pb;
+    //_gb._fit_pb = p._fit_pb;
     p._points += _psoParams.gbPoints;
-    p.pbCount++;
+    p.gbCount++;
     for (size_t i = 0; i < p._x.size(); i++) {
         for (size_t j = 0; j < p._x[i].size(); j++) {
             for (size_t k = 0; k < p._x[i][j].size(); k++) {
