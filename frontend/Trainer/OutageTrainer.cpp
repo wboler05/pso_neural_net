@@ -243,10 +243,14 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
         penalty *= 10 + trainingStats.fn();
     }
 
+    real enableOutput[2];
+    enableOutput[0] = _params->ep.outage ? 1 : 0;
+    enableOutput[1] = _params->ep.affected_people ? 1 : 0;
+
     // Calculate the weigted MSE
     real costA = -std::numeric_limits<real>::max();
     if (mse.size() == 2) {
-        costA = (_params->alpha * mse[0] + _params->beta * mse[1]) /
+        costA = (enableOutput[0] * _params->alpha * mse[0] + enableOutput[1] * _params->beta * mse[1]) /
                 (2.0 * (_params->alpha + _params->beta));
     } else {
         costA = mse[0];
@@ -467,7 +471,21 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
         std::vector<real> output = _neuralNet->process();
         postProcess(output);
 
-        mse += OutageDataWrapper::MSE(output, expectedOutput);
+        std::vector<real> mseVector = OutageDataWrapper::splitMSE(output, expectedOutput);
+        real preMse = 0;
+        real activeCount = 0;
+        if (_params->ep.outage) {
+            preMse += mseVector[0];
+            activeCount++;
+        }
+        if (_params->ep.affected_people) {
+            preMse += mseVector[1];
+            activeCount++;
+        }
+        if (activeCount > 0) {
+            mse += preMse / activeCount;
+        }
+        //mse += OutageDataWrapper::MSE(output, expectedOutput);
 
         bool result = confirmOutage(output);
         bool expectedResult = confirmOutage(expectedOutput);
@@ -546,10 +564,15 @@ std::vector<size_t> EnableParameters::inputSkips() {
     return _inputSkips;
 }
 
+/**
+ * @brief EnableParameters::outputSkips
+ * @return
+ * @todo remove
+ */
 std::vector<size_t> EnableParameters::outputSkips() {
     std::vector<size_t> _outputSkips;
-    if (!outage) { _outputSkips.push_back(0); }
-    if (!affected_people) { _outputSkips.push_back(1); }
+//    if (!outage) { _outputSkips.push_back(0); }
+//    if (!affected_people) { _outputSkips.push_back(1); }
     return _outputSkips;
 }
 
