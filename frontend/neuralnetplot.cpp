@@ -12,86 +12,17 @@ NeuralNetPlot::NeuralNetPlot(QWidget *parent) :
     setAxisAutoScale(xBottom, true);
 }
 
-void NeuralNetPlot::updateNodes() {
+void NeuralNetPlot::updateNetworkPlot() {
     if (_state==nullptr) return;
+    if (_state->size() == 0) return;
 
     this->detachItems();
 
-    void attachGrid();
+//    attachGrid();
 
-    const double lineThickness = 5;
+    drawNodes();
+    drawEdges();
 
-    double minX = 0, maxX = 0;
-    double minY = 0, maxY = 1;
-
-    // Plot Nodes
-    std::vector<std::vector<real>> & enableNodes = (*_state)[0];  //layer : node
-    size_t edgeLayers = NeuralNet::totalEdgeLayersFromState(*_state)+1;
-    maxX = edgeLayers;
-
-    // Draw nodes and edges (Repeated sentinels are for readability
-    for (size_t edgeLayer = 0, stateLayer = 1, nextEdgeLayer = 1;
-         edgeLayer < edgeLayers;
-         edgeLayer++, stateLayer++, nextEdgeLayer++)
-    {
-        size_t leftNodes = (*_state)[stateLayer].size();
-        if (leftNodes > 0) {
-            qreal y_offset = 1.0 / (static_cast<double>(leftNodes));
-            //maxY = std::max(maxY, (float)_edges->at(i).size());
-
-            for (size_t leftNode = 0; leftNode < leftNodes; leftNode++) {
-
-                qreal x = edgeLayer;
-                qreal y = y_offset * (static_cast<qreal>(leftNode) + 0.5);
-
-                bool enableNode = !NeuralNet::isSkipNode(*_state, edgeLayer-1, leftNode);
-
-                QwtPlotMarker * mark = getNodeMarker(QPointF(x, y), enableNode);
-                mark->attach(this);
-
-                // Edges
-                size_t rightNodes = (*_state)[stateLayer][leftNode].size();
-                qreal next_y_offset = 1.0 / (static_cast<qreal>(rightNodes));
-                for (size_t rightNode = 0; rightNode < rightNodes; rightNode++) {
-                    bool nextEnableNode = enableNode && !NeuralNet::isSkipNode(*_state, nextEdgeLayer-1, rightNode);
-
-                    real edgeValue = (*_state)[stateLayer][leftNode][rightNode];
-                    qreal xf = nextEdgeLayer;
-                    qreal yf = next_y_offset * (static_cast<qreal>(rightNode) + 0.5);
-
-                    QVector<QPointF> edgeData;
-                    edgeData.append(QPointF(x, y));
-                    edgeData.append(QPointF(xf, yf));
-
-                    QwtPlotCurve * newCurve = new QwtPlotCurve();
-                    newCurve->setSamples(edgeData);
-                    QColor curveColor = edgeColor(edgeValue, nextEnableNode);
-                    double lt = lineThickness * qAbs(edgeValue);
-                    //newCurve->setBrush(curveColor);
-                    newCurve->setPen(curveColor, lt);
-                    newCurve->attach(this);
-
-                }
-            }
-
-            // Don't forget to draw output nodes.
-            if (edgeLayer == edgeLayers - 1) {
-                if ((*_state)[stateLayer].size() > 0) {
-                    if ((*_state)[stateLayer][0].size() > 0) {
-                        size_t totalOutputNodes = ((*_state)[stateLayer][0].size());
-                        y_offset = 1.0 / (static_cast<qreal>(totalOutputNodes));
-
-                        for (size_t outputNode = 0; outputNode < totalOutputNodes; outputNode++) {
-                            QwtPlotMarker * mark = getNodeMarker(
-                                        QPointF(nextEdgeLayer, y_offset*(static_cast<qreal>(outputNode)+.5)),
-                                        !NeuralNet::isSkipNode(*_state, nextEdgeLayer, outputNode));
-                            mark->attach(this);
-                        }
-                    }
-                }
-            }
-        }
-    }
 /*
     // Draw Recurrent Loops
     if (_netType == NeuralNet::Recurrent) {
@@ -131,8 +62,103 @@ void NeuralNetPlot::updateNodes() {
         }
     }
 */
+
+}
+
+void NeuralNetPlot::drawNodes() {
+    double minX = 0, maxX = 0;
+    double minY = 0, maxY = 1;
+
+    size_t totalInnerNodeLayers = NeuralNet::totalInnerNodeLayersFromState(*_state);
+    size_t totalNodeLayers = totalInnerNodeLayers + 2;
+    if (totalNodeLayers == 0) return;
+    maxX = totalNodeLayers-1;
+
+    for (size_t layer = 0; layer < totalNodeLayers-1; layer++) {
+        size_t leftLayer = layer+1;
+        size_t totalLeftNodes = (*_state)[leftLayer].size();
+
+        qreal y_offset = 1.0;
+        if (totalLeftNodes > 0) {
+            y_offset = 1.0 / (static_cast<double>(totalLeftNodes));
+        }
+        for (size_t leftNode = 0; leftNode < totalLeftNodes; leftNode++) {
+
+            qreal x = layer;
+            qreal y = y_offset * (static_cast<qreal>(leftNode) + 0.5);
+
+            bool enableNode = !NeuralNet::isSkipNode(*_state, layer-1, leftNode);
+
+            QwtPlotMarker * mark = getNodeMarker(QPointF(x, y), enableNode);
+            mark->attach(this);
+
+        }
+        if (layer == totalNodeLayers - 2) {
+            size_t totalOutputNodes = (*_state)[leftLayer][0].size();
+            y_offset = 1.0 / (static_cast<double>(totalOutputNodes));
+            for (size_t outputNode = 0; outputNode < totalOutputNodes; outputNode++) {
+                qreal x = layer+1;
+                qreal y = y_offset * (static_cast<qreal>(outputNode) + 0.5);
+
+                bool enableNode = !NeuralNet::isSkipNode(*_state, layer, outputNode);
+
+                QwtPlotMarker * mark = getNodeMarker(QPointF(x, y), enableNode);
+                mark->attach(this);
+            }
+        }
+    }
+
     setAxisScale(xBottom, minX-0.25, maxX+0.25);
     setAxisScale(yLeft, minY-0.05, maxY+0.05);
+}
+
+void NeuralNetPlot::drawEdges() {
+    const double lineThickness = 5;
+    size_t totalEdges = NeuralNet::totalEdgeLayersFromState(*_state);
+
+    for (size_t edge = 0; edge < totalEdges; edge++) {
+        size_t stateEdgeIt = edge + 1;
+        size_t totalLeftNodes = (*_state)[stateEdgeIt].size();
+        double y_offset = 1.0 / (static_cast<double>(totalLeftNodes));
+
+        for (size_t leftNode = 0; leftNode < totalLeftNodes; leftNode++) {
+            size_t totalRightNodes = (*_state)[stateEdgeIt][leftNode].size();
+
+            qreal x = edge;
+            qreal y = y_offset * (static_cast<qreal>(leftNode) + 0.5);
+            bool enableLeftNode = !NeuralNet::isSkipNode(*_state, edge-1, leftNode);
+
+            int nodeOffest = 1;
+            if (edge == totalEdges-1) {
+                nodeOffest = 0;
+            }
+            double next_y_offset = 1.0 / (static_cast<double>(totalRightNodes+nodeOffest));
+            for (size_t rightNode = 0; rightNode < totalRightNodes; rightNode++) {
+
+                bool nextEnableNode = enableLeftNode &&
+                        !NeuralNet::isSkipNode(*_state, edge, rightNode);
+
+                real edgeValue = (*_state)[stateEdgeIt][leftNode][rightNode];
+                qreal xf = edge+1;
+                qreal yf = next_y_offset * (static_cast<qreal>(rightNode) + 0.5);
+
+                QVector<QPointF> edgeData;
+                edgeData.append(QPointF(x, y));
+                edgeData.append(QPointF(xf, yf));
+
+                QwtPlotCurve * newCurve = new QwtPlotCurve();
+                newCurve->setSamples(edgeData);
+                QColor curveColor = edgeColor(edgeValue, nextEnableNode);
+                double lt = lineThickness * qAbs(edgeValue);
+                newCurve->setPen(curveColor, lt);
+                newCurve->attach(this);
+
+            }
+        }
+    }
+}
+
+void NeuralNetPlot::drawRecurrentEdges() {
 
 }
 
@@ -177,6 +203,6 @@ QwtPlotMarker * NeuralNetPlot::getNodeMarker(const QPointF & pos, const bool & e
 void NeuralNetPlot::setState(NeuralNet::State * state, NeuralNet::Type t) {
     _state = state;
     _netType = t;
-    updateNodes();
+    updateNetworkPlot();
     replot();
 }

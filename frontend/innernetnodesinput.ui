@@ -29,7 +29,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QSpinBox" name="count_btn"/>
+        <widget class="QSpinBox" name="innerNodeCount_dsb"/>
        </item>
        <item>
         <spacer name="verticalSpacer">

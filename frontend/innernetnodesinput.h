@@ -27,10 +27,16 @@ protected slots:
 private:
     Ui::InnerNetNodesInput *ui;
 
-    size_t _innerNodesCount=0;
+    std::vector<int> tempNodeCounts;
+
+    int _innerNodesCount=0;
     NeuralNet::NeuralNetParameters & _nParams;
 
+    void initializeBuffer();
+    void fillBuffer();
     void buildTable();
+
+    QSpinBox * getSpinBoxFromTable(const int & row);
 };
 
 #endif // INNERNETNODESINPUT_H

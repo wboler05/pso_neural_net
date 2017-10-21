@@ -91,7 +91,7 @@ public:
     void setOutputs(const std::vector<real>& out);
     const ExternalNodes &process();
 
-    const ExternalNodes & inputs() { return _inputNodes; }
+    ExternalNodes inputs();
     const ExternalNodes & outputs() { return _outputNodes; }
 
     //TODO
@@ -114,6 +114,7 @@ public:
 
     static size_t totalStateElementsFromInnerNodes(const size_t & innerNodes);
     static size_t totalEdgeLayersFromState(const State & state);
+    static size_t totalInnerNodeLayersFromState(const State & state);
 
     bool isSkipNode(const size_t & layer, const size_t & node);
     bool isSkipEdge(const size_t & leftLayer, const size_t & leftNode, const size_t & rightNode);
@@ -149,6 +150,9 @@ private:
     bool buildEdges();
     bool buildForwardEdges();
     bool buildRecurrentEdges();
+
+    void buildWithoutHiddenLayer();
+    bool buildWithHiddenLayer(const size_t & hiddenLayers);
 
     void processRecurrentNodes();
     void processRecurrentNodes(const size_t &layer);

@@ -7,6 +7,7 @@ OutageTrainer::OutageTrainer(const std::shared_ptr<TrainingParameters> & pe, con
     _params(pe),
     _inputCache(inputCache)
 {
+    _inputSkips = pe->ep.inputSkips();
     build();
 }
 
@@ -185,6 +186,9 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
 
         // Get the appropiate training input index
         size_t I = _trainingInputs[((_epochs-1)*trainingIterations + someSets) % _trainingInputs.size()];
+        OutageDataWrapper dataItem = (*_inputCache)[I];
+        std::vector<real> inputs = normalizeInput(I);
+        _neuralNet->loadInputs(inputs);
 
         // Get the result from random input
         vector<real> output = _neuralNet->process();
@@ -196,7 +200,6 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
         }
 
         //expectedOutput = _output->at(I);
-        OutageDataWrapper dataItem = (*_inputCache)[I];
         expectedOutput = dataItem.outputize(_outputSkips);
 
         std::vector<real> mse_outputs = OutageDataWrapper::splitMSE(output, expectedOutput);

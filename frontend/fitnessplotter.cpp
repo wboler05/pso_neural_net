@@ -41,6 +41,8 @@ void FitnessPlotter::plotHistory(const std::vector<real> &history) {
 
     detachItems();
 
+    attachGrid();
+
     QVector<QPointF> plotPoints;
     double lt = 2;
 
@@ -87,4 +89,9 @@ void FitnessPlotter::plotHistory(const std::vector<real> &history) {
     entry = false;
 }
 
-
+void FitnessPlotter::attachGrid() {
+    QwtPlotGrid * grid = new QwtPlotGrid();
+    grid->enableX(true);
+    grid->enableY(true);
+    grid->attach(this);
+}

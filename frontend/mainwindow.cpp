@@ -407,7 +407,7 @@ void MainWindow::setParameterDefaults() {
     _params->np.innerNets = static_cast<int>(_params->np.innerNetNodes.size());
     _params->np.outputs = static_cast<int>(
                 dataWrapper.outputize(_params->ep.outputSkips()).size());
-    _params->np.trainingIterations = 200;
+    _params->np.trainingIterations = 20;
     _params->np.validationIterations = 200;
     _params->np.testIterations = 500; //500
 

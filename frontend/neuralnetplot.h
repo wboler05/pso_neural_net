@@ -19,7 +19,7 @@ public:
     void setState(NeuralNet::State *state, NeuralNet::Type t);
 
 public slots:
-    void updateNodes();
+    void updateNetworkPlot();
 
 private:
     NeuralNet::State * _state=nullptr;
@@ -30,6 +30,10 @@ private:
 
     QColor edgeColor(const double & val, const bool & enableEdge);
     QwtPlotMarker * getNodeMarker(const QPointF & pos, const bool & enableNode);
+
+    void drawNodes();
+    void drawEdges();
+    void drawRecurrentEdges();
 };
 
 #endif // NEURALNETPLOT_H
