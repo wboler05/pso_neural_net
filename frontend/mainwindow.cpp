@@ -23,6 +23,40 @@ MainWindow::MainWindow(QWidget *parent) :
 
     _runTimer.start();
 
+    ///TEST
+
+    NeuralNet::NeuralNetParameters np;
+    np.inputs = 2;
+    np.innerNetNodes.push_back(1);
+    np.innerNets = np.innerNetNodes.size();
+    np.outputs = 1;
+    np.type = NeuralNet::Feedforward;
+
+    NeuralNet net(np);
+    NeuralNet::State netState = net.state();
+    qDebug() << "Test Net: " << "\nState Size: " << netState.size();
+    qDebug() << "Left Nodes: " << netState[1].size();
+    netState[1][0][0] = 1;
+    netState[1][1][0] = 1;
+    netState[1][2][0] = 0;
+    netState[2][0][0] = 1;
+    netState[2][1][0] = 0;
+    net.setState(netState);
+
+    std::vector<real> netInput = {1, 1};
+    qDebug() << "Inputs: ";
+    for (auto val : netInput) {
+        qDebug() << " - " << val;
+    }
+
+
+    net.loadInputs(netInput);
+    std::vector<real> output = net.process();
+
+    qDebug() << "Output: " << output[0];
+
+    /// end test
+
     // Set the logger file
     Logger::setOutputFile("log/run.log");
     Logger::setOutputBrowser(QPointer<QTextBrowser>(ui->output_tb));

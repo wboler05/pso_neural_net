@@ -25,6 +25,8 @@ void OutageTrainer::build() {
 
 void OutageTrainer::partitionData(){
 
+    const real boundRatio = 0.90;
+
     std::vector<int> indicies;
     int numInputSamples = _inputCache->totalInputItemsInFile();
     int swpIdx;
@@ -49,7 +51,7 @@ void OutageTrainer::partitionData(){
     }
 
     // Calculate the bounding index (inclusive)
-    int testBound = numInputSamples * .90;
+    int testBound = numInputSamples * boundRatio;
 
     // Clear input lists
     _trainingInputs.clear();
@@ -250,7 +252,7 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
     enableOutput[0] = _params->ep.outage ? 1 : 0;
     enableOutput[1] = _params->ep.affected_people ? 1 : 0;
 
-    // Calculate the weigted MSE
+    // Calculate the weighted MSE
     real costA = -std::numeric_limits<real>::max();
     if (mse.size() == 2) {
         costA = (enableOutput[0] * _params->alpha * mse[0] + enableOutput[1] * _params->beta * mse[1]) /
@@ -262,7 +264,7 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
     // Life is a balancing act
     real costB = sqrt(pow(ce.specificity, 2) + pow(ce.sensitivity, 2));
 
-    real cost = (_params->gamma * (-costA) - costB) * penalty;
+    real cost = (_params->gamma * (-costA) + costB) - penalty;
     return cost;
 
     /*

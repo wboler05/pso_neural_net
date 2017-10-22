@@ -411,7 +411,7 @@ real NeuralNet::activation(real in) {
 //    real sigma = 0.35;
 //    real act = getSign(in) * (1 - exp(-pow(in / sigma, 2)));
 
-
+//return in;
     /**
     // 9th order approximation to tanh
     static real coeffs[10] = {
@@ -534,8 +534,8 @@ void NeuralNet::processForwardPropagation() {
                             continue;
                         }
                         _innerNodes[0][right_node] +=
-                               (*edges)[left_node][right_node]*_inputNodes[left_node] /
-                                static_cast<real>(_inputNodes.size());
+                               (*edges)[left_node][right_node]*_inputNodes[left_node];// /
+//                                static_cast<real>(_inputNodes.size());
                     }
                 }
             } else if (layer == _innerNodes.size()) {
@@ -546,8 +546,8 @@ void NeuralNet::processForwardPropagation() {
                     }
                     for (size_t right_node = 0; right_node < _outputNodes.size(); right_node++) {
                         _outputNodes[right_node] +=
-                                (*edges)[left_node][right_node]*activation(_innerNodes[layer-1][left_node]) /
-                                static_cast<real>(_innerNodes[layer-1].size());
+                                (*edges)[left_node][right_node]*activation(_innerNodes[layer-1][left_node]);// /
+//                                static_cast<real>(_innerNodes[layer-1].size());
                     }
                 }
             } else {
@@ -561,8 +561,8 @@ void NeuralNet::processForwardPropagation() {
                             continue;
                         }
                             _innerNodes[layer][right_node] +=
-                                    (*edges)[left_node][right_node]*activation(_innerNodes[layer-1][left_node]) /
-                                    static_cast<real>(_innerNodes[layer-1].size());
+                                    (*edges)[left_node][right_node]*activation(_innerNodes[layer-1][left_node]);// /
+//                                    static_cast<real>(_innerNodes[layer-1].size());
                     }
                 }
                 // Apply recurrent nodes (handles check for you)
@@ -645,8 +645,8 @@ void NeuralNet::processRecurrentNodes(const size_t &layer) {
             }
             size_t recNodeEdge = (*recEdges)[recNode].size()-1;
             _innerNodes[layer][recNode] +=
-                    (*recEdges)[recNode][recNodeEdge] * activation(_recurrentNodes[layer][recNode]) /
-                    static_cast<real>(_recurrentNodes[layer].size());
+                    (*recEdges)[recNode][recNodeEdge] * activation(_recurrentNodes[layer][recNode]);// /
+//                    static_cast<real>(_recurrentNodes[layer].size());
         }
 //        for (size_t i = 0; i < _innerNodes[layer].size(); i++) {
 //            _innerNodes[layer][i] /= static_cast<real>(2.0);
