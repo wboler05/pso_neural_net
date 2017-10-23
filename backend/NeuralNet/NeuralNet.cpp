@@ -576,10 +576,14 @@ void NeuralNet::processForwardPropagation() {
                         continue;
                     }
                     for (size_t right_node = 0; right_node < _outputNodes.size(); right_node++) {
-                        real k_constant = kConstants[layer-1][left_node];
-                        _outputNodes[right_node] +=
+                        if (left_node == _innerNodes[layer-1].size()-1) {
+                            _outputNodes[right_node] += (*edges)[left_node][right_node] * _innerNodes[layer-1][left_node];
+                        } else {
+                            real k_constant = kConstants[layer-1][left_node];
+                            _outputNodes[right_node] +=
                                 (*edges)[left_node][right_node] *
                                   activation(_innerNodes[layer-1][left_node], k_constant);
+                        }
                     }
                 }
             } else {
@@ -592,10 +596,14 @@ void NeuralNet::processForwardPropagation() {
                         if (isSkipNode(layer+1, right_node)) {
                             continue;
                         }
-                        real k_constant = kConstants[layer-1][left_node];
-                        _innerNodes[layer][right_node] +=
-                                (*edges)[left_node][right_node] *
-                                activation(_innerNodes[layer-1][left_node], k_constant);
+                        if (left_node == _innerNodes[layer-1].size()-1) {
+                            _innerNodes[layer][right_node] += (*edges)[left_node][right_node] * _innerNodes[layer-1][left_node];
+                        } else {
+                            real k_constant = kConstants[layer-1][left_node];
+                            _innerNodes[layer][right_node] +=
+                                    (*edges)[left_node][right_node] *
+                                    activation(_innerNodes[layer-1][left_node], k_constant);
+                        }
                     }
                 }
                 // Apply recurrent nodes (handles check for you)
@@ -666,13 +674,14 @@ void NeuralNet::processRecurrentNodes(const size_t &layer) {
     if (layer < _recurrentNodes.size() && _nParams.type == Recurrent) {
         EdgeLayer * recEdges = recurrentEdgeLayer(layer);
         std::vector<real> & kConstants = getConstantsFromState()[layer];
+
+        // Update the recurrent nodes
         for (size_t recNode = 0; recNode < _recurrentNodes[layer].size(); recNode++) {
-            if (isSkipNode(layer, recNode)) {
+            if (isSkipNode(layer, recNode) || recNode == _innerNodes[layer].size()-1) {
                 continue;
             }
-            real k_constant_recnode = kConstants[recNode];
             for (size_t conNode = 0; conNode < _recurrentNodes[layer].size(); conNode++) {
-                if (isSkipNode(layer, conNode)) {
+                if (isSkipNode(layer, conNode) || conNode == _innerNodes[layer].size()-1) {
                     continue;
                 }
                 real k_constant_connode = kConstants[conNode];
@@ -680,10 +689,16 @@ void NeuralNet::processRecurrentNodes(const size_t &layer) {
                         (*recEdges)[recNode][conNode] *
                           activation(_innerNodes[layer][conNode], k_constant_connode);
             }
-            size_t recNodeEdge = (*recEdges)[recNode].size()-1;
-            _innerNodes[layer][recNode] +=
-                    (*recEdges)[recNode][recNodeEdge] *
-                    activation(_recurrentNodes[layer][recNode], k_constant_recnode);
+        }
+
+        // Feedback the recurrent node to the assigned hidden node
+        for (size_t node = 0; node < _recurrentNodes[layer].size(); node++) {
+            size_t recNodeEdge = (*recEdges)[node].size()-1;
+            real k_constant_recnode = kConstants[node];
+            _innerNodes[layer][node] +=
+                    (*recEdges)[node][recNodeEdge] *
+                    //activation(_recurrentNodes[layer][node], k_constant_recnode);
+                    activation(_recurrentNodes[layer][node], 5.0);
         }
     }
 }
