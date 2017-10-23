@@ -22,21 +22,21 @@ NeuralPso::~NeuralPso() {
 void NeuralPso::buildPso() {
     _gb._fit_pb = -numeric_limits<real>::max();
 
-    //std::uniform_real_distribution<real> dist(-1, 1);
-    //std::uniform_real_distribution<real> infDist(-std::numeric_limits<real>::max(),
-    //                                             std::numeric_limits<real>::max());
     std::vector<real> innerWeightRange = {-1, 1};
-    std::vector<real> infWeightRange = { _fParams.edgeWeightMin,_fParams.edgeWeightMax };
+//    std::vector<real> infWeightRange = { _fParams.edgeWeightMin,_fParams.edgeWeightMax };
+
+    std::vector<real> constantRange = { 0, 10 };
 
     _particles->empty();
     const NeuralNet::State &state = _neuralNet->state();
-    size_t outputIt = state.size() / 2;
-    //size_t outputIt = NeuralNet::totalEdgeLayersFromState(state);
+//    size_t outputIt = state.size() / 2;
+//    size_t outputIt = NeuralNet::totalEdgeLayersFromState(state);
 
     // Create N particles
     _particles->resize(_psoParams.population);
     for (size_t i = 0; i < _psoParams.population; i++) {
         _neuralNet->randomizeState();
+        _neuralNet->randomizeActivationConstants();
         const NeuralNet::State & randomState = _neuralNet->state();
 
         // Create the number of inner columns
@@ -95,19 +95,14 @@ void NeuralPso::buildPso() {
                     if (i == 0) {
                         _gb._x[j][k][m] = 0;
                     }
-                    //if (j == outputIt) {
-                        //real val = _randomEngine.uniformReal(
-                        //            innerWeightRange[0], innerWeightRange[1]);
-                        //(*_particles)[i]._x[j][k][m] = val;
-                        //(*_particles)[i]._minX[j][k][m] = infWeightRange[0];
-                        //(*_particles)[i]._maxX[j][k][m] = infWeightRange[1];
-                    //} else {
-                        //real val = _randomEngine.uniformReal(
-                        //            innerWeightRange[0], innerWeightRange[1]);
-                        //(*_particles)[i]._x[j][k][m] = val;
+
+                    if (j == state.size() -1) {
+                        (*_particles)[i]._minX[j][k][m] = constantRange[0];
+                        (*_particles)[i]._maxX[j][k][m] = constantRange[1];
+                    } else {
                         (*_particles)[i]._minX[j][k][m] = innerWeightRange[0];
                         (*_particles)[i]._maxX[j][k][m] = innerWeightRange[1];
-                    //}
+                    }
                 }
             }
         }

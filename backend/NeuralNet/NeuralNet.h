@@ -85,6 +85,7 @@ public:
     bool setState(const State & s);
     State & state() { return _state; }
     void randomizeState();
+    void randomizeActivationConstants();
 
     void loadInput(const real &in, const size_t & i);
     void loadInputs(const ExternalNodes & in);
@@ -93,6 +94,9 @@ public:
 
     ExternalNodes inputs();
     const ExternalNodes & outputs() { return _outputNodes; }
+
+    InnerNodes & getConstantsFromState();
+    static InnerNodes & getConstantsFromState(State & state);
 
     //TODO
     void enableAllNodes(const bool & t);
@@ -104,7 +108,7 @@ public:
     EdgeLayer * forwardEdgeLayer(const size_t & i);
     EdgeLayer * recurrentEdgeLayer(const size_t & i);
 
-    static real activation(real in);
+    static real activation(const real & in, const real & k);
     static real getSign(const real & in);
 
     NeuralNetParameters * nParams() { return &_nParams; }
@@ -147,6 +151,7 @@ private:
     bool validateParams();
     void prepareState();
     void buildTopology();
+    void buildActivationConstants();
     bool buildEdges();
     bool buildForwardEdges();
     bool buildRecurrentEdges();

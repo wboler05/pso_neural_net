@@ -180,8 +180,14 @@ bool NeuralNet::buildANN() {
     // Build Edges
     buildEdges();
 
+    // Build activation constants in state
+    buildActivationConstants();
+
     // Randomize the edges
     randomizeState();
+
+    // Randomize activation constants
+    randomizeActivationConstants();
 
     return true;
 }
@@ -201,12 +207,12 @@ void NeuralNet::prepareState() {
 
 size_t NeuralNet::totalStateElementsFromInnerNodes(const size_t & innerNodeLayers) {
     size_t edgeLayers = innerNodeLayers + 1;
-    size_t totalElements = 1 + edgeLayers + innerNodeLayers;
+    size_t totalElements = 1 + edgeLayers + innerNodeLayers + 1;
     return totalElements;
 }
 
 size_t NeuralNet::totalEdgeLayersFromState(const State & state) {
-    size_t edgeLayers = state.size() / 2;
+    size_t edgeLayers = (state.size()-1) / 2;
     return edgeLayers;
 }
 
@@ -222,11 +228,35 @@ void NeuralNet::buildTopology() {
     topology.resize(totalLayers);
 
     for (size_t i = 0; i < totalLayers; i++) {
-        topology[i].resize(_innerNodes[i].size()-1);
-        for (size_t j = 0; j < topology[i].size(); j++) {
-            topology[i][j] = 1.0;
+        topology[i].resize(_innerNodes[i].size()-1, 1.0);
+    }
+}
+
+void NeuralNet::buildActivationConstants() {
+    InnerNodes & kConstants = getConstantsFromState(_state);
+    size_t totalLayers = _innerNodes.size();
+    kConstants.resize(totalLayers);
+
+    for (size_t i = 0; i < totalLayers; i++) {
+        kConstants[i].resize(_innerNodes[i].size()-1, 0.0);
+    }
+}
+
+void NeuralNet::randomizeActivationConstants() {
+    InnerNodes & kConstants = getConstantsFromState(_state);
+    for (size_t i = 0; i < kConstants.size(); i++) {
+        for (size_t j = 0; j < kConstants[i].size(); j++) {
+            kConstants[i][j] = _randomEngine.uniformReal(0, 10.0);
         }
     }
+}
+
+NeuralNet::InnerNodes & NeuralNet::getConstantsFromState() {
+    return getConstantsFromState(_state);
+}
+
+NeuralNet::InnerNodes & NeuralNet::getConstantsFromState(State &state) {
+    return state.back();
 }
 
 bool NeuralNet::buildEdges() {
@@ -401,7 +431,7 @@ NeuralNet::ExternalNodes NeuralNet::inputs() {
     return inputs;
 }
 
-real NeuralNet::activation(real in) {
+real NeuralNet::activation(const real & in, const real & k) {
   //real act = in / (1 + abs(in));  // Softsign
   //real act = 1 / (1 + exp(-in));  // Logistics
 //  real mean = 1.0;
@@ -433,7 +463,7 @@ real NeuralNet::activation(real in) {
     act = max(min(act, (real)1.0), (real)-1);
     **/
 
-
+/*
     // 9th order approximation of logistic sigmoid
     static real coeffs[10] = {
         0.938400463413615,
@@ -449,9 +479,13 @@ real NeuralNet::activation(real in) {
     };
     real act = CustomMath::poly(in, coeffs, 9);
     act = max(min(act, (real)1.0), (real) -0);
+*/
+
+    // Logistic Sigmoid activation function with dynamic k-constant
+    real act = 1 / (1 + exp(- k * in));
 
 
-  return act;
+    return act;
 }
 
 real NeuralNet::getSign(const real &in) {
@@ -519,9 +553,7 @@ void NeuralNet::processForwardPropagation() {
         resetInnerNodes();
         resetOutputNodes();
 
-        if (_nParams.type == Recurrent) {
-            //resetRecurrentNodes();
-        }
+        InnerNodes & kConstants = getConstantsFromState();
 
         for (size_t layer = 0; layer < _innerNodes.size()+1; layer++) {
             EdgeLayer * edges = forwardEdgeLayer(layer);
@@ -534,8 +566,7 @@ void NeuralNet::processForwardPropagation() {
                             continue;
                         }
                         _innerNodes[0][right_node] +=
-                               (*edges)[left_node][right_node]*_inputNodes[left_node];// /
-//                                static_cast<real>(_inputNodes.size());
+                               (*edges)[left_node][right_node]*_inputNodes[left_node];
                     }
                 }
             } else if (layer == _innerNodes.size()) {
@@ -545,9 +576,10 @@ void NeuralNet::processForwardPropagation() {
                         continue;
                     }
                     for (size_t right_node = 0; right_node < _outputNodes.size(); right_node++) {
+                        real k_constant = kConstants[layer-1][left_node];
                         _outputNodes[right_node] +=
-                                (*edges)[left_node][right_node]*activation(_innerNodes[layer-1][left_node]);// /
-//                                static_cast<real>(_innerNodes[layer-1].size());
+                                (*edges)[left_node][right_node] *
+                                  activation(_innerNodes[layer-1][left_node], k_constant);
                     }
                 }
             } else {
@@ -560,13 +592,14 @@ void NeuralNet::processForwardPropagation() {
                         if (isSkipNode(layer+1, right_node)) {
                             continue;
                         }
-                            _innerNodes[layer][right_node] +=
-                                    (*edges)[left_node][right_node]*activation(_innerNodes[layer-1][left_node]);// /
-//                                    static_cast<real>(_innerNodes[layer-1].size());
+                        real k_constant = kConstants[layer-1][left_node];
+                        _innerNodes[layer][right_node] +=
+                                (*edges)[left_node][right_node] *
+                                activation(_innerNodes[layer-1][left_node], k_constant);
                     }
                 }
                 // Apply recurrent nodes (handles check for you)
-                processRecurrentNodes(layer);
+                processRecurrentNodes(layer-1);
             }
         }
     }
@@ -632,25 +665,26 @@ bool NeuralNet::isSkipEdge(const State & state, const size_t & leftLayer, const 
 void NeuralNet::processRecurrentNodes(const size_t &layer) {
     if (layer < _recurrentNodes.size() && _nParams.type == Recurrent) {
         EdgeLayer * recEdges = recurrentEdgeLayer(layer);
+        std::vector<real> & kConstants = getConstantsFromState()[layer];
         for (size_t recNode = 0; recNode < _recurrentNodes[layer].size(); recNode++) {
             if (isSkipNode(layer, recNode)) {
                 continue;
             }
+            real k_constant_recnode = kConstants[recNode];
             for (size_t conNode = 0; conNode < _recurrentNodes[layer].size(); conNode++) {
                 if (isSkipNode(layer, conNode)) {
                     continue;
                 }
+                real k_constant_connode = kConstants[conNode];
                 _recurrentNodes[layer][recNode] +=
-                        (*recEdges)[recNode][conNode] * activation(_innerNodes[layer][conNode]);
+                        (*recEdges)[recNode][conNode] *
+                          activation(_innerNodes[layer][conNode], k_constant_connode);
             }
             size_t recNodeEdge = (*recEdges)[recNode].size()-1;
             _innerNodes[layer][recNode] +=
-                    (*recEdges)[recNode][recNodeEdge] * activation(_recurrentNodes[layer][recNode]);// /
-//                    static_cast<real>(_recurrentNodes[layer].size());
+                    (*recEdges)[recNode][recNodeEdge] *
+                    activation(_recurrentNodes[layer][recNode], k_constant_recnode);
         }
-//        for (size_t i = 0; i < _innerNodes[layer].size(); i++) {
-//            _innerNodes[layer][i] /= static_cast<real>(2.0);
-//        }
     }
 }
 
