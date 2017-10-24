@@ -2448,38 +2448,6 @@
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QGroupBox" name="enOutput_gb">
-       <property name="title">
-        <string>Output</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_18">
-        <item>
-         <widget class="QCheckBox" name="enOutputOutage_cb">
-          <property name="text">
-           <string>Outage</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enOutputAC_cb">
-          <property name="text">
-           <string>Aff Cust</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
     </layout>
    </widget>
   </widget>

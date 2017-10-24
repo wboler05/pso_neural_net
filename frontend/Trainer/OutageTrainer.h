@@ -38,11 +38,8 @@ struct EnableParameters {
     bool loa=false;
     bool latitude=false;
     bool longitude=false;
-    bool outage=true;
-    bool affected_people=true;
 
     std::vector<size_t> inputSkips();
-    std::vector<size_t> outputSkips();
 };
 
 struct SelectedGlobalBest {
@@ -111,8 +108,7 @@ public:
     SelectedGlobalBest & getSelectedGlobalBest() { return _best_gb; }
 
     // Test
-    StatObject classifierNode;
-    StatObject regressionNode;
+    std::vector<StatObject> _outputNodeStats;
 
 private:
     SelectedGlobalBest _recent_gb;
@@ -128,20 +124,15 @@ private:
     std::vector<real> _biasedTrainingInputsCounts;
     std::vector<std::vector<size_t>> _biasedTrainingInputs;
     std::vector<size_t> _inputSkips;
-    std::vector<size_t> _outputSkips;
 
     std::string _functionMsg;
 
     std::vector<real> _minInputData;
     std::vector<real> _maxInputData;
-    real _minOutputRegression;
-    real _maxOutputRegression;
 
     void updateMinMax();
     std::vector<real> normalizeInput(const size_t & id);
     std::vector<real> normalizeInput(std::vector<real> & input);
-
-    void postProcess(std::vector<real> & outputs);
 
     bool validateOutput(
             const std::vector<real> & outputs,

@@ -439,8 +439,7 @@ void MainWindow::setParameterDefaults() {
     _params->np.innerNetNodes.push_back(16);
     _params->np.innerNetNodes.push_back(16);
     _params->np.innerNets = static_cast<int>(_params->np.innerNetNodes.size());
-    _params->np.outputs = static_cast<int>(
-                dataWrapper.outputize(_params->ep.outputSkips()).size());
+    _params->np.outputs = static_cast<int>(dataWrapper.outputize().size());
     _params->np.trainingIterations = 20;
     _params->np.validationIterations = 200;
     _params->np.testIterations = 500; //500
@@ -594,14 +593,11 @@ void MainWindow::applyElementSkips() {
     _params->ep.loa = ui->enLocLOA_cb->isChecked();
     _params->ep.latitude = ui->enLocLat_cb->isChecked();
     _params->ep.longitude = ui->enLocLong_cb->isChecked();
-    _params->ep.outage = ui->enOutputOutage_cb->isChecked();
-    _params->ep.affected_people = ui->enOutputAC_cb->isChecked();
 
     OutageDataWrapper dataWrapper = (*_inputCache)[0];
     _params->np.inputs = static_cast<int>(
                 dataWrapper.inputize(_params->ep.inputSkips()).size());
-    _params->np.outputs = static_cast<int>(
-                dataWrapper.outputize(_params->ep.outputSkips()).size());
+    _params->np.outputs = static_cast<int>(dataWrapper.outputize().size());
 }
 
 void MainWindow::updateElementSkips() {
@@ -634,8 +630,6 @@ void MainWindow::updateElementSkips() {
     ui->enLocLOA_cb->setChecked(_params->ep.loa);
     ui->enLocLat_cb->setChecked(_params->ep.latitude);
     ui->enLocLong_cb->setChecked(_params->ep.longitude);
-    ui->enOutputOutage_cb->setChecked(_params->ep.outage);
-    ui->enOutputAC_cb->setChecked(_params->ep.affected_people);
 }
 
 int MainWindow::getNetTypeCBIndex() {

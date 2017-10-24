@@ -8,6 +8,7 @@ OutageTrainer::OutageTrainer(const std::shared_ptr<TrainingParameters> & pe, con
     _inputCache(inputCache)
 {
     _inputSkips = pe->ep.inputSkips();
+    _outputNodeStats.resize(5);
     build();
 }
 
@@ -28,7 +29,7 @@ void OutageTrainer::partitionData(){
     const real boundRatio = 0.90;
 
     std::vector<int> indicies;
-    int numInputSamples = _inputCache->totalInputItemsInFile();
+    int numInputSamples = static_cast<int>(_inputCache->totalInputItemsInFile());
     int swpIdx;
     int temp;
 
@@ -94,7 +95,7 @@ void OutageTrainer::randomlyDistributeData() {
 
 void OutageTrainer::biasAgainstOutputs() {
     /** TEST **/
-
+/*
     _biasedTrainingInputsCounts.resize(2, 0);
     _biasedTrainingInputs.resize(2);
 
@@ -116,6 +117,7 @@ void OutageTrainer::biasAgainstOutputs() {
             _biasedTrainingInputs[0].push_back(it);
         }
     }
+*/
 }
 
 void OutageTrainer::biasAgainstLOA() {
@@ -194,7 +196,7 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
 
         // Get the result from random input
         vector<real> output = _neuralNet->process();
-        postProcess(output);
+
         if (output.size() != outputNodes) {
             cout << "Size mismatch on nodes. " << endl;
             cout << " - Output: " << output.size() << ", Expected: " << outputNodes << endl;
@@ -202,7 +204,7 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
         }
 
         //expectedOutput = _output->at(I);
-        expectedOutput = dataItem.outputize(_outputSkips);
+        expectedOutput = dataItem.outputize();
 
         std::vector<real> mse_outputs = OutageDataWrapper::splitMSE(output, expectedOutput);
         for (size_t output_nodes = 0; output_nodes < mse_outputs.size(); output_nodes++) {
@@ -232,8 +234,9 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
         mse[i] /= static_cast<real>(trainingIterations);
     }
 
-    classifierNode.add_val(mse[0]);
-    regressionNode.add_val(mse[1]);
+    for (size_t i = 0; i < mse.size(); i++) {
+        _outputNodeStats[i].add_val(mse[i]);
+    }
 
     TestStatistics::ClassificationError ce = validateCurrentNet();
     trainingStats.getClassError(ce);
@@ -248,78 +251,20 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
         penalty *= 10 + trainingStats.fn();
     }
 
-    real enableOutput[2];
-    enableOutput[0] = _params->ep.outage ? 1 : 0;
-    enableOutput[1] = _params->ep.affected_people ? 1 : 0;
+    real finalMse = 0;
+    for (size_t i = 0; i < mse.size(); i++) {
+        finalMse += mse[i];
+    }
+    finalMse /= static_cast<real>(mse.size());
 
     // Calculate the weighted MSE
-    real costA = -std::numeric_limits<real>::max();
-    if (mse.size() == 2) {
-        costA = (enableOutput[0] * _params->alpha * mse[0] + enableOutput[1] * _params->beta * mse[1]) /
-                (2.0 * (_params->alpha + _params->beta));
-    } else {
-        costA = mse[0];
-    }
+    real costA = finalMse;
 
     // Life is a balancing act
     real costB = sqrt(pow(ce.specificity, 2) + pow(ce.sensitivity, 2));
 
     real cost = (_params->gamma * (-costA) + costB) - penalty;
     return cost;
-
-    /*
-    // With this cost function, 0 means terminate.
-    if (abs(costA) < _psoParams.delta && _psoParams.termDeltaFlag) {
-        interruptProcess();
-    }
-    */
-
-    return -costA * penalty;
-
-
-
-
-
-
-    /*
-    real penalty = 1;
-//    if ((1-mse) < _fParams.mse_floor)
-//        penalty *= 0.00001;
-    if (ce.accuracy < _fParams.floors.accuracy)
-        penalty *= 0.00001;
-    if (ce.precision < _fParams.floors.precision)
-        penalty *= 0.00001;
-    if (ce.sensitivity < _fParams.floors.sensitivity)
-        penalty *= 0.00001;
-    if (ce.specificity < _fParams.floors.specificity)
-        penalty *= 0.00001;
-    if (ce.f_score < _fParams.floors.f_score)
-        penalty *= 0.00001;
-
-    real costA = -std::numeric_limits<real>::max();
-    if (mse.size() == 2) {
-        costA = (_params->alpha * mse[0] + _params->beta * mse[1]);
-    } else {
-        costA = mse[0];
-    }
-
-    real costB = ((_fParams.weights.accuracy*ce.accuracy)
-                            + (_fParams.weights.sensitivity*ce.sensitivity)
-                            + (_fParams.weights.specificity*ce.specificity)
-                            + (_fParams.weights.precision*ce.precision)
-                            + (_fParams.weights.f_score*ce.f_score) + 1);
-    real costC = _params->gamma * ((std::sqrt(CustomMath::pow(ce.sensitivity, 2) +
-                                              CustomMath::pow(ce.specificity,2))/2.0));
-    costB /= (_fParams.weights.accuracy +
-              _fParams.weights.sensitivity +
-              _fParams.weights.specificity +
-              _fParams.weights.precision +
-              _fParams.weights.f_score + 1);
-    real cost = (costB - _fParams.mse_weight * costA + costC) /
-            (1 + _fParams.mse_weight + _params->alpha + _params->beta);
-
-    return cost;
-*/
 }
 
 bool OutageTrainer::networkPathValidation() {
@@ -357,8 +302,6 @@ size_t OutageTrainer::randomizeTrainingInputs() {
     size_t I = _randomEngine.uniformUnsignedInt(minIt, maxBiasIt);
     size_t it = _biasedTrainingInputs[uniformOutputIt][I];
 
-//    OutageDataWrapper item =(*_inputCache)[it];
-//    std::vector<real> inputItems = item.inputize(_inputSkips);
     std::vector<real> inputItems = normalizeInput(it);
 
     for (size_t i = 0; i < inputItems.size(); i++) {
@@ -428,8 +371,9 @@ void OutageTrainer::testGB() {
     }
     /// test
     qDebug() << "Test GB For: " << _epochs;
-    qDebug() << " - Classifier Stats: Mean: " << classifierNode.avg() << "\tStd: " << classifierNode.std_dev();
-    qDebug() << " - Regression Stats: Mean: " << regressionNode.avg() << "\tStd: " << regressionNode.std_dev();
+    for (size_t i = 0; i < _outputNodeStats.size(); i++) {
+        qDebug() << " - (" << i << "): Mean: " << _outputNodeStats[i].avg() << "\tStd: " << _outputNodeStats[i].std_dev();
+    }
 }
 
 void OutageTrainer::testSelectedGB() {
@@ -472,25 +416,10 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
             _neuralNet->loadInput(inputItems[i], i);
         }
 
-        std::vector<real> expectedOutput = outageData.outputize(_outputSkips);
+        std::vector<real> expectedOutput = outageData.outputize();
         std::vector<real> output = _neuralNet->process();
-        postProcess(output);
 
-        std::vector<real> mseVector = OutageDataWrapper::splitMSE(output, expectedOutput);
-        real preMse = 0;
-        real activeCount = 0;
-        if (_params->ep.outage) {
-            preMse += mseVector[0];
-            activeCount++;
-        }
-        if (_params->ep.affected_people) {
-            preMse += mseVector[1];
-            activeCount++;
-        }
-        if (activeCount > 0) {
-            mse += preMse / activeCount;
-        }
-        //mse += OutageDataWrapper::MSE(output, expectedOutput);
+        mse += OutageDataWrapper::MSE(output, expectedOutput);
 
         bool result = confirmOutage(output);
         bool expectedResult = confirmOutage(expectedOutput);
@@ -519,11 +448,19 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
 }
 
 bool OutageTrainer::confirmOutage(const std::vector<real> & output) {
-    if (output.size() < 2) {
-        qWarning()<< "Error, wrong vector size for output.";
-        return false;
+
+    // Find the maximum index
+    size_t severityIndex = 0;
+    real maxVal = -std::numeric_limits<real>::max();
+    for (size_t i = 0; i < output.size(); i++) {
+        if (output[i] > maxVal) {
+            severityIndex = i;
+            maxVal = output[i];
+        }
     }
-    return OutageDataWrapper::double2Bool(output[0]);
+
+    // Not an outage if not index 0
+    return severityIndex != 0;
 }
 
 /**
@@ -532,7 +469,6 @@ bool OutageTrainer::confirmOutage(const std::vector<real> & output) {
  */
 void OutageTrainer::updateEnableParameters() {
     _inputSkips = _params->ep.inputSkips();
-    _outputSkips = _params->ep.outputSkips();
 }
 
 std::vector<size_t> EnableParameters::inputSkips() {
@@ -569,25 +505,10 @@ std::vector<size_t> EnableParameters::inputSkips() {
     return _inputSkips;
 }
 
-/**
- * @brief EnableParameters::outputSkips
- * @return
- * @todo remove
- */
-std::vector<size_t> EnableParameters::outputSkips() {
-    std::vector<size_t> _outputSkips;
-//    if (!outage) { _outputSkips.push_back(0); }
-//    if (!affected_people) { _outputSkips.push_back(1); }
-    return _outputSkips;
-}
-
 void OutageTrainer::updateMinMax() {
     std::vector<real> testVector = (*_inputCache)[0].inputize(_inputSkips);
     _minInputData.resize(testVector.size(),  std::numeric_limits<real>::max());
     _maxInputData.resize(testVector.size(), -std::numeric_limits<real>::max());
-
-    _minOutputRegression =  std::numeric_limits<real>::max();
-    _maxOutputRegression = -std::numeric_limits<real>::max();
 
     for (size_t i = 0; i < _inputCache->totalInputItemsInFile(); i++) {
         std::vector<real> input = (*_inputCache)[i].inputize(_inputSkips);
@@ -595,9 +516,6 @@ void OutageTrainer::updateMinMax() {
             _minInputData[j] = min(_minInputData[j], input[j]);
             _maxInputData[j] = max(_maxInputData[j], input[j]);
         }
-        real outputVal = (*_inputCache)[i].outputize(_outputSkips)[1];
-        _minOutputRegression = min(outputVal, _minOutputRegression);
-        _maxOutputRegression = max(outputVal, _maxOutputRegression);
     }
 }
 
@@ -614,15 +532,4 @@ std::vector<real> OutageTrainer::normalizeInput(std::vector<real> & input) {
         }
     }
     return input;   // Yes, it's passing reference AND returning.  Look at polymorphic method.
-}
-
-void OutageTrainer::postProcess(std::vector<real> & outputs) {
-    if (outputs.size() < 2) {
-        qWarning( )<< "Warning: unknown output size for post processing.";
-        return;
-    }
-    outputs[1] = (
-                (_maxOutputRegression - _minOutputRegression) * outputs[1] +
-                (_maxOutputRegression + _minOutputRegression)
-                 ) / 2.0;
 }
