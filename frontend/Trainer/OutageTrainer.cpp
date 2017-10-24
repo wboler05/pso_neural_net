@@ -241,14 +241,14 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
     TestStatistics::ClassificationError ce = validateCurrentNet();
     trainingStats.getClassError(ce);
 
-    real penalty = 1.0;
+    real penalty = 0.0;
     if (trainingStats.tp() < 1)
     {
-        penalty *= 10 + trainingStats.fp();
+        penalty += trainingStats.fp();
     }
     if (trainingStats.tn() < 1)
     {
-        penalty *= 10 + trainingStats.fn();
+        penalty += trainingStats.fn();
     }
 
     real finalMse = 0;
@@ -263,7 +263,9 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
     // Life is a balancing act
     real costB = sqrt(pow(ce.specificity, 2) + pow(ce.sensitivity, 2));
 
-    real cost = (_params->gamma * (-costA) + costB) - penalty;
+    real cost = (_params->alpha * (-costA)) +
+                (_params->beta * costB) -
+                (_params->gamma * penalty);
     return cost;
 }
 

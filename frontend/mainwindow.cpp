@@ -435,9 +435,7 @@ void MainWindow::setParameterDefaults() {
     _params->np.inputs = static_cast<int>(
                 dataWrapper.inputize(_params->ep.inputSkips()).size());
     _params->np.innerNetNodes.clear();
-    _params->np.innerNetNodes.push_back(16);
-    _params->np.innerNetNodes.push_back(16);
-    _params->np.innerNetNodes.push_back(16);
+    _params->np.innerNetNodes.push_back(8);
     _params->np.innerNets = static_cast<int>(_params->np.innerNetNodes.size());
     _params->np.outputs = static_cast<int>(dataWrapper.outputize().size());
     _params->np.trainingIterations = 20;
@@ -460,7 +458,7 @@ void MainWindow::setParameterDefaults() {
     _params->fp.weights.specificity = 0.0L;
     _params->fp.weights.f_score = 0.0L;
 
-    _params->alpha = 160000.0;
+    _params->alpha = 1.0;
     _params->beta = 1.0;
     _params->gamma = 1.0;
 

@@ -606,9 +606,9 @@ void NeuralNet::processForwardPropagation() {
                         }
                     }
                 }
-                // Apply recurrent nodes (handles check for you)
-                processRecurrentNodes(layer-1);
             }
+            // Apply recurrent nodes (handles check for you)
+            processRecurrentNodes(layer);
         }
     }
 }

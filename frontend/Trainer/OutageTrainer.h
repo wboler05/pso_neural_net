@@ -11,13 +11,13 @@
 struct EnableParameters {
     bool year=false;
     bool month=false;
-    bool day=false;
-    bool temp_high=true;
+    bool day=true;
+    bool temp_high=false;
     bool temp_avg=true;
-    bool temp_low=true;
-    bool dew_high=true;
+    bool temp_low=false;
+    bool dew_high=false;
     bool dew_avg=true;
-    bool dew_low=true;
+    bool dew_low=false;
     bool humidity_high=false;
     bool humidity_avg=false;
     bool humidity_low=false;
