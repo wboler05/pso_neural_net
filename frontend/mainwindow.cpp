@@ -863,6 +863,13 @@ void MainWindow::runNeuralPso() {
   qApp->alert(this);
 }
 
+void MainWindow::on_testBaseCase_btn_clicked() {
+    _params->enableBaseCase = true;
+    clearPSOState();
+    runNeuralPso();
+    _params->enableBaseCase = false;
+}
+
 void MainWindow::on_resetAndRun_btn_clicked() {
     QMessageBox *msgBox = new QMessageBox(this);
     msgBox->setText("Will run after clearing state.\nClear state and run?");

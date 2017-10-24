@@ -8,6 +8,10 @@ OutageTrainer::OutageTrainer(const std::shared_ptr<TrainingParameters> & pe, con
     _inputCache(inputCache)
 {
     _inputSkips = pe->ep.inputSkips();
+    if (_params->enableBaseCase) {
+        neuralNet()->setTotalInputs(5);
+        neuralNet()->buildANN();
+    }
     _outputNodeStats.resize(5);
     build();
 }
@@ -233,12 +237,18 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
     for (size_t i = 0; i < mse.size(); i++) {
         mse[i] /= static_cast<real>(trainingIterations);
     }
+    real finalMse = 0;
+    for (size_t i = 0; i < mse.size(); i++) {
+        finalMse += mse[i];
+    }
+    finalMse /= static_cast<real>(mse.size());
 
     for (size_t i = 0; i < mse.size(); i++) {
         _outputNodeStats[i].add_val(mse[i]);
     }
 
-    TestStatistics::ClassificationError ce = validateCurrentNet();
+    TestStatistics::ClassificationError ce;
+    ce.mse = finalMse;
     trainingStats.getClassError(ce);
 
     real penalty = 0.0;
@@ -250,12 +260,6 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
     {
         penalty += trainingStats.fn();
     }
-
-    real finalMse = 0;
-    for (size_t i = 0; i < mse.size(); i++) {
-        finalMse += mse[i];
-    }
-    finalMse /= static_cast<real>(mse.size());
 
     // Calculate the weighted MSE
     real costA = finalMse;
@@ -522,8 +526,14 @@ void OutageTrainer::updateMinMax() {
 }
 
 std::vector<real> OutageTrainer::normalizeInput(const size_t & id) {
-    std::vector<real> inputVector = (*_inputCache)[id].inputize(_inputSkips);
-    return normalizeInput(inputVector);
+    std::vector<real> inputVector;
+    if (_params->enableBaseCase) {
+        inputVector = (*_inputCache)[id].outputize();
+    } else {
+        std::vector<real> tempBuff = (*_inputCache)[id].inputize(_inputSkips);
+        inputVector = normalizeInput(tempBuff);
+    }
+    return inputVector;
 }
 
 std::vector<real> OutageTrainer::normalizeInput(std::vector<real> & input) {

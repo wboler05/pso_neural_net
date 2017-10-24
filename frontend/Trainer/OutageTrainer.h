@@ -58,6 +58,7 @@ struct TrainingParameters {
     real beta = 1.0L;
     real gamma = 1.0L;
     bool showBestSelected = false;
+    bool enableBaseCase = false;
 };
 
 class OutageTrainer : public NeuralPso
@@ -77,6 +78,7 @@ public:
 
     void trainingRun();
     real trainingStep(const std::vector<size_t> & trainingInputs);
+    real trainingStepBaseCase();
     void testGB();
     void testSelectedGB();
     void validateGB();

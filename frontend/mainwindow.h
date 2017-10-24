@@ -87,6 +87,7 @@ protected slots:
     void on_actionParticle_Plotter_triggered();
     void updateFitnessPlotWindowSize();
     void resizeEvent(QResizeEvent * event);
+    void on_testBaseCase_btn_clicked();
 
 private:
     Ui::MainWindow *ui;

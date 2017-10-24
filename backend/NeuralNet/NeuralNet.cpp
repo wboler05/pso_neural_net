@@ -611,6 +611,8 @@ void NeuralNet::processForwardPropagation() {
             processRecurrentNodes(layer);
         }
     }
+
+    //normalizeOutputNodes();
 }
 
 /**
@@ -699,6 +701,16 @@ void NeuralNet::processRecurrentNodes(const size_t &layer) {
                     (*recEdges)[node][recNodeEdge] *
                     //activation(_recurrentNodes[layer][node], k_constant_recnode);
                     activation(_recurrentNodes[layer][node], 5.0);
+        }
+    }
+}
+
+void NeuralNet::normalizeOutputNodes() {
+    for (size_t i = 0; i < _outputNodes.size(); i++) {
+        if (_outputNodes[i] > 1.0) {
+            _outputNodes[i] = 1.0;
+        } else if (_outputNodes[i] < -1.0) {
+            _outputNodes[i] = -1.0;
         }
     }
 }

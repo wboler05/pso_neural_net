@@ -1904,6 +1904,13 @@
        </spacer>
       </item>
       <item>
+       <widget class="QPushButton" name="testBaseCase_btn">
+        <property name="text">
+         <string>Test Base Case</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="clearState_btn">
         <property name="text">
          <string>Clear State</string>

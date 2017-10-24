@@ -128,6 +128,8 @@ public:
 
     bool validatePaths();
 
+    bool buildANN();
+
 private:
     // Weights and Data
     ExternalNodes _inputNodes;  // Nodes
@@ -147,7 +149,6 @@ private:
 /// Nodes:               input -> inner (0) -> inner (1) -> ... -> inner (n-1) -> output
 /// Dimension of edges:     dim(input, inner(0))   dim(inner(i), inner(i+1)    dim(inner(n), output)
 
-    bool buildANN();
     bool validateParams();
     void prepareState();
     void buildTopology();
@@ -162,6 +163,7 @@ private:
     void processRecurrentNodes();
     void processRecurrentNodes(const size_t &layer);
     void processForwardPropagation();
+    void normalizeOutputNodes();
 
     bool validateEnabledLayers();
     bool validatePath(const size_t & inputNode, const size_t & outputNode);
