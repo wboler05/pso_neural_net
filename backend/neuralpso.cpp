@@ -157,8 +157,8 @@ void NeuralPso::flySerial() {
                 //choice = dist(_randomEngine.engine());
                 choice = _randomEngine.uniformReal(
                             probRange[0], probRange[1]);
-                p->_fit_pb = 0;
-                p->_fit_lb = 0;
+                p->_fit_pb = -std::numeric_limits<real>::max();
+                p->_fit_lb = -std::numeric_limits<real>::max();
                 p->_points = _psoParams.startPoints;
                 /*
                 std::string callWeak;
@@ -274,8 +274,8 @@ void NeuralPso::flyParallel() {
                 //choice = dist(_randomEngine.engine());
                 choice = _randomEngine.uniformReal(
                             probRange[0], probRange[1]);
-                p->_fit_pb = 0;
-                p->_fit_lb = 0;
+                p->_fit_pb = -std::numeric_limits<real>::max();
+                p->_fit_lb = -std::numeric_limits<real>::max();
                 p->_points = _psoParams.startPoints;
                 /*
                 std::string callWeak;
