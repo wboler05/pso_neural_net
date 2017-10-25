@@ -374,6 +374,12 @@ void MainWindow::initializeCache() {
             qDebug() << "Error, no input data loaded.";
         }
         _inputCache = std::make_shared<InputCache>(_params->cp);
+        if (!_inputCache->validFile()) {
+            qWarning() << "Error, unable to load data file.";
+            exit(1);
+        } else {
+            break;
+        }
     }
 
     if (_inputCache->validFile()) {

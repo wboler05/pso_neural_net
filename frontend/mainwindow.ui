@@ -707,12 +707,12 @@
            </property>
            <item>
             <property name="text">
-             <string>Global Best</string>
+             <string>Selected Best</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>Selected Best</string>
+             <string>Global Best</string>
             </property>
            </item>
           </widget>
@@ -1905,6 +1905,11 @@
       </item>
       <item>
        <widget class="QPushButton" name="testBaseCase_btn">
+        <property name="font">
+         <font>
+          <italic>true</italic>
+         </font>
+        </property>
         <property name="text">
          <string>Test Base Case</string>
         </property>
@@ -1912,6 +1917,11 @@
       </item>
       <item>
        <widget class="QPushButton" name="clearState_btn">
+        <property name="font">
+         <font>
+          <strikeout>true</strikeout>
+         </font>
+        </property>
         <property name="text">
          <string>Clear State</string>
         </property>
@@ -1926,6 +1936,11 @@
       </item>
       <item>
        <widget class="QPushButton" name="setNet_btn">
+        <property name="font">
+         <font>
+          <strikeout>true</strikeout>
+         </font>
+        </property>
         <property name="text">
          <string>Set Current Net</string>
         </property>
@@ -1940,6 +1955,12 @@
       </item>
       <item>
        <widget class="QPushButton" name="resetAndRun_btn">
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="text">
          <string>Reset and Run</string>
         </property>
@@ -1947,6 +1968,13 @@
       </item>
       <item>
        <widget class="QPushButton" name="run_btn">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="text">
          <string>Run</string>
         </property>
@@ -1954,6 +1982,13 @@
       </item>
       <item>
        <widget class="QPushButton" name="stop_btn">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="text">
          <string>Stop</string>
         </property>

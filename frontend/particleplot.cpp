@@ -3,6 +3,8 @@
 ParticlePlot::ParticlePlot(QWidget * parent) : QwtPlot(parent)
 {
 
+    setCanvasBackground(QBrush(QColor(255,255,255)));
+
 }
 
 void ParticlePlot::updatePlot(const size_t & firstDim, const size_t & secondDim, const size_t & thirdDim) {
@@ -26,6 +28,8 @@ void ParticlePlot::updatePlot(const size_t & firstDim, const size_t & secondDim,
         }
 
     }
+
+    setAxisScale(xBottom, 0, _particles->size());
     replot();
 }
 
@@ -45,7 +49,7 @@ void ParticlePlot::updatePlot(const size_t & particleId, const real & value) {
 }
 
 QwtPlotMarker * ParticlePlot::getPointMarker(const QPointF & point) {
-    QwtSymbol * symbol = new QwtSymbol(QwtSymbol::Ellipse, QBrush(Qt::black), QPen(Qt::cyan), QSize(2,2));
+    QwtSymbol * symbol = new QwtSymbol(QwtSymbol::Ellipse, QBrush(Qt::black), QPen(QColor(255, 99, 234)), QSize(2,2));
     QwtPlotMarker * mark = new QwtPlotMarker();
     mark->setSymbol(symbol);
     mark->setValue(point);

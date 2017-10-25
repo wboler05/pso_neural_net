@@ -370,6 +370,7 @@ void OutageTrainer::testGB() {
         _testStats.tp() > 0
         ) {
         if (ce.accuracy > _best_gb.ce.accuracy || _best_gb.state.size() == 0) {
+//        if (ce.mse < _best_gb.ce.mse || _best_gb.state.size() == 0) {
             _best_gb.state = _gb._x;
             _best_gb.testStats = _testStats;
             _best_gb.ce = ce;
