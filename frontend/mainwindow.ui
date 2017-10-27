@@ -707,12 +707,12 @@
            </property>
            <item>
             <property name="text">
-             <string>Selected Best</string>
+             <string>Global Best</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>Global Best</string>
+             <string>Selected Best</string>
             </property>
            </item>
           </widget>

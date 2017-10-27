@@ -305,6 +305,8 @@ void MainWindow::initializeData() {
         _params = std::make_shared<TrainingParameters>();
     }
 
+    ui->globalBestSelection_cb->setCurrentIndex(1);
+
     bool iniFileLoaded = loadIniFile();
 
     setParameterDefaults();
