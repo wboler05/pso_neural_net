@@ -200,7 +200,8 @@ SOURCES += \
     frontend/slicenumberdialog.cpp \
     utils/randomnumberengine.cpp \
     frontend/particleplot.cpp \
-    frontend/particleplotwindow.cpp
+    frontend/particleplotwindow.cpp \
+    frontend/Plots/confusionmatrixdiagram.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -231,7 +232,8 @@ HEADERS += \
     frontend/slicenumberdialog.h \
     utils/randomnumberengine.h \
     frontend/particleplot.h \
-    frontend/particleplotwindow.h
+    frontend/particleplotwindow.h \
+    frontend/Plots/confusionmatrixdiagram.h
 
 FORMS += \
     frontend/mainwindow.ui \
@@ -240,4 +242,5 @@ FORMS += \
     frontend/fitnessplotter.ui \
     frontend/maxmemorydialog.ui \
     frontend/slicenumberdialog.ui \
-    frontend/particleplotwindow.ui
+    frontend/particleplotwindow.ui \
+    frontend/Plots/confusionmatrixdiagram.ui

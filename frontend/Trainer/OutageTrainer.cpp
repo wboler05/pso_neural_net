@@ -544,5 +544,5 @@ std::vector<real> OutageTrainer::normalizeInput(std::vector<real> & input) {
                     (_maxInputData[i] - _minInputData[i]);
         }
     }
-    return input;   // Yes, it's passing reference AND returning.  Look at polymorphic method.
+    return input;
 }
