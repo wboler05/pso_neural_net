@@ -7,34 +7,36 @@ class ConfusionMatrix
 {
 public:
 
-    typedef std::vector<std::vector<size_t>> ClassifierCounts;
-    typedef std::vector<std::vector<real>> ClassifierRatios;
+    // First Dim: Actual, Second Dim: Predicted
+    typedef std::vector<std::vector<size_t>> ClassifierMatrix;
+    typedef std::vector<std::vector<real>> ClassifierMatrixRatios;
+    typedef std::vector<size_t> ClassifierVector;
+    typedef std::vector<real> ClassifierVectorRatios;
 
     ConfusionMatrix();
 
-    bool setValues(const ClassifierCounts & predictions, const ClassifierCounts & actuals);
-    bool validate(const ClassifierCounts & predictions, const ClassifierCounts & actuals);
+    bool setValues(const ClassifierMatrix & results);
+    bool validate(const ClassifierMatrix & results);
 
     TestStatistics getTestStatistics() { return _ts; }
-    size_t numberOfClassifiers() const { return _predictions.size(); }
+    size_t numberOfClassifiers() const { return _results.size(); }
 
     void reset();
 
-    const ClassifierCounts & getPredictions() { return _predictions; }
-    const ClassifierRatios & getPredictionRatios() { return _predictionRatios; }
-    const ClassifierCounts & getActuals() { return _actuals; }
-    const ClassifierRatios & getActualRatios() { return _actualRatios; }
+    const ClassifierMatrix & getResults() { return _results; }
+    const ClassifierMatrixRatios & getResultRatios() { return _resultRatios; }
 
 private:
-    ClassifierCounts _predictions;
-    ClassifierRatios _predictionRatios;
-    ClassifierCounts _actuals;
-    ClassifierRatios _actualRatios;
+    ClassifierMatrix _results;
+    ClassifierMatrixRatios _resultRatios;
+    ClassifierVector _falsePositives;
+    ClassifierVector _falseNegatives;
     TestStatistics _ts;
 
     void setTotalClassifiers(const size_t & totalClassifiers);
-    void copyCounts(const ClassifierCounts & predictions, const ClassifierCounts & actuals);
+    void copyCounts(const ClassifierMatrix & results);
     void buildRatiosFromCounts();
+    void constructTestResults();
 };
 
 #endif // CONFUSIONMATRIX_H
