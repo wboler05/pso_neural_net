@@ -9,7 +9,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsProxyWidget>
 
-#include "backend/teststatistics.h"
+#include "backend/confusionmatrix.h"
 
 namespace Ui {
 class ConfusionMatrixDiagram;
@@ -18,9 +18,6 @@ class ConfusionMatrixDiagram;
 class ConfusionMatrixDiagram : public QWidget
 {
     Q_OBJECT
-
-    typedef std::vector<std::vector<size_t>> ClassifierCounts;
-    typedef std::vector<std::vector<real>> ClassifierRatios;
 
 public:
 
@@ -37,7 +34,7 @@ public:
     void setLabels(const QStringList & stringList);
     const size_t & numberOfClassifiers() { return _numberOfClassifiers; }
 
-    void updateConfusionMatrix(const ClassifierCounts & cl);
+    void updateConfusionMatrix(const ConfusionMatrix & cm);
 
     size_t cols();  // Widget cols
     size_t rows();  // Widget rows
@@ -47,10 +44,7 @@ public:
 private:
     Ui::ConfusionMatrixDiagram *ui;
     size_t _numberOfClassifiers = 0;
-    ClassifierCounts _results;
-    ClassifierRatios _resultRatios;
-    ClassifierCounts _actuals;
-    ClassifierCounts _actualsRatios;
+    ConfusionMatrix _data;
     std::vector<TestStatistics::TestStruct> _testStats;
     TestStatistics _ts;
     QStringList _classifierLabels;
@@ -67,8 +61,6 @@ private:
 
     void updateTestStatistics();
 
-    void setNumberOfClassifiers(const size_t & n);
-
     void constructClassLabel(QGridLayout * mainLayout);
     void constructActualPredictLabels(QGridLayout * mainLayout);
     void constructDataTable(QGridLayout * mainLayout);
@@ -78,8 +70,6 @@ private:
     QLabel * getNewClassifierLabel(const QString & label);
     QString classifierLabelStyle();
 
-    bool validateNewResults(const ClassifierCounts & cl);
-    void calculateTableValues(const ClassifierCounts & cl);
 };
 
 #endif // CONFUSIONMATRIXDIAGRAM_H

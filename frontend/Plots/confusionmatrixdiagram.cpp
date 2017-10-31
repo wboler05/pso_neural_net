@@ -13,76 +13,38 @@ ConfusionMatrixDiagram::~ConfusionMatrixDiagram()
     delete ui;
 }
 
-void ConfusionMatrixDiagram::updateConfusionMatrix(const ClassifierCounts & cl) {
-    if (!validateNewResults(cl)) return;
+void ConfusionMatrixDiagram::updateConfusionMatrix(const ConfusionMatrix &cm) {
 
-    setNumberOfClassifiers(cl.size());
-    calculateTableValues(cl);
+    _numberOfClassifiers = cm.numberOfClassifiers();
+
     buildMatrix();
-}
-
-bool ConfusionMatrixDiagram::validateNewResults(const ClassifierCounts & cl) {
-    size_t N = cl.size();
-    for (size_t i = 0; i < N; i++) {
-        if (cl[i].size() != N) return false;
-    }
-    return true;
 }
 
 void ConfusionMatrixDiagram::setLabels(const QStringList & stringList) {
     if (stringList.size() == 0) return;
-    setNumberOfClassifiers(static_cast<size_t>(stringList.size()));
-}
-
-void ConfusionMatrixDiagram::setNumberOfClassifiers(const size_t & n) {
-    _numberOfClassifiers = n;
-    _results.resize(n);
-    _resultRatios.resize(n);
-    for (size_t i = 0; i < n; i++) {
-        _results[i].resize(n, 0);
-        _resultRatios[i].resize(n, 0);
-    }
-}
-
-void ConfusionMatrixDiagram::calculateTableValues(const ClassifierCounts & cl) {
-    size_t maxVal = 0;
-    for (size_t i = 0; i < _results.size(); i++) {
-        for (size_t j = 0; j < _results[i].size(); j++) {
-            maxVal = std::max(maxVal, _results[i][j]);
-        }
-    }
-
-    real realMaxVal = static_cast<real>(maxVal);
-
-    for (size_t i = 0; i < _results.size(); i++) {
-        for (size_t j = 0; j < _results[i].size(); j++) {
-            real val = static_cast<real>(_results[i][j]) / realMaxVal;
-            _resultRatios[i][j] = val;
-        }
-    }
-
-    for (size_t i = 0; i < _results.size(); i++) {
-        for (size_t j = 0; j < _results[i].size(); j++) {
-            if (i == j) {
-                a;sldkjf;laskdjf
-                        // Wait, we need to get the actuals as well. We only have results
-            }
-        }
-    }
+    _classifierLabels = stringList;
+    buildMatrix();
 }
 
 void ConfusionMatrixDiagram::buildMatrix() {
-    if (_mainWidget) {
-        _mainWidget->deleteLater();
-    }
 
-    size_t rows_ = rows();
-    size_t cols_ = cols();
+    while (QWidget * w = findChild<QWidget *>()) {
+        w->deleteLater();
+    }
 
     QGridLayout * mainLayout = new QGridLayout();
     constructActualPredictLabels(mainLayout);
     constructClassLabel(mainLayout);
     constructDataTable(mainLayout);
+
+    if (_mainWidget) {
+        layout()->removeWidget(_mainWidget);
+    }
+
+    _mainWidget = new QWidget();
+    _mainWidget->setLayout(mainLayout);
+    layout()->addWidget(_mainWidget);
+
 }
 
 size_t ConfusionMatrixDiagram::rows() {
