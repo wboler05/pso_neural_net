@@ -129,6 +129,10 @@ private:
 
     std::string _functionMsg;
 
+    int _kFolds = 0; // Number of validation rounds
+    int _foldIdx = 0; // The current validation fold
+    int _numElePerValidationRound = 0; // Number of elements in each validation round
+
     std::vector<real> _minInputData;
     std::vector<real> _maxInputData;
 

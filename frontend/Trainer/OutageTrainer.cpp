@@ -28,9 +28,21 @@ void OutageTrainer::build() {
     updateMinMax();
 }
 
-void OutageTrainer::partitionData(){
+int OutageTrainer::getNextValidationSet(){
+    _foldIdx++;
+    if(_foldIdx < _kFolds){
+        for(int i = 0; i < _numElePerValidationRound; i++){
+            std::swap(&_validationInputs[i], &_trainingInputs[(_foldIdx-1)*_numElePerValidationRound + i]);
+        }
+        return 1;
+    }
+    return -1;
+}
+
+void OutageTrainer::partitionData(int kFolds){
 
     const real boundRatio = 0.90;
+    _kFolds = kFolds;
 
     std::vector<int> indicies;
     int numInputSamples = static_cast<int>(_inputCache->totalInputItemsInFile());
@@ -57,14 +69,19 @@ void OutageTrainer::partitionData(){
 
     // Calculate the bounding index (inclusive)
     int testBound = numInputSamples * boundRatio;
+    _numElePerValidationRound = std::ceil(testBound/(_kFolds+1));
+
 
     // Clear input lists
     _trainingInputs.clear();
     _testInputs.clear();
-    _validationInputs.clear(); // Unused as of yet
+    _validationInputs.clear();
 
     // Fill the vectors
-    for (int i = 0; i < testBound; i++){
+    for (int i = 0; i < _numElePerValidationRound; i++){
+        _validationInputs.push_back(indicies[i]);
+    }
+    for (int i = _numElePerValidationRound; i < testBound; i++){
         _trainingInputs.push_back(indicies[i]);
     }
     for (int i = testBound; i < numInputSamples; i++){
