@@ -30,7 +30,32 @@ namespace CustomMath
     int ceilDiv(int a, int b);
 
     template <class T>
-    T getSign(const T & val);
+    T getSign(const T & val) {
+        if (val >= 0) {
+            return static_cast<T>(1);
+        } else {
+            return static_cast<T>(-1);
+        }
+    }
+
+    template <class T>
+    real mean(std::vector<T> & v) {
+        if (v.size() == 0) {
+            return 0;
+        }
+
+        real tot = static_cast<real>(total(v));
+        return tot / static_cast<real>(v.size());
+    }
+
+    template <class T>
+    T total(std::vector<T> & v) {
+        T tot = 0;
+        for (size_t i = 0; i < v.size(); i++) {
+            tot += v[i];
+        }
+        return tot;
+    }
 }
 
 #endif // CUSTOMMATH_H

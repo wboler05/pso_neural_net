@@ -3,6 +3,7 @@
 
 #include "neuralpso.h"
 #include "outagedataitem.h"
+#include "confusionmatrix.h"
 
 #include "inputcache.h"
 #include "statobject.h"

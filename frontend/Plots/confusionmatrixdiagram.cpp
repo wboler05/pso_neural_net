@@ -48,11 +48,11 @@ void ConfusionMatrixDiagram::buildMatrix() {
 }
 
 size_t ConfusionMatrixDiagram::rows() {
-    return 4 + std::max(_numberOfClassifiers, static_cast<size_t>(1));
+    return 3 + std::max(_numberOfClassifiers, static_cast<size_t>(1));
 }
 
 size_t ConfusionMatrixDiagram::cols() {
-    return 4 + std::max(_numberOfClassifiers, static_cast<size_t>(1));
+    return 3 + std::max(_numberOfClassifiers, static_cast<size_t>(1));
 }
 
 void ConfusionMatrixDiagram::constructActualPredictLabels(QGridLayout * mainLayout) {
@@ -82,21 +82,13 @@ void ConfusionMatrixDiagram::constructClassLabel(QGridLayout * mainLayout) {
         mainLayout->addWidget(rowLabelWidget, offsetIndex, 1);
     }
 
-    // True Positive
-    QLabel * truePositiveLabel = getNewClassifierLabel("TP");
-    mainLayout->addWidget(truePositiveLabel, 1, _numberOfClassifiers + 2);
-
     // False Positive
     QLabel * falsePositiveLabel = getNewClassifierLabel("FP");
-    mainLayout->addWidget(falsePositiveLabel, 1, _numberOfClassifiers + 3);
-
-    // True Negative
-    QLabel * trueNegativeLabel = getNewClassifierLabel("TN");
-    mainLayout->addWidget(trueNegativeLabel, _numberOfClassifiers + 2, 1);
+    mainLayout->addWidget(falsePositiveLabel, 1, _numberOfClassifiers + 2);
 
     // False Negative
     QLabel * falseNegativeLabel = getNewClassifierLabel("FN");
-    mainLayout->addWidget(falseNegativeLabel, _numberOfClassifiers + 3, 1);
+    mainLayout->addWidget(falseNegativeLabel, _numberOfClassifiers + 2, 1);
 }
 
 QLabel * ConfusionMatrixDiagram::getNewClassifierLabel(const QString & label) {
@@ -116,26 +108,27 @@ QString ConfusionMatrixDiagram::classifierLabelStyle() {
 void ConfusionMatrixDiagram::constructDataTable(QGridLayout * mainLayout) {
     // Initialize Table
     _table.clear();
-    _table.resize(_numberOfClassifiers + 2);
+    _table.resize(_numberOfClassifiers + 1);
     for (int i = 0; i < _table.length(); i++) {
-        _table[i].resize(_numberOfClassifiers + 2);
+        _table[i].resize(_numberOfClassifiers + 1);
     }
 
     // Load Table with Data
     for (size_t i = 0; i < _numberOfClassifiers; i++) {
         for (size_t j = 0; j < _numberOfClassifiers; j++) {
-            QPointer<QWidget> newCell = constructCell(_results[i][j], _resultRatios[i][j], i == j);
-            _table[i][j] = newCell;
+//            QPointer<QWidget> newCell = constructCell(_data.getResultValues()[i][j], _data.getResultRatios()[i][j], i == j);
+//            _table[i][j] = newCell;
         }
     }
 
+    // Load Fp
+    // Load Fn
+    // Load Accuracy
 
+}
 
-    for (int i = 0; i < _numberOfClassifiers; i++) {
-        for (int j = 0; j < _numberOfClassifiers; j++) {
-
-        }
-    }
+QWidget * ConfusionMatrixDiagram::constructCell(const real & number, const real & ratio, bool truePos) {
+    return nullptr;
 }
 
 

@@ -188,6 +188,8 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
 
     TestStatistics trainingStats;
 
+    std::vector<std::vector<real>> predicted, actual;
+
     // First, test each output and store to the vector of results;
     for (size_t someSets = 0; someSets < trainingIterations; someSets++) {
         qApp->processEvents();
@@ -215,6 +217,10 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
             mse[output_nodes] += mse_outputs[output_nodes];
         }
 
+        predicted.push_back(output);
+        actual.push_back(expectedOutput);
+
+        //TODO Replace this part with the cm
         bool result = confirmOutage(output);
         bool expectedResult = confirmOutage(expectedOutput);
 
@@ -231,8 +237,13 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
                 trainingStats.addTn();
             }
         }
+        // END TODO
 
     }
+
+    ConfusionMatrix::ClassifierMatrix classifierResults = ConfusionMatrix::evaluateResults(predicted, actual);
+    ConfusionMatrix cm(classifierResults);
+    cm.print();
 
     for (size_t i = 0; i < mse.size(); i++) {
         mse[i] /= static_cast<real>(trainingIterations);
