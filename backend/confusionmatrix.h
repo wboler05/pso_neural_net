@@ -94,7 +94,7 @@ private:
     void constructFalsePositiveRatios();
     void constructFalseNegativeRatios();
 
-    void constructRatioVector(ClassifierVector & v, ClassifierVectorRatios & r);
+    void constructRatioVector(ClassifierVector & v, ClassifierVectorRatios & r, const real & total);
 };
 
 #endif // CONFUSIONMATRIX_H

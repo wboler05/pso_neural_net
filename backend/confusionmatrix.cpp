@@ -270,21 +270,39 @@ void ConfusionMatrix::countFalseNegatives() {
  * @brief ConfusionMatrix::constructTruePositiveRatios
  */
 void ConfusionMatrix::constructTruePositiveRatios() {
-    constructRatioVector(_truePositiveValues, _truePositiveRatios);
+    constructRatioVector(_truePositiveValues, _truePositiveRatios, _totalPopulation);
 }
 
 /**
  * @brief ConfusionMatrix::constructFalsePositiveRatios
  */
 void ConfusionMatrix::constructFalsePositiveRatios() {
-    constructRatioVector(_falsePositiveValues, _falsePositiveRatios);
+    _falsePositiveRatios.clear();
+    _falsePositiveRatios.resize(_numberOfClassifiers, 0.0);
+    for (size_t act = 0; act < _numberOfClassifiers; act++) {
+        size_t sum = 0;
+        for (size_t pre = 0; pre < _numberOfClassifiers; pre++) {
+            sum += _resultValues[act][pre];
+        }
+        _falsePositiveRatios[act] = static_cast<real>(_falsePositiveValues[act]) /
+                static_cast<real>(sum);
+    }
 }
 
 /**
  * @brief ConfusionMatrix::constructFalseNegativeRatios
  */
 void ConfusionMatrix::constructFalseNegativeRatios() {
-    constructRatioVector(_falseNegativeValues, _falseNegativeRatios);
+    _falseNegativeRatios.clear();
+    _falseNegativeRatios.resize(_numberOfClassifiers, 0.0);
+    for (size_t pre = 0; pre < _numberOfClassifiers; pre++) {
+        size_t sum = 0;
+        for (size_t act = 0; act < _numberOfClassifiers; act++) {
+            sum += _resultValues[act][pre];
+        }
+        _falseNegativeRatios[pre] = static_cast<real>(_falseNegativeValues[pre]) /
+                static_cast<real>(sum);
+    }
 }
 
 /**
@@ -293,11 +311,11 @@ void ConfusionMatrix::constructFalseNegativeRatios() {
  * @param v - valued vector
  * @param r - ratio vector
  */
-void ConfusionMatrix::constructRatioVector(ClassifierVector & v, ClassifierVectorRatios & r) {
+void ConfusionMatrix::constructRatioVector(ClassifierVector & v, ClassifierVectorRatios & r, const real & total) {
     r.resize(_numberOfClassifiers, 0.0);
-    if (_totalPopulation > 0) {
+    if (total > 0) {
         for (size_t i = 0; i < _numberOfClassifiers; i++) {
-            r[i] = static_cast<real>(v[i]) / static_cast<real>(_totalPopulation);
+            r[i] = static_cast<real>(v[i]) / static_cast<real>(total);
         }
     }
 }
@@ -310,13 +328,13 @@ std::string ConfusionMatrix::toString() {
                 s.push_back('\t');
             } else if (pre == 0 && act < _numberOfClassifiers + 1) {
                 s.push_back('A');
-                s += stringPut(act+1);
+                s += stringPut(act);
                 s.push_back('\t');
             } else if (pre == 0 && act == _numberOfClassifiers + 1) {
                 s += "FN";
             } else if (act == 0 && pre < _numberOfClassifiers + 1) {
                 s.push_back('P');
-                s += stringPut(pre+1);
+                s += stringPut(pre);
                 s.push_back('\t');
             } else if (act == 0 && pre == _numberOfClassifiers + 1) {
                 s += "FP\t";
