@@ -212,7 +212,7 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
         //expectedOutput = _output->at(I);
         expectedOutput = dataItem.outputize();
 
-        std::vector<real> mse_outputs = OutageDataWrapper::splitMSE(output, expectedOutput);
+        std::vector<real> mse_outputs = ConfusionMatrix::splitMSE(output, expectedOutput);
         for (size_t output_nodes = 0; output_nodes < mse_outputs.size(); output_nodes++) {
             mse[output_nodes] += mse_outputs[output_nodes];
         }
@@ -243,7 +243,7 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
 
     ConfusionMatrix::ClassifierMatrix classifierResults = ConfusionMatrix::evaluateResults(predicted, actual);
     ConfusionMatrix cm(classifierResults);
-    cm.print();
+    //cm.print();
 
     for (size_t i = 0; i < mse.size(); i++) {
         mse[i] /= static_cast<real>(trainingIterations);
@@ -258,9 +258,17 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
         _outputNodeStats[i].add_val(mse[i]);
     }
 
-    TestStatistics::ClassificationError ce;
-    ce.mse = finalMse;
-    trainingStats.getClassError(ce);
+    ///MORE TESTING CONCEPTS YOLO HELLO
+    trainingStats = cm.overallStats();
+    TestStatistics::ClassificationError ce = cm.overallError();
+    cm.overallError().mse = finalMse;
+
+std::vector<real> zeroVec(cm.numberOfClassifiers(), 0.0);
+return ConfusionMatrix::MSE(cm.getTruePositiveRatios(), zeroVec);
+
+return (_params->alpha * cm.overallError().accuracy - _params->beta * finalMse) /
+        (_params->alpha + _params->beta);
+
 
     real penalty = 0.0;
     if (trainingStats.tp() < 1)
@@ -295,12 +303,12 @@ bool OutageTrainer::networkPathValidation() {
 void OutageTrainer::validateGB() {
     _neuralNet->setState(_gb._x);
     TestStatistics::ClassificationError ce;
-    classError(_validationInputs, _validationStats, ce, _neuralNet->nParams()->validationIterations);
+    classError(_validationInputs, _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
 }
 
 TestStatistics::ClassificationError && OutageTrainer::validateCurrentNet() {
     TestStatistics::ClassificationError ce;
-    classError(_validationInputs, _validationStats, ce, _neuralNet->nParams()->validationIterations);
+    classError(_validationInputs, _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
     return std::move(ce);
 }
 
@@ -370,21 +378,31 @@ void OutageTrainer::testGB() {
     /** TEST **/
   _neuralNet->setState(_gb._x);
 
-    TestStatistics::ClassificationError ce;
-    classError(_testInputs, _testStats, ce, _neuralNet->nParams()->testIterations);
+    classError(_testInputs, _testConfusionMatrix, _neuralNet->nParams()->testIterations);
 
     _recent_gb.state = _gb._x;
-    _recent_gb.testStats = _testStats;
-    _recent_gb.ce = ce;
+    _recent_gb.cm = _testConfusionMatrix;
 
-    if (_testStats.tn() > 0 &&
-        _testStats.tp() > 0
-        ) {
-        if (ce.accuracy > _best_gb.ce.accuracy || _best_gb.state.size() == 0) {
+    bool validated_gb_flag = true;
+
+    _testConfusionMatrix.costlyComputeClassStats();
+
+    for (size_t i = 0; i < _testConfusionMatrix.numberOfClassifiers(); i++) {
+        int tp = static_cast<int> (round(_testConfusionMatrix.classStats()[i].tp()));
+        int tn = static_cast<int> (round(_testConfusionMatrix.classStats()[i].tn()));
+        if (tp == 0 || tn == 0) {
+            validated_gb_flag = false;
+        }
+    }
+
+    real newAcc = _testConfusionMatrix.overallError().accuracy;
+    real gbAcc = _best_gb.cm.overallError().accuracy;
+
+    if (validated_gb_flag) {
+        if (newAcc > gbAcc || _best_gb.state.size() == 0) {
 //        if (ce.mse < _best_gb.ce.mse || _best_gb.state.size() == 0) {
             _best_gb.state = _gb._x;
-            _best_gb.testStats = _testStats;
-            _best_gb.ce = ce;
+            _best_gb.cm = _testConfusionMatrix;
         }
     }
     /// test
@@ -396,10 +414,7 @@ void OutageTrainer::testGB() {
 
 void OutageTrainer::testSelectedGB() {
     _neuralNet->setState(_best_gb.state);
-    TestStatistics::ClassificationError ce;
-    classError(_testInputs, _testStats, ce, _neuralNet->nParams()->testIterations);
-    _best_gb.testStats = _testStats;
-    _best_gb.ce = ce;
+    classError(_testInputs, _best_gb.cm, _neuralNet->nParams()->testIterations);
 }
 
 /**
@@ -409,11 +424,10 @@ void OutageTrainer::testSelectedGB() {
  * @todo Take out the training part and pass a list of results.
  */
 void OutageTrainer::classError(const std::vector<size_t> & testInputs,
-                               TestStatistics & testStats,
-                               TestStatistics::ClassificationError & ce,
+                               ConfusionMatrix & cm,
                                const size_t & testIterations) {
     //!TEST//
-    testStats.clear();
+    cm.reset();
 
     size_t iterations = testIterations;
     size_t inputSize = testInputs.size();
@@ -423,12 +437,14 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
 
     real mse = 0L;
 
+    std::vector<std::vector<real>> predictions, actuals;
+
     for (size_t i = 0; i < iterations; i++) {
         size_t it = testInputs[i];
         _neuralNet->resetAllNodes();
 
         OutageDataWrapper outageData = (*_inputCache)[it];
-//        std::vector<real> inputItems = outageData.inputize(_inputSkips);
+
         std::vector<real> inputItems = normalizeInput(it);
         for (size_t i = 0; i < inputItems.size(); i++) {
             _neuralNet->loadInput(inputItems[i], i);
@@ -437,28 +453,13 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
         std::vector<real> expectedOutput = outageData.outputize();
         std::vector<real> output = _neuralNet->process();
 
-        mse += OutageDataWrapper::MSE(output, expectedOutput);
-
-        bool result = confirmOutage(output);
-        bool expectedResult = confirmOutage(expectedOutput);
-//qDebug() << "Affected People: \t-Expected: " << expectedOutput[1] << "\t-Predicted: " << output[1] << "\t-Exp Outage: " << expectedOutput[0] << "\t-Act Outage: " << output[0];
-        if (expectedResult) {
-            if (result) {
-                testStats.addTp();
-            } else {
-                testStats.addFn();
-            }
-        } else {
-            if (result) {
-                testStats.addFp();
-            } else {
-                testStats.addTn();
-            }
-        }
+        actuals.push_back(expectedOutput);
+        predictions.push_back(output);
     }
-
-  testStats.getClassError(ce);
-  ce.mse = mse / static_cast<real>(iterations);
+    ConfusionMatrix::ClassifierMatrix results = ConfusionMatrix::evaluateResults(predictions, actuals);
+    cm.setResults(results);
+    cm.overallError().mse = ConfusionMatrix::MSE(actuals, predictions);
+    cm.print();
 
 //  string outputString = testStats.outputString(ce);
 //  Logger::write(outputString);

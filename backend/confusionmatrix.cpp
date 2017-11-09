@@ -114,7 +114,11 @@ void ConfusionMatrix::reset() {
     _truePositiveRatios.clear();
     _falsePositiveRatios.clear();
     _falseNegativeRatios.clear();
-    _ts.clear();
+
+    _overallStats.clear();
+    _overallError.clear();
+    _classStats.clear();
+    _classErrors.clear();
 }
 
 /**
@@ -122,9 +126,6 @@ void ConfusionMatrix::reset() {
  * @details Business work for calculating TP, FP, and FN.
  */
 void ConfusionMatrix::constructTestResults() {
-    // Test This out
-
-    _ts.clear();
 
     // Count how many events there are
     setPopulationFromResults();
@@ -134,25 +135,57 @@ void ConfusionMatrix::constructTestResults() {
     countFalsePositives();
     countFalseNegatives();
 
-    real totalTP = CustomMath::total(_truePositiveRatios);
-    real totalFN = CustomMath::total(_falseNegativeRatios);
-    real totalFP = CustomMath::total(_falsePositiveRatios);
+    calcOverallAccuracy();
 
-    real meanFN = CustomMath::mean(_falseNegativeRatios);
-    real meanFP = CustomMath::mean(_falsePositiveRatios);
+    ///TEST
 
-    qDebug() << "Total TP: " << totalTP;
-    qDebug() << "Total FN: " << totalFN << "\tMean: " << meanFN;
-    qDebug() << "Total FP: " << totalFP << "\tMean: " << meanFP;
-    qDebug() << "End Test.";
+//    qDebug() << _overallStats.outputString(_overallError).c_str();
 
-//    size_t newFN = static_cast<size_t>(round(avgFN));
-//    size_t newFP = static_cast<size_t>(round(avgFP));
+}
 
-//    _ts.addFn(newFN);
-//    _ts.addFp(newFP);
-//    _ts.addTn(population - (newFN + newFP + static_cast<size_t>(round(_ts.tp()))));
+void ConfusionMatrix::calcOverallAccuracy() {
+    _overallStats.clear();
+    real tp = CustomMath::total(_truePositiveValues);
+    real fp = static_cast<real>(_totalPopulation) - tp;
+    _overallStats.addTp(tp);
+    _overallStats.addTn(tp);
+    _overallStats.addFp(fp);
+    _overallStats.addFn(fp);
+    _overallStats.getClassError(_overallError);
+}
 
+void ConfusionMatrix::costlyComputeClassStats() {
+    _classStats.clear();
+    _classStats.resize(_numberOfClassifiers);
+    _classErrors.clear();
+    _classErrors.resize(_numberOfClassifiers);
+    for (size_t c = 0; c < _numberOfClassifiers; c++) {
+
+        // True Pos / True Neg
+        for (size_t diag = 0; diag < _numberOfClassifiers; diag++) {
+            if (c == diag) {
+                _classStats[c].addTp(_resultValues[diag][diag]);
+            } else {
+                _classStats[c].addTn(_resultValues[diag][diag]);
+           }
+        }
+
+        // False Neg
+        for (size_t act = 0; act < _numberOfClassifiers; act++) {
+            if (c != act) {
+                _classStats[c].addFn(_resultValues[act][c]);
+            }
+        }
+
+        // False Pos
+        for (size_t pre = 0; pre < _numberOfClassifiers; pre++) {
+            if (c != pre) {
+                _classStats[c].addFp(_resultValues[c][pre]);
+            }
+        }
+
+        _classStats[c].getClassError(_classErrors[c]);
+    }
 }
 
 /**
@@ -288,7 +321,7 @@ std::string ConfusionMatrix::toString() {
             } else if (act == 0 && pre == _numberOfClassifiers + 1) {
                 s += "FP\t";
             } else if (act == _numberOfClassifiers+1 && pre == _numberOfClassifiers+1) {
-                s += stringPut(CustomMath::total(_truePositiveValues));
+                s += stringPut(_overallError.accuracy);
             } else if (act == _numberOfClassifiers+1) {
                 s += stringPut(_falseNegativeValues[pre-1]);
             } else if (pre == _numberOfClassifiers+1) {
@@ -359,4 +392,103 @@ ConfusionMatrix::ClassifierMatrix ConfusionMatrix::evaluateResults(const std::ve
     }
 
     return result;
+}
+
+
+
+
+
+
+/**
+ * @brief ConfusionMatrix::MSE
+ * @details Find the MSE for a set of experiments
+ * @param results
+ * @param expecteds
+ * @return
+ */
+real ConfusionMatrix::MSE(
+        const std::vector<std::vector<real> > &results,
+        const std::vector<std::vector<real> > &expecteds) {
+
+    // Verify that their sizes match
+    if (results.size() != expecteds.size()) {
+        return std::numeric_limits<real>::infinity();
+    }
+
+    // Verify that they are both not empty
+    if (results.size() == 0) {
+        return std::numeric_limits<real>::infinity();
+    }
+
+    // Get us our error variable set to zero
+    real error = 0;
+
+    // Loop through each event
+    //#pragma omp parallel for
+    for (size_t i = 0; i < results.size(); i++) {
+
+        // Get the error for each event seperately
+        real tError = MSE(results[i], expecteds[i]);
+
+        // If inifinity, return infinit (we broke it)
+        if (tError == std::numeric_limits<real>::infinity()) {
+            return std::numeric_limits<real>::infinity();
+        }
+
+        // Else add the error to the summation
+        error += tError;
+    }
+    // Divide by the vector size
+    error /= results.size();
+
+    // Return our error
+    return error;
+}
+
+
+/**
+ * @brief ConfusionMatrix::MSE
+ * @details Calculate the MSE for a single event
+ * @param result
+ * @param expected
+ * @return
+ */
+real ConfusionMatrix::MSE(const std::vector<real> &result, const std::vector<real> &expected) {
+    // Verify that their sizes match
+    if (result.size() != expected.size()) {
+        return std::numeric_limits<real>::infinity();
+    }
+
+    // Verify that they are both not empty
+    if (result.size() == 0) {
+        return std::numeric_limits<real>::infinity();
+    }
+
+    // Get us our error variable set to zero
+    real error = 0;
+
+    // Sum the squared errors
+    // #pragma omp parallel for
+    for (size_t i = 0; i < result.size(); i++) {
+        error += CustomMath::pow((result[i] - expected[i]), 2);
+    }
+    // Divide by total error size
+    error /= result.size();
+
+    // Return our error
+    return error;
+}
+
+std::vector<real> ConfusionMatrix::splitMSE(const std::vector<real> & result, const std::vector<real> & expected) {
+    std::vector<real> mse;
+
+    if (result.size() != expected.size()) {
+        return mse;
+    } else {
+        mse.resize(result.size(),std::numeric_limits<real>::infinity());
+    }
+    for (size_t i = 0; i < mse.size(); i++) {
+        mse[i] = CustomMath::pow(result[i]-expected[i], 2);
+    }
+    return mse;
 }

@@ -23,6 +23,13 @@ public:
         real truePositive=0;
         real falseNegative=0;
         real falsePositive=0;
+
+        void clear() {
+            trueNegative = 0;
+            truePositive = 0;
+            falseNegative = 0;
+            falsePositive = 0;
+        }
     };
 
     struct ClassificationError {
@@ -32,6 +39,15 @@ public:
         real specificity = 0;
         real f_score = 0;
         real mse = 0;
+
+        void clear() {
+            accuracy = 0;
+            precision = 0;
+            sensitivity = 0;
+            specificity = 0;
+            f_score = 0;
+            mse = 0;
+        }
     };
 
     const TestStruct & testStruct() { return _test; }

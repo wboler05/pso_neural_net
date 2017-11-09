@@ -19,7 +19,6 @@ public:
     bool setResults(const ClassifierMatrix & results);
     bool validate(const ClassifierMatrix & results);
 
-    TestStatistics getTestStatistics() { return _ts; }
     size_t numberOfClassifiers() const { return _numberOfClassifiers; }
     size_t getPopulation() { return _totalPopulation; }
 
@@ -35,12 +34,32 @@ public:
     const ClassifierVectorRatios & getFalsePositiveRatios() { return _falsePositiveRatios; }
     const ClassifierVectorRatios & getFalseNegativeRatios() { return _falseNegativeRatios; }
 
+    TestStatistics & overallStats() { return _overallStats; }
+    std::vector<TestStatistics> & classStats() { return _classStats; }
+    TestStatistics::ClassificationError & overallError() { return _overallError; }
+    std::vector<TestStatistics::ClassificationError> & classErrors() { return _classErrors; }
+
+    void costlyComputeClassStats();
+
     static ClassifierMatrix evaluateResults(const std::vector<std::vector<real>> predicted, const std::vector<std::vector<real>> actual);
 
     std::string toString();
     void print();
 
+    static real MSE(const std::vector<std::vector<real>> &results,
+                    const std::vector<std::vector<real>> & expecteds);
+    static real MSE(const std::vector<real> &result,
+                    const std::vector<real> &expected);
+    static std::vector<real> splitMSE(const std::vector<real> &result,
+                    const std::vector<real> &expected);
+
 private:
+    // Data Analytics
+    TestStatistics _overallStats;
+    TestStatistics::ClassificationError _overallError;
+    std::vector<TestStatistics> _classStats;
+    std::vector<TestStatistics::ClassificationError> _classErrors;
+
     // Result Matrix
     ClassifierMatrix _resultValues;
     ClassifierMatrixRatios _resultRatios;
@@ -55,13 +74,15 @@ private:
     ClassifierVectorRatios _falsePositiveRatios;
     ClassifierVectorRatios _falseNegativeRatios;
 
-    TestStatistics _ts;
+    // Utility
     size_t _numberOfClassifiers = 0;
     size_t _totalPopulation = 0;
 
     void setTotalClassifiers(const size_t & totalClassifiers);
     void copyCounts(const ClassifierMatrix & results);
     void setPopulationFromResults();
+
+    void calcOverallAccuracy();
 
     void constructTestResults();
     void countTruePositives();

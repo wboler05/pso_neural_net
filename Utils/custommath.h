@@ -39,7 +39,7 @@ namespace CustomMath
     }
 
     template <class T>
-    real mean(std::vector<T> & v) {
+    real mean(const std::vector<T> & v) {
         if (v.size() == 0) {
             return 0;
         }
@@ -49,7 +49,7 @@ namespace CustomMath
     }
 
     template <class T>
-    T total(std::vector<T> & v) {
+    T total(const std::vector<T> & v) {
         T tot = 0;
         for (size_t i = 0; i < v.size(); i++) {
             tot += v[i];

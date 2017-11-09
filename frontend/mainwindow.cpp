@@ -685,13 +685,13 @@ void MainWindow::updateConfusionMatrix() {
     TestStatistics::ClassificationError ce;
 
     if (showBestSelected()) {
-        SelectedGlobalBest selGb = _neuralPsoTrainer->getSelectedGlobalBest();
-        ts = selGb.testStats;
-        ce = selGb.ce;
+        GlobalBestObject selGb = _neuralPsoTrainer->getSelectedGlobalBest();
+        ts = selGb.cm.overallStats();
+        ce = selGb.cm.overallError();
     } else {
-        SelectedGlobalBest recGb = _neuralPsoTrainer->getRecentGlobalBest();
-        ts = recGb.testStats;
-        ce = recGb.ce;
+        GlobalBestObject recGb = _neuralPsoTrainer->getRecentGlobalBest();
+        ts = recGb.cm.overallStats();
+        ce = recGb.cm.overallError();
     }
 
     double actPos = static_cast<double>(ts.tp() + ts.fn());

@@ -34,13 +34,6 @@ public:
 
     static OutageDataItem copy(const OutageDataItem & l);
 
-    static real MSE(const std::vector<std::vector<real>> &results,
-                    const std::vector<std::vector<real>> & expecteds);
-    static real MSE(const std::vector<real> &result,
-                    const std::vector<real> &expected);
-    static std::vector<real> splitMSE(const std::vector<real> &result,
-                    const std::vector<real> &expected);
-
     bool empty() { return _empty; }
 
 private:
