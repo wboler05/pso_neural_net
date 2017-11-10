@@ -18,7 +18,7 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="5,10,10,0">
       <item>
-       <widget class="QGroupBox" name="groupBox_2">
+       <widget class="QGroupBox" name="confusionMatrix_gb">
         <property name="styleSheet">
          <string notr="true">background-color: #c9c9c9</string>
         </property>
@@ -785,10 +785,13 @@
            <item>
             <widget class="QSpinBox" name="fitnessPlotWindow_sb">
              <property name="maximum">
-              <number>10000</number>
+              <number>10000000</number>
+             </property>
+             <property name="singleStep">
+              <number>50</number>
              </property>
              <property name="value">
-              <number>500</number>
+              <number>1500</number>
              </property>
             </widget>
            </item>

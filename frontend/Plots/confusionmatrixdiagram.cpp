@@ -6,11 +6,33 @@ ConfusionMatrixDiagram::ConfusionMatrixDiagram(QWidget *parent) :
     ui(new Ui::ConfusionMatrixDiagram)
 {
     ui->setupUi(this);
+    initializeColorTemplates();
 }
 
 ConfusionMatrixDiagram::~ConfusionMatrixDiagram()
 {
     delete ui;
+}
+
+void ConfusionMatrixDiagram::initializeColorTemplates() {
+
+    // Background Colors
+    _colorTemplate.background.setColor(QPalette::Background, QColor(Qt::white));
+    _colorTemplate.background.setColor(QPalette::Foreground, QColor(Qt::black));
+
+    // Classifier Label Colors
+    _colorTemplate.classifierLabels.setColor(QPalette::Background, QColor(239, 242, 215));
+    _colorTemplate.classifierLabels.setColor(QPalette::Foreground, QColor(49, 51, 39));
+
+    // Near Zero Colors
+    _colorTemplate.nearZero.setColor(QPalette::Background, QColor(237, 248, 249));
+    _colorTemplate.nearZero.setColor(QPalette::Foreground, QColor(Qt::black));
+
+    // Near Max Colors
+    _colorTemplate.nearMax.setColor(QPalette::Background, QColor(25, 206, 234));
+    _colorTemplate.nearMax.setColor(QPalette::Foreground, QColor(Qt::black));
+
+
 }
 
 void ConfusionMatrixDiagram::updateConfusionMatrix(const ConfusionMatrix &cm) {
@@ -20,6 +42,11 @@ void ConfusionMatrixDiagram::updateConfusionMatrix(const ConfusionMatrix &cm) {
     buildMatrix();
 }
 
+/**
+ * @brief ConfusionMatrixDiagram::setLabels
+ * @details Must be defined by user.
+ * @param stringList
+ */
 void ConfusionMatrixDiagram::setLabels(const QStringList & stringList) {
     if (stringList.size() == 0) return;
     _classifierLabels = stringList;
@@ -116,19 +143,117 @@ void ConfusionMatrixDiagram::constructDataTable(QGridLayout * mainLayout) {
     // Load Table with Data
     for (size_t i = 0; i < _numberOfClassifiers; i++) {
         for (size_t j = 0; j < _numberOfClassifiers; j++) {
-//            QPointer<QWidget> newCell = constructCell(_data.getResultValues()[i][j], _data.getResultRatios()[i][j], i == j);
-//            _table[i][j] = newCell;
+            QPointer<QWidget> newCell = constructDataCell(_data.getResultValues()[i][j], _data.getResultRatios()[i][j]);
+            _table[i][j] = newCell;
         }
     }
 
     // Load Fp
-    // Load Fn
-    // Load Accuracy
+    for (size_t i = 0; i < _numberOfClassifiers; i++) {
+        QPointer<QWidget> newCell = constructFPNCell(_data.getFalsePositiveValues()[i], _data.getFalsePositiveRatios()[i]);
+        _table[i][_numberOfClassifiers-1] = newCell;
+    }
 
+    // Load Fn
+    for (size_t i = 0; i < _numberOfClassifiers; i++) {
+        QPointer<QWidget> newCell = constructFPNCell(_data.getFalseNegativeValues()[i], _data.getFalseNegativeRatios()[i]);
+        _table[_numberOfClassifiers-1][i] = newCell;
+    }
+
+    // Load Accuracy
+    QPointer<QWidget> newCell = constructDataCell(CustomMath::total(_data.getTruePositiveValues()), _data.overallError().accuracy);
+    _table[_numberOfClassifiers - 1][_numberOfClassifiers - 1] = newCell;
+
+    _built = true;
 }
 
-QWidget * ConfusionMatrixDiagram::constructCell(const real & number, const real & ratio, bool truePos) {
-    return nullptr;
+/**
+ * @brief ConfusionMatrixDiagram::constructDataCell
+ * @param number
+ * @param ratio
+ * @return
+ */
+QWidget * ConfusionMatrixDiagram::constructDataCell(const real & number, const real & ratio) {
+    QColor background = linearGradient(ratio, _colorTemplate.nearZero.background().color(), _colorTemplate.nearMax.background().color());
+    QColor foreground = linearGradient(ratio, _colorTemplate.nearZero.foreground().color(), _colorTemplate.nearMax.foreground().color());
+    return constructCell(number, ratio, background, foreground);
+}
+
+/**
+ * @brief ConfusionMatrixDiagram::constructFPNCell
+ * @param number
+ * @param ratio
+ * @return
+ */
+QWidget * ConfusionMatrixDiagram::constructFPNCell(const real & number, const real & ratio) {
+    QColor background = linearGradient(ratio, _colorTemplate.nearZero.background().color(), _colorTemplate.nearMax.background().color());
+    QColor foreground = linearGradient(ratio, _colorTemplate.nearZero.foreground().color(), _colorTemplate.nearMax.foreground().color());
+    return constructCell(number, ratio, background, foreground);
+}
+
+/**
+ * @brief ConfusionMatrixDiagram::constructCell
+ * @param number
+ * @param ratio
+ * @param background
+ * @param foreground
+ * @return
+ */
+QWidget * ConfusionMatrixDiagram::constructCell(const real & number, const real & ratio, const QColor & background, const QColor & foreground) {
+    QPointer<QWidget> newCell = new QWidget();
+    QVBoxLayout * layout = new QVBoxLayout();
+    QLabel * val_lbl = new QLabel();
+    val_lbl->setText(QString::number(number));
+    layout->addWidget(val_lbl);
+    QLabel * ratio_lbl = new QLabel();
+    ratio_lbl->setText(QString::number(ratio));
+    layout->addWidget(ratio_lbl);
+    newCell->setLayout(layout);
+
+    QString lbl_styleSheet;
+    lbl_styleSheet.append("color: ");
+    //lbl_styleSheet.append(_colorTemplate.nearZero.foreground().color().name());
+    lbl_styleSheet.append(foreground.name());
+    val_lbl->setStyleSheet(lbl_styleSheet);
+    ratio_lbl->setStyleSheet(lbl_styleSheet);
+
+    QString styleSheet;
+    styleSheet.append("background-color: ");
+    //styleSheet.append(_colorTemplate.nearZero.background().color().name());
+    styleSheet.append(background.name());
+    newCell->setStyleSheet(styleSheet);
+
+    return newCell;
+}
+
+QColor ConfusionMatrixDiagram::linearGradient(const real & val, const real & minVal, const real & maxVal, const QColor & lowColor, const QColor & highColor) {
+    int r = static_cast<int>(linearGradientChannel(val, minVal, maxVal, lowColor.redF(), highColor.redF()) * 255.0);
+    int g = static_cast<int>(linearGradientChannel(val, minVal, maxVal, lowColor.greenF(), highColor.greenF()) * 255.0);
+    int b = static_cast<int>(linearGradientChannel(val, minVal, maxVal, lowColor.blueF(), highColor.blueF()) * 255.0);
+    int a = static_cast<int>(linearGradientChannel(val, minVal, maxVal, lowColor.alphaF(), highColor.alphaF()) * 255.0);
+
+    return QColor(r, g, b, a);
+}
+
+double ConfusionMatrixDiagram::linearGradientChannel(const real & val, const real & minVal, const real & maxVal, const double & lowColor, const double & highColor) {
+    double numerator = highColor * (val - minVal) + lowColor * (maxVal - val);
+    return numerator / (maxVal - minVal);
+}
+
+QColor ConfusionMatrixDiagram::linearGradient(const real & ratio, const QColor & lowColor, const QColor & highColor) {
+    int r = static_cast<int>(linearGradientChannel(ratio, lowColor.redF(), highColor.redF()) * 255.0);
+    int g = static_cast<int>(linearGradientChannel(ratio, lowColor.greenF(), highColor.greenF()) * 255.0);
+    int b = static_cast<int>(linearGradientChannel(ratio, lowColor.blueF(), highColor.blueF()) * 255.0);
+    int a = static_cast<int>(linearGradientChannel(ratio, lowColor.alphaF(), highColor.alphaF()) * 255.0);
+    return QColor(r, g, b, a);
+}
+
+double ConfusionMatrixDiagram::linearGradientChannel(const real & ratio, const double & lowColor, const double & highColor) {
+    real m_ratio = ratio;
+    if (m_ratio < 0) m_ratio = 0;
+    if (m_ratio > 1) m_ratio = 1;
+
+    return ( m_ratio * (highColor - lowColor) ) + lowColor;
 }
 
 

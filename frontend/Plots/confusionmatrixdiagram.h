@@ -31,6 +31,8 @@ public:
     explicit ConfusionMatrixDiagram(QWidget *parent = 0);
     ~ConfusionMatrixDiagram();
 
+    void initializeColorTemplates();
+
     void setLabels(const QStringList & stringList);
     const size_t & numberOfClassifiers() { return _numberOfClassifiers; }
 
@@ -41,6 +43,14 @@ public:
 
     TestStatistics getTestStatistics();
 
+    static QColor linearGradient(const real & val, const real & minVal, const real & maxVal, const QColor & lowColor, const QColor & highColor);
+    static double linearGradientChannel(const real & val, const real & minVal, const real & maxVal, const double & lowColor, const double & highColor);
+
+    static QColor linearGradient(const real & ratio, const QColor & lowColor, const QColor & highColor);
+    static double linearGradientChannel(const real & ratio, const double & lowColor, const double & highColor);
+
+    bool built () { return _built; }
+
 private:
     Ui::ConfusionMatrixDiagram *ui;
     size_t _numberOfClassifiers = 0;
@@ -49,6 +59,7 @@ private:
     TestStatistics _ts;
     QStringList _classifierLabels;
     ColorTemplate _colorTemplate;
+    bool _built = false;
 
     QPointer<QWidget> _mainWidget;
     QVector<QVector<QPointer<QWidget>>> _table;
@@ -65,7 +76,9 @@ private:
     void constructActualPredictLabels(QGridLayout * mainLayout);
     void constructDataTable(QGridLayout * mainLayout);
 
-    QWidget * constructCell(const real & number, const real & ratio, bool truePos);
+    QWidget * constructDataCell(const real & number, const real & ratio);
+    QWidget * constructFPNCell(const real & number, const real & ratio);
+    QWidget * constructCell(const real & number, const real & ratio, const QColor & background, const QColor & foreground);
 
     QLabel * getNewClassifierLabel(const QString & label);
     QString classifierLabelStyle();
