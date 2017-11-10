@@ -73,7 +73,7 @@ public:
     void randomlyDistributeData();
     void partitionData();
 
-    void calcImplicityBiasWeights();
+    void calcImplicitBiasWeights();
     void biasAgainstLOA();
 
     void trainingRun();
@@ -125,6 +125,7 @@ private:
     std::vector<size_t> _testInputs;
     std::vector<size_t> _validationInputs;
     std::vector<real> _implicitBiasWeights;
+    std::vector<int> _trueNumElesPerClass;
     std::vector<size_t> _inputSkips;
 
     std::string _functionMsg;

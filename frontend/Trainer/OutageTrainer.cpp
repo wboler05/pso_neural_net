@@ -24,7 +24,7 @@ void OutageTrainer::build() {
     partitionData();
 
     // Calculate the implicit bias weights of each class
-    calcImplicityBiasWeights();
+    calcImplicitBiasWeights();
 
     buildPso();
 
@@ -100,7 +100,7 @@ void OutageTrainer::randomlyDistributeData() {
     }
 }
 
-void OutageTrainer::calcImplicityBiasWeights() {
+void OutageTrainer::calcImplicitBiasWeights() {
 
     OutageDataWrapper dataItem = (*_inputCache)[0];
     vector<real> outputClassVector = dataItem.outputize();
@@ -115,14 +115,14 @@ void OutageTrainer::calcImplicityBiasWeights() {
         outputClassVector = dataItem.outputize();
         for (size_t j = 0; j < outputClassVector.size(); j++){
             if (outputClassVector[j] == 1){
-                _implicitBiasWeights[j]++;
+                _trueNumElesPerClass[j]++;
                 break;
             }
         }
     }
-    // Change count to ratios
+    // Calculate Ratios
     for (size_t i = 0; i < _implicitBiasWeights.size(); i++){
-        _implicitBiasWeights[i] /= _inputCache->length();
+        _implicitBiasWeights[i] = _trueNumElesPerClass[i] / _inputCache->length();
     }
 }
 
@@ -270,8 +270,7 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
 
     for (size_t i = 0; i < cm.numberOfClassifiers(); i++) {
         if (_implicitBiasWeights[i] != 0) {
-            acc += cm.getTruePositiveRatios()[i] / _implicitBiasWeights[i];
-//            acc += cm.classErrors()[i].accuracy / _implicitBiasWeights[i];
+            acc += (cm.getTruePositiveRatios()[i] / _implicitBiasWeights[i])*(1/(1-((1/cm.numberOfClassifiers())*((cm.numberOfClassifiers()-1)+((_trueNumElesPerClass[i]-1/_inputCache->length())/_implicitBiasWeights[i])))));
         } else {
             qWarning() << "OutageTrainer: Fitness Function is dividing by zero!!!";
             exit(1);
