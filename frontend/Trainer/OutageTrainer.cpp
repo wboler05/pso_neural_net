@@ -23,6 +23,9 @@ void OutageTrainer::build() {
     // Split between training, testing, and validation set.
     partitionData();
 
+    // Calculate the implicit bias weights of each class
+    calcImplicityBiasWeights();
+
     buildPso();
 
     updateMinMax();
@@ -97,31 +100,30 @@ void OutageTrainer::randomlyDistributeData() {
     }
 }
 
-void OutageTrainer::biasAgainstOutputs() {
-    /** TEST **/
-/*
-    _biasedTrainingInputsCounts.resize(2, 0);
-    _biasedTrainingInputs.resize(2);
+void OutageTrainer::calcImplicityBiasWeights() {
 
-    // Run through the training inputs
-    for (size_t i = 0; i < _trainingInputs.size(); i++) {
-        size_t it = _trainingInputs.at(i);
-        OutageDataWrapper dataItem = (*_inputCache)[it];
+    OutageDataWrapper dataItem = (*_inputCache)[0];
+    vector<real> outputClassVector = dataItem.outputize();
+    _implicitBiasWeights.resize(outputClassVector.size(),0);
+
+    // Run through the data to get count of each class
+    for (size_t i = 0; i < _inputCache->length(); i++) {
+        dataItem = (*_inputCache)[i];
         if (dataItem.empty()) {
             continue;
         }
-
-        // Count the true and false outages
-        bool outage = confirmOutage(dataItem.outputize(_outputSkips));
-        if (outage) {
-            _biasedTrainingInputsCounts[1]++;
-            _biasedTrainingInputs[1].push_back(it);
-        } else {
-            _biasedTrainingInputsCounts[0]++;
-            _biasedTrainingInputs[0].push_back(it);
+        outputClassVector = dataItem.outputize();
+        for (size_t j = 0; j < outputClassVector.size(); j++){
+            if (outputClassVector[j] == 1){
+                _implicitBiasWeights[j]++;
+                break;
+            }
         }
     }
-*/
+    // Change count to ratios
+    for (size_t i = 0; i < _implicitBiasWeights.size(); i++){
+        _implicitBiasWeights[i] /= _inputCache->length();
+    }
 }
 
 void OutageTrainer::biasAgainstLOA() {
@@ -310,30 +312,6 @@ TestStatistics::ClassificationError && OutageTrainer::validateCurrentNet() {
     TestStatistics::ClassificationError ce;
     classError(_validationInputs, _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
     return std::move(ce);
-}
-
-/**
- * @brief OutageTrainer::randomizeTestInputs
- * @return Iterator for testInput list
- */
-size_t OutageTrainer::randomizeTrainingInputs() {
-    _neuralNet->resetAllNodes();
-
-    size_t minIt = 0;
-    size_t maxIt = _biasedTrainingInputs.size()-1;
-
-    size_t uniformOutputIt = _randomEngine.uniformUnsignedInt(minIt, maxIt);
-    size_t maxBiasIt = _biasedTrainingInputs[uniformOutputIt].size() -1;
-    size_t I = _randomEngine.uniformUnsignedInt(minIt, maxBiasIt);
-    size_t it = _biasedTrainingInputs[uniformOutputIt][I];
-
-    std::vector<real> inputItems = normalizeInput(it);
-
-    for (size_t i = 0; i < inputItems.size(); i++) {
-        _neuralNet->loadInput(inputItems[i], i);
-    }
-
-    return it;
 }
 
 OutageDataWrapper && OutageTrainer::loadTestInput(const size_t & I) {

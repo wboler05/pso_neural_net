@@ -73,7 +73,7 @@ public:
     void randomlyDistributeData();
     void partitionData();
 
-    void biasAgainstOutputs();
+    void calcImplicityBiasWeights();
     void biasAgainstLOA();
 
     void trainingRun();
@@ -84,7 +84,6 @@ public:
     void validateGB();
     TestStatistics::ClassificationError && validateCurrentNet();
 
-    size_t randomizeTrainingInputs();
     void runTrainer();
     OutageDataWrapper && loadTestInput(const size_t & I);
     OutageDataWrapper && loadValidationInput(const size_t &I);
@@ -125,8 +124,7 @@ private:
     std::vector<size_t> _trainingInputs;
     std::vector<size_t> _testInputs;
     std::vector<size_t> _validationInputs;
-    std::vector<real> _biasedTrainingInputsCounts;
-    std::vector<std::vector<size_t>> _biasedTrainingInputs;
+    std::vector<real> _implicitBiasWeights;
     std::vector<size_t> _inputSkips;
 
     std::string _functionMsg;
