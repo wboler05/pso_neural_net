@@ -105,6 +105,7 @@ void OutageTrainer::calcImplicitBiasWeights() {
     OutageDataWrapper dataItem = (*_inputCache)[0];
     vector<real> outputClassVector = dataItem.outputize();
     _implicitBiasWeights.resize(outputClassVector.size(),0);
+    _trueNumElesPerClass.resize(outputClassVector.size(),0);
 
     // Run through the data to get count of each class
     for (size_t i = 0; i < _inputCache->length(); i++) {
@@ -122,7 +123,7 @@ void OutageTrainer::calcImplicitBiasWeights() {
     }
     // Calculate Ratios
     for (size_t i = 0; i < _implicitBiasWeights.size(); i++){
-        _implicitBiasWeights[i] = _trueNumElesPerClass[i] / _inputCache->length();
+        _implicitBiasWeights[i] = static_cast<real>(_trueNumElesPerClass[i]) / static_cast<real>(_inputCache->length());
     }
 }
 

@@ -125,7 +125,7 @@ private:
     std::vector<size_t> _testInputs;
     std::vector<size_t> _validationInputs;
     std::vector<real> _implicitBiasWeights;
-    std::vector<int> _trueNumElesPerClass;
+    std::vector<size_t> _trueNumElesPerClass;
     std::vector<size_t> _inputSkips;
 
     std::string _functionMsg;
