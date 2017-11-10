@@ -249,11 +249,11 @@ std::vector<real> OutageDataWrapper::outputize() {
     output.resize(5, -1);
     if (_affectedCustomers == 0) {
         output[0] = 1;
-    } else if (_affectedCustomers <= 10) {
+    } else if (_affectedCustomers <= 1) {
         output[1] = 1;
-    } else if (_affectedCustomers <= 100) {
+    } else if (_affectedCustomers <= 10) {
         output[2] = 1;
-    } else if (_affectedCustomers <= 1000) {
+    } else if (_affectedCustomers <= 100) {
         output[3] = 1;
     } else {
         output[4] = 1;
