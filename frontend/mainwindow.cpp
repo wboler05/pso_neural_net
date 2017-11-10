@@ -388,17 +388,17 @@ void MainWindow::initializeCache() {
 
         for (size_t i = 0; i < _inputCache->totalInputItemsInFile(); i++) {
             OutageDataWrapper index = (*_inputCache)[i];
-            qDebug() <<
-                "(" << i << "): date(" <<
-                index._date.day() << "/" <<
-                index._date.month() << "/" <<
-                index._date.year() << ") Temp(" <<
-                static_cast<double>(index._temp.hi()) << "," <<
-                static_cast<double>(index._temp.avg()) << "," <<
-                static_cast<double>(index._temp.lo()) << ")\tAffected Customers: " <<
-                index._affectedCustomers << "\tOutage: " << OutageDataWrapper::bool2Double(index._outage) <<
-                "\tLOA: " << index._loa <<
-                "\tLat: " << index._latlong.latitude() << "\tLong: " << index._latlong.longitude();
+//            qDebug() <<
+//                "(" << i << "): date(" <<
+//                index._date.day() << "/" <<
+//                index._date.month() << "/" <<
+//                index._date.year() << ") Temp(" <<
+//                static_cast<double>(index._temp.hi()) << "," <<
+//                static_cast<double>(index._temp.avg()) << "," <<
+//                static_cast<double>(index._temp.lo()) << ")\tAffected Customers: " <<
+//                index._affectedCustomers << "\tOutage: " << OutageDataWrapper::bool2Double(index._outage) <<
+//                "\tLOA: " << index._loa <<
+//                "\tLat: " << index._latlong.latitude() << "\tLong: " << index._latlong.longitude();
         }
         qDebug() << "Cache creation complete.";
     } else {

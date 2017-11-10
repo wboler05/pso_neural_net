@@ -265,6 +265,33 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
     TestStatistics::ClassificationError ce = cm.overallError();
     cm.overallError().mse = finalMse;
 
+    real acc = 0;
+    cm.costlyComputeClassStats();
+
+    for (size_t i = 0; i < cm.numberOfClassifiers(); i++) {
+        if (_implicitBiasWeights[i] != 0) {
+            acc += cm.getTruePositiveRatios()[i] / _implicitBiasWeights[i];
+//            acc += cm.classErrors()[i].accuracy / _implicitBiasWeights[i];
+        } else {
+            qWarning() << "OutageTrainer: Fitness Function is dividing by zero!!!";
+            exit(1);
+        }
+    }
+    acc /= static_cast<real>(cm.numberOfClassifiers());
+    return acc;
+
+
+
+
+
+
+
+
+    for (size_t i = 0; i < cm.numberOfClassifiers(); i++) {
+        acc += CustomMath::pow(cm.classErrors()[i].accuracy,2);
+    }
+    return sqrt(acc);
+
 std::vector<real> zeroVec(cm.numberOfClassifiers(), 0.0);
 return ConfusionMatrix::MSE(cm.getTruePositiveRatios(), zeroVec);
 
@@ -384,10 +411,12 @@ void OutageTrainer::testGB() {
         }
     }
     /// test
+    /*
     qDebug() << "Test GB For: " << _epochs;
     for (size_t i = 0; i < _outputNodeStats.size(); i++) {
         qDebug() << " - (" << i << "): Mean: " << _outputNodeStats[i].avg() << "\tStd: " << _outputNodeStats[i].std_dev();
     }
+    */
 }
 
 void OutageTrainer::testSelectedGB() {
