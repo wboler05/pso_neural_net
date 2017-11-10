@@ -456,7 +456,7 @@ real NeuralPso::evaluate() {
     findPersonalBest(printChange);
     findLocalBest(printChange);
     findGlobalBest(printChange);
-
+/*
     // Print changes
     for (size_t i = 0; i < _particles->size(); i++) {
         NeuralParticle *p = &(*_particles)[i];
@@ -484,7 +484,7 @@ real NeuralPso::evaluate() {
 
         }
     } // end for each particle
-
+*/
     printGBMtx.lock();
     if (printGBFlag) {
         printGBFlag = false;

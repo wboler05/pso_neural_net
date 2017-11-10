@@ -246,7 +246,29 @@ std::vector<real> OutageDataWrapper::inputize(const std::vector<size_t> & skips)
 std::vector<real> OutageDataWrapper::outputize() {
     std::vector<real> output;
 
-    output.resize(5, -1);
+    std::vector<real> ranges = {3, 42};
+
+    output.resize(ranges.size()+2, -1);
+
+    for (size_t i = 0; i < ranges.size()+2; i++) {
+        if (i == 0) {
+            if (_affectedCustomers == 0) {
+                output[0] = 1;
+                break;
+            }
+        } else if (i == ranges.size() + 1) {
+            if (_affectedCustomers > ranges[i-2]) {
+                output[i] = 1;
+                break;
+            }
+        } else {
+            if (_affectedCustomers <= ranges[i-1]) {
+                output[i] = 1;
+                break;
+            }
+        }
+    }
+/*
     if (_affectedCustomers == 0) {
         output[0] = 1;
     } else if (_affectedCustomers <= 1) {   // 10   | 1
@@ -258,7 +280,7 @@ std::vector<real> OutageDataWrapper::outputize() {
     } else {
         output[4] = 1;
     }
-
+*/
     return output;
 }
 

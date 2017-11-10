@@ -280,14 +280,14 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
     cm.costlyComputeClassStats();
     for (size_t i = 0; i < cm.numberOfClassifiers(); i++) {
         if (_implicitBiasWeights[i] != 0) {
-            acc += (cm.getTruePositiveRatios()[i] / _implicitBiasWeights[i]) * (_equalizationFactors[i]);
+            acc += (cm.getTruePositiveRatios()[i] / _implicitBiasWeights[i]);// * (_equalizationFactors[i]);
         } else {
             qWarning() << "OutageTrainer: Fitness Function is dividing by zero!!!";
             exit(1);
         }
     }
     acc /= static_cast<real>(cm.numberOfClassifiers());
-    acc /= _fitnessNormalizationFactor;
+//    acc /= _fitnessNormalizationFactor;
     return acc;
 
 
