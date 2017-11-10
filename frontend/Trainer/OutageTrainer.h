@@ -126,6 +126,8 @@ private:
     std::vector<size_t> _validationInputs;
     std::vector<real> _implicitBiasWeights;
     std::vector<size_t> _trueNumElesPerClass;
+    std::vector<real> _equalizationFactors;
+    real _fitnessNormalizationFactor;
     std::vector<size_t> _inputSkips;
 
     std::string _functionMsg;

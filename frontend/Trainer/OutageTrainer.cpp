@@ -104,8 +104,11 @@ void OutageTrainer::calcImplicitBiasWeights() {
 
     OutageDataWrapper dataItem = (*_inputCache)[0];
     vector<real> outputClassVector = dataItem.outputize();
-    _implicitBiasWeights.resize(outputClassVector.size(),0);
-    _trueNumElesPerClass.resize(outputClassVector.size(),0);
+    real numClasses = outputClassVector.size();
+    _implicitBiasWeights.resize(static_cast<int>(numClasses),0);
+    _trueNumElesPerClass.resize(static_cast<int>(numClasses),0);
+    _equalizationFactors.resize(static_cast<int>(numClasses),0);
+    _fitnessNormalizationFactor = 0;
 
     // Run through the data to get count of each class
     for (size_t i = 0; i < _inputCache->length(); i++) {
@@ -114,7 +117,7 @@ void OutageTrainer::calcImplicitBiasWeights() {
             continue;
         }
         outputClassVector = dataItem.outputize();
-        for (size_t j = 0; j < outputClassVector.size(); j++){
+        for (size_t j = 0; j < static_cast<size_t>(numClasses); j++){
             if (outputClassVector[j] == 1){
                 _trueNumElesPerClass[j]++;
                 break;
@@ -124,6 +127,13 @@ void OutageTrainer::calcImplicitBiasWeights() {
     // Calculate Ratios
     for (size_t i = 0; i < _implicitBiasWeights.size(); i++){
         _implicitBiasWeights[i] = static_cast<real>(_trueNumElesPerClass[i]) / static_cast<real>(_inputCache->length());
+    }
+    // Calculate Normalization Factor
+    real a;
+    for (size_t i = 0; i < static_cast<size_t>(numClasses); i++){
+        a = ((static_cast<real>(_trueNumElesPerClass[i] - 1)/static_cast<real>(_inputCache->length()))/_implicitBiasWeights[i]);
+        _equalizationFactors[i] = 1.0 / (1.0-(1.0/numClasses)*(numClasses - 1.0 + a));
+        _fitnessNormalizationFactor += (1/numClasses) * _equalizationFactors[i];
     }
 }
 
@@ -268,16 +278,16 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
 
     real acc = 0;
     cm.costlyComputeClassStats();
-
     for (size_t i = 0; i < cm.numberOfClassifiers(); i++) {
         if (_implicitBiasWeights[i] != 0) {
-            acc += (cm.getTruePositiveRatios()[i] / _implicitBiasWeights[i])*(1/(1-((1/cm.numberOfClassifiers())*((cm.numberOfClassifiers()-1)+((_trueNumElesPerClass[i]-1/_inputCache->length())/_implicitBiasWeights[i])))));
+            acc += (cm.getTruePositiveRatios()[i] / _implicitBiasWeights[i]) * (_equalizationFactors[i]);
         } else {
             qWarning() << "OutageTrainer: Fitness Function is dividing by zero!!!";
             exit(1);
         }
     }
     acc /= static_cast<real>(cm.numberOfClassifiers());
+    acc /= _fitnessNormalizationFactor;
     return acc;
 
 
