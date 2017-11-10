@@ -24,6 +24,7 @@ struct PsoParams {
   real vDelta=5E-20L;
   real vLimit = 0.75L;
   size_t windowSize = 50;
+  real dt = 0.45;
 
   bool termIterationFlag;
   bool termDeltaFlag;

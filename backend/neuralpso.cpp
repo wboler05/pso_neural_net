@@ -421,6 +421,7 @@ real NeuralPso::flyIteration(const size_t & particleId,
         *w_v = -_psoParams.vLimit;
     }
 
+    *w_v *= psoParams().dt;
     *w_x += *w_v;
 
     *w_x = std::min(*w_x, *w_x_max);
@@ -455,7 +456,7 @@ real NeuralPso::evaluate() {
     findPersonalBest(printChange);
     findLocalBest(printChange);
     findGlobalBest(printChange);
-
+/*
     // Print changes
     for (size_t i = 0; i < _particles->size(); i++) {
         NeuralParticle *p = &(*_particles)[i];
@@ -483,7 +484,7 @@ real NeuralPso::evaluate() {
 
         }
     } // end for each particle
-
+*/
     printGBMtx.lock();
     if (printGBFlag) {
         printGBFlag = false;
@@ -619,7 +620,7 @@ void NeuralPso::findGlobalBest(std::vector<bool> & printChange) {
     int globalBestIt=-1;
     for (size_t i = 0; i < _particles->size(); i++) {
         NeuralParticle & p = (*_particles)[i];
-        if (p._fit_pb > _gb._fit_pb) {
+        if (p._fit_pb >= _gb._fit_pb) {
             _gb._fit_pb = p._fit_pb;
             globalBestIt = static_cast<int>(i);
         } // End global best

@@ -23,6 +23,9 @@ void OutageTrainer::build() {
     // Split between training, testing, and validation set.
     partitionData();
 
+    // Calculate the implicit bias weights of each class
+    calcImplicitBiasWeights();
+
     buildPso();
 
     updateMinMax();
@@ -114,31 +117,41 @@ void OutageTrainer::randomlyDistributeData() {
     }
 }
 
-void OutageTrainer::biasAgainstOutputs() {
-    /** TEST **/
-/*
-    _biasedTrainingInputsCounts.resize(2, 0);
-    _biasedTrainingInputs.resize(2);
+void OutageTrainer::calcImplicitBiasWeights() {
 
-    // Run through the training inputs
-    for (size_t i = 0; i < _trainingInputs.size(); i++) {
-        size_t it = _trainingInputs.at(i);
-        OutageDataWrapper dataItem = (*_inputCache)[it];
+    OutageDataWrapper dataItem = (*_inputCache)[0];
+    vector<real> outputClassVector = dataItem.outputize();
+    real numClasses = outputClassVector.size();
+    _implicitBiasWeights.resize(static_cast<size_t>(numClasses),0);
+    _trueNumElesPerClass.resize(static_cast<size_t>(numClasses),0);
+    _equalizationFactors.resize(static_cast<size_t>(numClasses),0);
+    _fitnessNormalizationFactor = 0;
+
+    // Run through the data to get count of each class
+    for (size_t i = 0; i < _inputCache->length(); i++) {
+        dataItem = (*_inputCache)[i];
         if (dataItem.empty()) {
             continue;
         }
-
-        // Count the true and false outages
-        bool outage = confirmOutage(dataItem.outputize(_outputSkips));
-        if (outage) {
-            _biasedTrainingInputsCounts[1]++;
-            _biasedTrainingInputs[1].push_back(it);
-        } else {
-            _biasedTrainingInputsCounts[0]++;
-            _biasedTrainingInputs[0].push_back(it);
+        outputClassVector = dataItem.outputize();
+        for (size_t j = 0; j < static_cast<size_t>(numClasses); j++){
+            if (outputClassVector[j] == 1.0){
+                _trueNumElesPerClass[j]++;
+                break;
+            }
         }
     }
-*/
+    // Calculate Ratios
+    for (size_t i = 0; i < _implicitBiasWeights.size(); i++){
+        _implicitBiasWeights[i] = static_cast<real>(_trueNumElesPerClass[i]) / static_cast<real>(_inputCache->length());
+    }
+    // Calculate Normalization Factor
+    real a;
+    for (size_t i = 0; i < static_cast<size_t>(numClasses); i++){
+        a = ((static_cast<real>(_trueNumElesPerClass[i] - 1)/static_cast<real>(_inputCache->length()))/_implicitBiasWeights[i]);
+        _equalizationFactors[i] = 1.0 / (1.0-(1.0/numClasses)*(numClasses - 1.0 + a));
+        _fitnessNormalizationFactor += (1.0/numClasses) * _equalizationFactors[i];
+    }
 }
 
 void OutageTrainer::biasAgainstLOA() {
@@ -205,6 +218,8 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
 
     TestStatistics trainingStats;
 
+    std::vector<std::vector<real>> predicted, actual;
+
     // First, test each output and store to the vector of results;
     for (size_t someSets = 0; someSets < trainingIterations; someSets++) {
         qApp->processEvents();
@@ -227,11 +242,15 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
         //expectedOutput = _output->at(I);
         expectedOutput = dataItem.outputize();
 
-        std::vector<real> mse_outputs = OutageDataWrapper::splitMSE(output, expectedOutput);
+        std::vector<real> mse_outputs = ConfusionMatrix::splitMSE(output, expectedOutput);
         for (size_t output_nodes = 0; output_nodes < mse_outputs.size(); output_nodes++) {
             mse[output_nodes] += mse_outputs[output_nodes];
         }
 
+        predicted.push_back(output);
+        actual.push_back(expectedOutput);
+
+        //TODO Replace this part with the cm
         bool result = confirmOutage(output);
         bool expectedResult = confirmOutage(expectedOutput);
 
@@ -248,8 +267,13 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
                 trainingStats.addTn();
             }
         }
+        // END TODO
 
     }
+
+    ConfusionMatrix::ClassifierMatrix classifierResults = ConfusionMatrix::evaluateResults(predicted, actual);
+    ConfusionMatrix cm(classifierResults);
+    //cm.print();
 
     for (size_t i = 0; i < mse.size(); i++) {
         mse[i] /= static_cast<real>(trainingIterations);
@@ -264,9 +288,43 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
         _outputNodeStats[i].add_val(mse[i]);
     }
 
-    TestStatistics::ClassificationError ce;
-    ce.mse = finalMse;
-    trainingStats.getClassError(ce);
+    ///MORE TESTING CONCEPTS YOLO HELLO
+    trainingStats = cm.overallStats();
+    TestStatistics::ClassificationError ce = cm.overallError();
+    cm.overallError().mse = finalMse;
+
+    real acc = 0;
+    cm.costlyComputeClassStats();
+    for (size_t i = 0; i < cm.numberOfClassifiers(); i++) {
+        if (_implicitBiasWeights[i] != 0.0) {
+            acc += (cm.getTruePositiveRatios()[i] / _implicitBiasWeights[i]) * (_equalizationFactors[i]);
+        } else {
+            qWarning() << "OutageTrainer: Fitness Function is dividing by zero!!!";
+            exit(1);
+        }
+    }
+    acc /= static_cast<real>(cm.numberOfClassifiers());
+    acc /= _fitnessNormalizationFactor;
+    return acc;
+
+
+
+
+
+
+
+
+    for (size_t i = 0; i < cm.numberOfClassifiers(); i++) {
+        acc += CustomMath::pow(cm.classErrors()[i].accuracy,2);
+    }
+    return sqrt(acc);
+
+std::vector<real> zeroVec(cm.numberOfClassifiers(), 0.0);
+return ConfusionMatrix::MSE(cm.getTruePositiveRatios(), zeroVec);
+
+return (_params->alpha * cm.overallError().accuracy - _params->beta * finalMse) /
+        (_params->alpha + _params->beta);
+
 
     real penalty = 0.0;
     if (trainingStats.tp() < 1)
@@ -301,37 +359,13 @@ bool OutageTrainer::networkPathValidation() {
 void OutageTrainer::validateGB() {
     _neuralNet->setState(_gb._x);
     TestStatistics::ClassificationError ce;
-    classError(_validationInputs, _validationStats, ce, _neuralNet->nParams()->validationIterations);
+    classError(_validationInputs, _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
 }
 
 TestStatistics::ClassificationError && OutageTrainer::validateCurrentNet() {
     TestStatistics::ClassificationError ce;
-    classError(_validationInputs, _validationStats, ce, _neuralNet->nParams()->validationIterations);
+    classError(_validationInputs, _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
     return std::move(ce);
-}
-
-/**
- * @brief OutageTrainer::randomizeTestInputs
- * @return Iterator for testInput list
- */
-size_t OutageTrainer::randomizeTrainingInputs() {
-    _neuralNet->resetAllNodes();
-
-    size_t minIt = 0;
-    size_t maxIt = _biasedTrainingInputs.size()-1;
-
-    size_t uniformOutputIt = _randomEngine.uniformUnsignedInt(minIt, maxIt);
-    size_t maxBiasIt = _biasedTrainingInputs[uniformOutputIt].size() -1;
-    size_t I = _randomEngine.uniformUnsignedInt(minIt, maxBiasIt);
-    size_t it = _biasedTrainingInputs[uniformOutputIt][I];
-
-    std::vector<real> inputItems = normalizeInput(it);
-
-    for (size_t i = 0; i < inputItems.size(); i++) {
-        _neuralNet->loadInput(inputItems[i], i);
-    }
-
-    return it;
 }
 
 OutageDataWrapper && OutageTrainer::loadTestInput(const size_t & I) {
@@ -376,36 +410,45 @@ void OutageTrainer::testGB() {
     /** TEST **/
   _neuralNet->setState(_gb._x);
 
-    TestStatistics::ClassificationError ce;
-    classError(_testInputs, _testStats, ce, _neuralNet->nParams()->testIterations);
+    classError(_testInputs, _testConfusionMatrix, _neuralNet->nParams()->testIterations);
 
     _recent_gb.state = _gb._x;
-    _recent_gb.testStats = _testStats;
-    _recent_gb.ce = ce;
+    _recent_gb.cm = _testConfusionMatrix;
 
-    if (_testStats.tn() > 0 &&
-        _testStats.tp() > 0
-        ) {
-        if (ce.accuracy > _best_gb.ce.accuracy || _best_gb.state.size() == 0) {
+    bool validated_gb_flag = true;
+
+    _testConfusionMatrix.costlyComputeClassStats();
+
+    for (size_t i = 0; i < _testConfusionMatrix.numberOfClassifiers(); i++) {
+        int tp = static_cast<int> (round(_testConfusionMatrix.classStats()[i].tp()));
+        int tn = static_cast<int> (round(_testConfusionMatrix.classStats()[i].tn()));
+        if (tp == 0 || tn == 0) {
+            validated_gb_flag = false;
+        }
+    }
+
+    real newAcc = _testConfusionMatrix.overallError().accuracy;
+    real gbAcc = _best_gb.cm.overallError().accuracy;
+
+    if (validated_gb_flag) {
+        if (newAcc > gbAcc || _best_gb.state.size() == 0) {
 //        if (ce.mse < _best_gb.ce.mse || _best_gb.state.size() == 0) {
             _best_gb.state = _gb._x;
-            _best_gb.testStats = _testStats;
-            _best_gb.ce = ce;
+            _best_gb.cm = _testConfusionMatrix;
         }
     }
     /// test
+    /*
     qDebug() << "Test GB For: " << _epochs;
     for (size_t i = 0; i < _outputNodeStats.size(); i++) {
         qDebug() << " - (" << i << "): Mean: " << _outputNodeStats[i].avg() << "\tStd: " << _outputNodeStats[i].std_dev();
     }
+    */
 }
 
 void OutageTrainer::testSelectedGB() {
     _neuralNet->setState(_best_gb.state);
-    TestStatistics::ClassificationError ce;
-    classError(_testInputs, _testStats, ce, _neuralNet->nParams()->testIterations);
-    _best_gb.testStats = _testStats;
-    _best_gb.ce = ce;
+    classError(_testInputs, _best_gb.cm, _neuralNet->nParams()->testIterations);
 }
 
 /**
@@ -415,11 +458,10 @@ void OutageTrainer::testSelectedGB() {
  * @todo Take out the training part and pass a list of results.
  */
 void OutageTrainer::classError(const std::vector<size_t> & testInputs,
-                               TestStatistics & testStats,
-                               TestStatistics::ClassificationError & ce,
+                               ConfusionMatrix & cm,
                                const size_t & testIterations) {
     //!TEST//
-    testStats.clear();
+    cm.reset();
 
     size_t iterations = testIterations;
     size_t inputSize = testInputs.size();
@@ -429,12 +471,14 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
 
     real mse = 0L;
 
+    std::vector<std::vector<real>> predictions, actuals;
+
     for (size_t i = 0; i < iterations; i++) {
         size_t it = testInputs[i];
         _neuralNet->resetAllNodes();
 
         OutageDataWrapper outageData = (*_inputCache)[it];
-//        std::vector<real> inputItems = outageData.inputize(_inputSkips);
+
         std::vector<real> inputItems = normalizeInput(it);
         for (size_t i = 0; i < inputItems.size(); i++) {
             _neuralNet->loadInput(inputItems[i], i);
@@ -443,28 +487,13 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
         std::vector<real> expectedOutput = outageData.outputize();
         std::vector<real> output = _neuralNet->process();
 
-        mse += OutageDataWrapper::MSE(output, expectedOutput);
-
-        bool result = confirmOutage(output);
-        bool expectedResult = confirmOutage(expectedOutput);
-//qDebug() << "Affected People: \t-Expected: " << expectedOutput[1] << "\t-Predicted: " << output[1] << "\t-Exp Outage: " << expectedOutput[0] << "\t-Act Outage: " << output[0];
-        if (expectedResult) {
-            if (result) {
-                testStats.addTp();
-            } else {
-                testStats.addFn();
-            }
-        } else {
-            if (result) {
-                testStats.addFp();
-            } else {
-                testStats.addTn();
-            }
-        }
+        actuals.push_back(expectedOutput);
+        predictions.push_back(output);
     }
-
-  testStats.getClassError(ce);
-  ce.mse = mse / static_cast<real>(iterations);
+    ConfusionMatrix::ClassifierMatrix results = ConfusionMatrix::evaluateResults(predictions, actuals);
+    cm.setResults(results);
+    cm.overallError().mse = ConfusionMatrix::MSE(actuals, predictions);
+    cm.print();
 
 //  string outputString = testStats.outputString(ce);
 //  Logger::write(outputString);
@@ -561,5 +590,5 @@ std::vector<real> OutageTrainer::normalizeInput(std::vector<real> & input) {
                     (_maxInputData[i] - _minInputData[i]);
         }
     }
-    return input;   // Yes, it's passing reference AND returning.  Look at polymorphic method.
+    return input;
 }

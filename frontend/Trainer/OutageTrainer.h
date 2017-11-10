@@ -3,6 +3,7 @@
 
 #include "neuralpso.h"
 #include "outagedataitem.h"
+#include "confusionmatrix.h"
 
 #include "inputcache.h"
 #include "statobject.h"
@@ -42,10 +43,9 @@ struct EnableParameters {
     std::vector<size_t> inputSkips();
 };
 
-struct SelectedGlobalBest {
+struct GlobalBestObject {
     NeuralNet::State state;
-    TestStatistics testStats;
-    TestStatistics::ClassificationError ce;
+    ConfusionMatrix cm;
 };
 
 struct TrainingParameters {
@@ -73,7 +73,7 @@ public:
     void randomlyDistributeData();
     void partitionData();
 
-    void biasAgainstOutputs();
+    void calcImplicitBiasWeights();
     void biasAgainstLOA();
 
     void trainingRun();
@@ -84,16 +84,17 @@ public:
     void validateGB();
     TestStatistics::ClassificationError && validateCurrentNet();
 
-    size_t randomizeTrainingInputs();
     void runTrainer();
     OutageDataWrapper && loadTestInput(const size_t & I);
     OutageDataWrapper && loadValidationInput(const size_t &I);
 
     void classError(const std::vector<size_t> &testInputs,
-                    TestStatistics &testStats,
-                    TestStatistics::ClassificationError &ce,
+                    ConfusionMatrix & cm,
                     const size_t &testIterations);
-    TestStatistics & testStats() { return _testStats; }
+    //TestStatistics & testStats() { return _testStats; }
+    const ConfusionMatrix & testConfusionMatrix() { return _testConfusionMatrix; }
+    const ConfusionMatrix & validationConfusionMatrix() { return _validationConfusionMatrix; }
+    const ConfusionMatrix & selectedConfusionMatrix() { return _selectedConfusionMatrix; }
 
     static bool confirmOutage(const std::vector<real> & output);
 
@@ -106,25 +107,27 @@ public:
     void updateEnableParameters();
     const EnableParameters & enableParameters() { return _params->ep; }
 
-    SelectedGlobalBest & getRecentGlobalBest() { return _recent_gb; }
-    SelectedGlobalBest & getSelectedGlobalBest() { return _best_gb; }
+    GlobalBestObject & getRecentGlobalBest() { return _recent_gb; }
+    GlobalBestObject & getSelectedGlobalBest() { return _best_gb; }
 
     // Test
     std::vector<StatObject> _outputNodeStats;
 
 private:
-    SelectedGlobalBest _recent_gb;
-    SelectedGlobalBest _best_gb;
+    GlobalBestObject _recent_gb;
+    GlobalBestObject _best_gb;
     std::shared_ptr<TrainingParameters> _params;
-    TestStatistics _testStats;
-    TestStatistics _validationStats;
-    TestStatistics _selectedTestStats;
+    ConfusionMatrix _testConfusionMatrix;
+    ConfusionMatrix _validationConfusionMatrix;
+    ConfusionMatrix _selectedConfusionMatrix;
     std::shared_ptr<InputCache> _inputCache;
     std::vector<size_t> _trainingInputs;
     std::vector<size_t> _testInputs;
     std::vector<size_t> _validationInputs;
-    std::vector<real> _biasedTrainingInputsCounts;
-    std::vector<std::vector<size_t>> _biasedTrainingInputs;
+    std::vector<real> _implicitBiasWeights;
+    std::vector<size_t> _trueNumElesPerClass;
+    std::vector<real> _equalizationFactors;
+    real _fitnessNormalizationFactor;
     std::vector<size_t> _inputSkips;
 
     std::string _functionMsg;

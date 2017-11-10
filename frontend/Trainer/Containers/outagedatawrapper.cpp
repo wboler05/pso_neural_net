@@ -246,114 +246,42 @@ std::vector<real> OutageDataWrapper::inputize(const std::vector<size_t> & skips)
 std::vector<real> OutageDataWrapper::outputize() {
     std::vector<real> output;
 
-    output.resize(5, -1);
+    std::vector<real> ranges = {3, 42};
+
+    output.resize(ranges.size()+2, -1);
+
+    for (size_t i = 0; i < ranges.size()+2; i++) {
+        if (i == 0) {
+            if (_affectedCustomers == 0) {
+                output[0] = 1;
+                break;
+            }
+        } else if (i == ranges.size() + 1) {
+            if (_affectedCustomers > ranges[i-2]) {
+                output[i] = 1;
+                break;
+            }
+        } else {
+            if (_affectedCustomers <= ranges[i-1]) {
+                output[i] = 1;
+                break;
+            }
+        }
+    }
+/*
     if (_affectedCustomers == 0) {
         output[0] = 1;
-    } else if (_affectedCustomers <= 10) {
+    } else if (_affectedCustomers <= 1) {   // 10   | 1
         output[1] = 1;
-    } else if (_affectedCustomers <= 100) {
+    } else if (_affectedCustomers <= 10) {  // 100  | 9
         output[2] = 1;
-    } else if (_affectedCustomers <= 1000) {
+    } else if (_affectedCustomers <= 100) { // 1000 | 73
         output[3] = 1;
     } else {
         output[4] = 1;
     }
-
+*/
     return output;
-}
-
-/**
- * @brief OutageDataWrapper::MSE
- * @details Find the MSE for a set of experiments
- * @param results
- * @param expecteds
- * @return
- */
-real OutageDataWrapper::MSE(
-        const std::vector<std::vector<real> > &results,
-        const std::vector<std::vector<real> > &expecteds) {
-
-    // Verify that their sizes match
-    if (results.size() != expecteds.size()) {
-        return std::numeric_limits<real>::infinity();
-    }
-
-    // Verify that they are both not empty
-    if (results.size() == 0) {
-        return std::numeric_limits<real>::infinity();
-    }
-
-    // Get us our error variable set to zero
-    real error = 0;
-
-    // Loop through each event
-    //#pragma omp parallel for
-    for (size_t i = 0; i < results.size(); i++) {
-
-        // Get the error for each event seperately
-        real tError = MSE(results[i], expecteds[i]);
-
-        // If inifinity, return infinit (we broke it)
-        if (tError == std::numeric_limits<real>::infinity()) {
-            return std::numeric_limits<real>::infinity();
-        }
-
-        // Else add the error to the summation
-        error += tError;
-    }
-    // Divide by the vector size
-    error /= results.size();
-
-    // Return our error
-    return error;
-}
-
-
-/**
- * @brief OutageDataWrapper::MSE
- * @details Calculate the MSE for a single event
- * @param result
- * @param expected
- * @return
- */
-real OutageDataWrapper::MSE(const std::vector<real> &result, const std::vector<real> &expected) {
-    // Verify that their sizes match
-    if (result.size() != expected.size()) {
-        return std::numeric_limits<real>::infinity();
-    }
-
-    // Verify that they are both not empty
-    if (result.size() == 0) {
-        return std::numeric_limits<real>::infinity();
-    }
-
-    // Get us our error variable set to zero
-    real error = 0;
-
-    // Sum the squared errors
-    // #pragma omp parallel for
-    for (size_t i = 0; i < result.size(); i++) {
-        error += CustomMath::pow((result[i] - expected[i]), 2);
-    }
-    // Divide by total error size
-    error /= result.size();
-
-    // Return our error
-    return error;
-}
-
-std::vector<real> OutageDataWrapper::splitMSE(const std::vector<real> & result, const std::vector<real> & expected) {
-    std::vector<real> mse;
-
-    if (result.size() != expected.size()) {
-        return mse;
-    } else {
-        mse.resize(result.size(),std::numeric_limits<real>::infinity());
-    }
-    for (size_t i = 0; i < mse.size(); i++) {
-        mse[i] = CustomMath::pow(result[i]-expected[i], 2);
-    }
-    return mse;
 }
 
 real OutageDataWrapper::bool2Double(const bool &b) {

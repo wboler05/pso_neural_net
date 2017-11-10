@@ -23,6 +23,13 @@ public:
         real truePositive=0;
         real falseNegative=0;
         real falsePositive=0;
+
+        void clear() {
+            trueNegative = 0;
+            truePositive = 0;
+            falseNegative = 0;
+            falsePositive = 0;
+        }
     };
 
     struct ClassificationError {
@@ -32,6 +39,15 @@ public:
         real specificity = 0;
         real f_score = 0;
         real mse = 0;
+
+        void clear() {
+            accuracy = 0;
+            precision = 0;
+            sensitivity = 0;
+            specificity = 0;
+            f_score = 0;
+            mse = 0;
+        }
     };
 
     const TestStruct & testStruct() { return _test; }
@@ -42,15 +58,20 @@ public:
     const real & fn() { return _test.falseNegative; }
     const real & fp() { return _test.falsePositive; }
 
-    real tn_norm() { return _test.trueNegative / static_cast<real>(_population); }
-    real tp_norm() { return _test.truePositive / static_cast<real>(_population); }
-    real fn_norm() { return _test.falseNegative / static_cast<real>(_population); }
-    real fp_norm() { return _test.falsePositive / static_cast<real>(_population); }
+    real tn_norm() { return static_cast<real>(_test.trueNegative) / static_cast<real>(_population); }
+    real tp_norm() { return static_cast<real>(_test.truePositive) / static_cast<real>(_population); }
+    real fn_norm() { return static_cast<real>(_test.falseNegative) / static_cast<real>(_population); }
+    real fp_norm() { return static_cast<real>(_test.falsePositive) / static_cast<real>(_population); }
 
     void addTn() { _test.trueNegative++; _population++; }
     void addTp() { _test.truePositive++; _population++; }
     void addFn() { _test.falseNegative++; _population++; }
     void addFp() { _test.falsePositive++; _population++; }
+
+    void addTn(const real & v) { _test.trueNegative+=v; _population+=v; }
+    void addTp(const real & v) { _test.truePositive+=v; _population+=v; }
+    void addFn(const real & v) { _test.falseNegative+=v; _population+=v; }
+    void addFp(const real & v) { _test.falsePositive+=v; _population+=v; }
 
     const uint64_t & population() { return _population; }
     void clear();
