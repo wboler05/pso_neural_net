@@ -7,6 +7,7 @@
 #include <QGridLayout>
 #include <QGraphicsView>
 #include <QGraphicsScene>
+#include <QTableWidget>
 #include <QGraphicsProxyWidget>
 
 #include "backend/confusionmatrix.h"
@@ -34,6 +35,7 @@ public:
     void initializeColorTemplates();
 
     void setLabels(const QStringList & stringList);
+    void setNumberOfClassifiers(const size_t & n) { _numberOfClassifiers = n; }
     const size_t & numberOfClassifiers() { return _numberOfClassifiers; }
 
     void updateConfusionMatrix(const ConfusionMatrix & cm);
@@ -50,6 +52,10 @@ public:
     static double linearGradientChannel(const real & ratio, const double & lowColor, const double & highColor);
 
     bool built () { return _built; }
+    void updateMatrix();
+
+protected slots:
+    void updateFromCM();
 
 private:
     Ui::ConfusionMatrixDiagram *ui;
@@ -61,9 +67,13 @@ private:
     ColorTemplate _colorTemplate;
     bool _built = false;
 
-    QPointer<QWidget> _mainWidget;
-    QVector<QVector<QPointer<QWidget>>> _table;
-    QPointer<QWidget> _accuracyCell;
+    QGraphicsView * _horzView = nullptr;
+    QGraphicsView * _vertView = nullptr;
+
+    //QPointer<QWidget> _mainWidget;
+    QTableWidget _tableWidget;
+    //QVector<QVector<QPointer<QWidget>>> _table;
+    //QPointer<QWidget> _accuracyCell;
 
     void setDefaultColorTemplate();
     void setColorTemplate(ColorTemplate ct);
@@ -72,9 +82,9 @@ private:
 
     void updateTestStatistics();
 
-    void constructClassLabel(QGridLayout * mainLayout);
-    void constructActualPredictLabels(QGridLayout * mainLayout);
-    void constructDataTable(QGridLayout * mainLayout);
+    void constructClassLabel();
+    void constructActualPredictLabels();
+    void constructDataTable();
 
     QWidget * constructDataCell(const real & number, const real & ratio);
     QWidget * constructFPNCell(const real & number, const real & ratio);
@@ -82,6 +92,9 @@ private:
 
     QLabel * getNewClassifierLabel(const QString & label);
     QString classifierLabelStyle();
+    QString styleSheetColorMaker(const QString & label, const QColor & color);
+    QString styleSheetColorMaker(const QVector<QString> & labels, const QVector<QColor> & colors);
+    QString colorToStyleSheet(const QColor & color);
 
 };
 

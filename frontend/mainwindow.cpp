@@ -400,6 +400,9 @@ void MainWindow::initializeCache() {
 //                "\tLOA: " << index._loa <<
 //                "\tLat: " << index._latlong.latitude() << "\tLong: " << index._latlong.longitude();
         }
+        if (_inputCache->length() > 0) {
+            ui->confusionMatrix->setNumberOfClassifiers((*_inputCache)[0].outputize().size());
+        }
         qDebug() << "Cache creation complete.";
     } else {
         qDebug() << "Failed to open input file.";
@@ -681,18 +684,24 @@ bool MainWindow::showBestSelected() {
 
 void MainWindow::updateConfusionMatrix() {
 
-    TestStatistics ts;
-    TestStatistics::ClassificationError ce;
+    ConfusionMatrix cm;
 
     if (showBestSelected()) {
         GlobalBestObject selGb = _neuralPsoTrainer->getSelectedGlobalBest();
-        ts = selGb.cm.overallStats();
-        ce = selGb.cm.overallError();
+        cm = selGb.cm;
+        //ts = selGb.cm.overallStats();
+        //ce = selGb.cm.overallError();
     } else {
         GlobalBestObject recGb = _neuralPsoTrainer->getRecentGlobalBest();
-        ts = recGb.cm.overallStats();
-        ce = recGb.cm.overallError();
+        cm = recGb.cm;
+        //ts = recGb.cm.overallStats();
+        //ce = recGb.cm.overallError();
     }
+
+    TestStatistics ts = cm.overallStats();
+    TestStatistics::ClassificationError ce = cm.overallError();
+
+    ui->confusionMatrix->updateConfusionMatrix(cm);
 
     double actPos = static_cast<double>(ts.tp() + ts.fn());
     double actNeg = static_cast<double>(ts.fp() + ts.tn());
@@ -706,7 +715,7 @@ void MainWindow::updateConfusionMatrix() {
     ui->spec_lbl->setText(QString::number(static_cast<double>(ce.specificity)));
     ui->fscore_lbl->setText(QString::number(static_cast<double>(ce.f_score)));
     ui->mse_lbl->setText(QString::number(static_cast<double>(ce.mse)));
-
+/*
     ui->actPosNum_lbl->setText(QString::number(actPos));
     ui->actPosPerc_lbl->setText(QString::number(actPos / pop));
     ui->actNegNum_lbl->setText(QString::number(actNeg));
@@ -724,6 +733,10 @@ void MainWindow::updateConfusionMatrix() {
     ui->falsePosPerc_lbl->setText(QString::number(static_cast<double>(ts.fp_norm())));
     ui->falseNegNum_lbl->setText(QString::number(static_cast<double>(ts.fn())));
     ui->falseNegPerc_lbl->setText(QString::number(static_cast<double>(ts.fn_norm())));
+    */
+
+//    ui->confusionMatrix_gb->adjustSize();
+//    ui->plotLayout->update();
 }
 
 void MainWindow::on_actionParticle_Plotter_triggered() {

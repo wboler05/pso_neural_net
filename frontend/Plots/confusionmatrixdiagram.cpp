@@ -1,12 +1,21 @@
 #include "confusionmatrixdiagram.h"
 #include "ui_confusionmatrixdiagram.h"
 
+#include <QTimer>
+
 ConfusionMatrixDiagram::ConfusionMatrixDiagram(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ConfusionMatrixDiagram)
 {
     ui->setupUi(this);
     initializeColorTemplates();
+
+    QTimer * updateTimer = new QTimer();
+    updateTimer->setInterval(67);
+    connect(updateTimer, SIGNAL(timeout()), this, SLOT(updateFromCM()));
+    updateTimer->start();
+
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 }
 
 ConfusionMatrixDiagram::~ConfusionMatrixDiagram()
@@ -36,10 +45,24 @@ void ConfusionMatrixDiagram::initializeColorTemplates() {
 }
 
 void ConfusionMatrixDiagram::updateConfusionMatrix(const ConfusionMatrix &cm) {
+    if (cm.numberOfClassifiers() == 0) return;
+    if (cm.numberOfClassifiers() != _numberOfClassifiers) {
+        qWarning( )<< "Error, must match number of classifiers. ConfusionMatrixDiagram: "
+                   << cm.numberOfClassifiers() << " != " << _numberOfClassifiers;
+        exit(1);
+    }
 
-    _numberOfClassifiers = cm.numberOfClassifiers();
+    _data = cm;
+}
 
-    buildMatrix();
+void ConfusionMatrixDiagram::updateFromCM() {
+    if (_data.numberOfClassifiers() == 0) return;
+
+    if (!_built) {
+        buildMatrix();
+    } else {
+        updateMatrix();
+    }
 }
 
 /**
@@ -55,23 +78,34 @@ void ConfusionMatrixDiagram::setLabels(const QStringList & stringList) {
 
 void ConfusionMatrixDiagram::buildMatrix() {
 
-    while (QWidget * w = findChild<QWidget *>()) {
-        w->deleteLater();
+    _classifierLabels.clear();
+    for (size_t i = 0; i < numberOfClassifiers(); i++) {
+        QString s;
+        s.append('C');
+        s.append(QString::number(i));
+        _classifierLabels.append(s);
     }
 
-    QGridLayout * mainLayout = new QGridLayout();
-    constructActualPredictLabels(mainLayout);
-    constructClassLabel(mainLayout);
-    constructDataTable(mainLayout);
+    constructActualPredictLabels();
+    constructClassLabel();
+    constructDataTable();
 
-    if (_mainWidget) {
-        layout()->removeWidget(_mainWidget);
-    }
+    QGridLayout * glayout = new QGridLayout();
+    glayout->addWidget(_vertView, 1, 0);
+    glayout->addWidget(_horzView, 0, 1);
+    glayout->addWidget(&_tableWidget, 1, 1);
+    setLayout(glayout);
 
-    _mainWidget = new QWidget();
-    _mainWidget->setLayout(mainLayout);
-    layout()->addWidget(_mainWidget);
+    _tableWidget.horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    _tableWidget.verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
+    show();
+}
+
+void ConfusionMatrixDiagram::updateMatrix() {
+    constructDataTable();
+    //adjustSize();
+    update();
 }
 
 size_t ConfusionMatrixDiagram::rows() {
@@ -82,87 +116,105 @@ size_t ConfusionMatrixDiagram::cols() {
     return 3 + std::max(_numberOfClassifiers, static_cast<size_t>(1));
 }
 
-void ConfusionMatrixDiagram::constructActualPredictLabels(QGridLayout * mainLayout) {
+void ConfusionMatrixDiagram::constructActualPredictLabels() {
     QLabel * horzLabel = new QLabel("Actual");
     QGraphicsScene * horzScene = new QGraphicsScene();
     QGraphicsProxyWidget * horzProxy = horzScene->addWidget(horzLabel);
-    QGraphicsView * horzView = new QGraphicsView(horzScene);
-    mainLayout->addWidget(horzView, 0, 1, 1, cols()-1);
+    _horzView = new QGraphicsView(horzScene);
 
     QLabel * vertLabel = new QLabel("Predicted");
     QGraphicsScene * vertScene = new QGraphicsScene();
     QGraphicsProxyWidget * vertProxy = vertScene->addWidget(vertLabel);
     vertProxy->setRotation(-90);
-    QGraphicsView * vertView = new QGraphicsView(vertScene);
-    mainLayout->addWidget(vertView, 1, 0, rows()-1, 1);
+    _vertView = new QGraphicsView(vertScene);
 }
 
-void ConfusionMatrixDiagram::constructClassLabel(QGridLayout * mainLayout) {
-    for (int i = 0; i < static_cast<int>(_numberOfClassifiers); i++){
-        int offsetIndex = i+2;
-        QString columnLabel = _classifierLabels[i];
+void ConfusionMatrixDiagram::constructClassLabel() {
+    QStringList horzLabels = _classifierLabels;
+    horzLabels.append("FN");
+    _tableWidget.setHorizontalHeaderLabels(horzLabels);
 
-        QLabel * columnLabelWidget = getNewClassifierLabel(columnLabel);
-        mainLayout->addWidget(columnLabelWidget, 1, offsetIndex);
-
-        QLabel * rowLabelWidget = getNewClassifierLabel(columnLabel);
-        mainLayout->addWidget(rowLabelWidget, offsetIndex, 1);
-    }
-
-    // False Positive
-    QLabel * falsePositiveLabel = getNewClassifierLabel("FP");
-    mainLayout->addWidget(falsePositiveLabel, 1, _numberOfClassifiers + 2);
-
-    // False Negative
-    QLabel * falseNegativeLabel = getNewClassifierLabel("FN");
-    mainLayout->addWidget(falseNegativeLabel, _numberOfClassifiers + 2, 1);
+    QStringList vertLabels = _classifierLabels;
+    vertLabels.append("FP");
+    _tableWidget.setVerticalHeaderLabels(vertLabels);
 }
 
 QLabel * ConfusionMatrixDiagram::getNewClassifierLabel(const QString & label) {
     QLabel * newLabel = new QLabel(label);
-    newLabel->setStyleSheet(classifierLabelStyle());
+//    newLabel->setStyleSheet(classifierLabelStyle()); // NOT ALLOWED ON QLabel
     return newLabel;
 }
 
 QString ConfusionMatrixDiagram::classifierLabelStyle() {
+    return styleSheetColorMaker(QString("background-color"), _colorTemplate.classifierLabels.background().color());
+}
+
+QString ConfusionMatrixDiagram::styleSheetColorMaker(const QString & label, const QColor & color) {
     QString stylesheet;
-    stylesheet.append("{ background-color: ");
-    stylesheet.append(_colorTemplate.classifierLabels.background().color().toRgb().name());
-    stylesheet.append(" }");
+    stylesheet.append("{ ");
+    stylesheet.append(label);
+    stylesheet.append(colorToStyleSheet(color));
+    stylesheet.append("}");
     return stylesheet;
 }
 
-void ConfusionMatrixDiagram::constructDataTable(QGridLayout * mainLayout) {
-    // Initialize Table
-    _table.clear();
-    _table.resize(_numberOfClassifiers + 1);
-    for (int i = 0; i < _table.length(); i++) {
-        _table[i].resize(_numberOfClassifiers + 1);
+QString ConfusionMatrixDiagram::colorToStyleSheet(const QColor & color) {
+    QString stylesheet;
+    stylesheet.append(QString(": rgba(%1,%2,%3,%4)").arg(color.red()).arg(color.green()).arg(color.blue()).arg(color.alpha()));
+    return stylesheet;
+}
+
+QString ConfusionMatrixDiagram::styleSheetColorMaker(const QVector<QString> & labels, const QVector<QColor> & colors) {
+    if (labels.length() != colors.length()) return QString();
+    if (labels.length() == 0) return QString();
+
+    QString stylesheet;
+    stylesheet.append("{ ");
+    for (int i = 0; i < labels.length(); i++) {
+        stylesheet.append(labels[i]);
+        stylesheet.append(colorToStyleSheet(colors[i]));
+        if (i != labels.length() -1) {
+            stylesheet.append(',');
+        }
     }
+    stylesheet.append('}');
+}
+
+void ConfusionMatrixDiagram::constructDataTable() {
+    // Initialize Table
+    _tableWidget.clear();
+    _tableWidget.setColumnCount(_numberOfClassifiers+1);
+    _tableWidget.setRowCount(_numberOfClassifiers+1);
 
     // Load Table with Data
     for (size_t i = 0; i < _numberOfClassifiers; i++) {
         for (size_t j = 0; j < _numberOfClassifiers; j++) {
             QPointer<QWidget> newCell = constructDataCell(_data.getResultValues()[i][j], _data.getResultRatios()[i][j]);
-            _table[i][j] = newCell;
+            _tableWidget.setCellWidget(j, i, newCell);
+            //_table[i][j] = newCell;
         }
     }
 
     // Load Fp
     for (size_t i = 0; i < _numberOfClassifiers; i++) {
         QPointer<QWidget> newCell = constructFPNCell(_data.getFalsePositiveValues()[i], _data.getFalsePositiveRatios()[i]);
-        _table[i][_numberOfClassifiers-1] = newCell;
+        _tableWidget.setCellWidget(_numberOfClassifiers, i, newCell);
+        //_table[i][_numberOfClassifiers] = newCell;
     }
 
     // Load Fn
     for (size_t i = 0; i < _numberOfClassifiers; i++) {
         QPointer<QWidget> newCell = constructFPNCell(_data.getFalseNegativeValues()[i], _data.getFalseNegativeRatios()[i]);
-        _table[_numberOfClassifiers-1][i] = newCell;
+        _tableWidget.setCellWidget(i, _numberOfClassifiers, newCell);
+        //_table[_numberOfClassifiers][i] = newCell;
     }
 
     // Load Accuracy
-    QPointer<QWidget> newCell = constructDataCell(CustomMath::total(_data.getTruePositiveValues()), _data.overallError().accuracy);
-    _table[_numberOfClassifiers - 1][_numberOfClassifiers - 1] = newCell;
+    if (_numberOfClassifiers > 0) {
+        QPointer<QWidget> newCell = constructDataCell(CustomMath::total(_data.getTruePositiveValues()), _data.overallError().accuracy);
+        _tableWidget.setCellWidget(_numberOfClassifiers, _numberOfClassifiers, newCell);
+        //_table[_numberOfClassifiers][_numberOfClassifiers] = newCell;
+    }
 
     _built = true;
 }
@@ -210,18 +262,16 @@ QWidget * ConfusionMatrixDiagram::constructCell(const real & number, const real 
     layout->addWidget(ratio_lbl);
     newCell->setLayout(layout);
 
-    QString lbl_styleSheet;
-    lbl_styleSheet.append("color: ");
-    //lbl_styleSheet.append(_colorTemplate.nearZero.foreground().color().name());
-    lbl_styleSheet.append(foreground.name());
-    val_lbl->setStyleSheet(lbl_styleSheet);
-    ratio_lbl->setStyleSheet(lbl_styleSheet);
+//    QString lbl_styleSheet = styleSheetColorMaker(QString("color"), foreground);
+//    val_lbl->setStyleSheet(lbl_styleSheet);
+//    ratio_lbl->setStyleSheet(lbl_styleSheet);
 
-    QString styleSheet;
-    styleSheet.append("background-color: ");
-    //styleSheet.append(_colorTemplate.nearZero.background().color().name());
-    styleSheet.append(background.name());
-    newCell->setStyleSheet(styleSheet);
+    QString bg_styleSheet = styleSheetColorMaker(QString("background-color"), background);
+    newCell->setStyleSheet(bg_styleSheet);
+
+    val_lbl->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    ratio_lbl->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    newCell->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
     return newCell;
 }

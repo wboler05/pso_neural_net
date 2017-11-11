@@ -288,7 +288,7 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
             exit(1);
         }
     }
-    qDebug() << "Test output: " << test;
+    //qDebug() << "Test output: " << test;
     acc /= static_cast<real>(cm.numberOfClassifiers());
     acc /= _fitnessNormalizationFactor;
     return acc;
