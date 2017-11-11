@@ -74,7 +74,9 @@ public:
     void partitionData();
 
     void calcImplicitBiasWeights();
-    void biasAgainstLOA();
+
+    void biasAgainstProbability();
+    void randomlyGenerateTrainingInputs(std::vector<size_t> & tr, const size_t & iterations);
 
     void trainingRun();
     real trainingStep(const std::vector<size_t> & trainingInputs);
@@ -124,10 +126,15 @@ private:
     std::vector<size_t> _trainingInputs;
     std::vector<size_t> _testInputs;
     std::vector<size_t> _validationInputs;
+
+    std::vector<std::vector<size_t>> _equiProbableTrainingSplits;
+
     std::vector<real> _implicitBiasWeights;
     std::vector<size_t> _trueNumElesPerClass;
     std::vector<real> _equalizationFactors;
     real _fitnessNormalizationFactor;
+    size_t _totalClasses=0;
+
     std::vector<size_t> _inputSkips;
 
     std::string _functionMsg;
@@ -146,6 +153,10 @@ private:
             TestStatistics & testStats,
             bool & correctOutput);
     bool networkPathValidation();
+
+    void initializeBiasVectors();
+    void calculateClassFrequency();
+    void distributeBias();
 
 };
 

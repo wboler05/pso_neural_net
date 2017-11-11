@@ -2,6 +2,7 @@
 #define OUTAGEDATAWRAPPER_H
 
 #include "outagedataitem.h"
+#include "utils/sort.hpp"
 
 class OutageDataWrapper : public OutageDataItem
 {
@@ -17,7 +18,7 @@ public:
     static void parseStormEvents(const QStringList & events,
                                  const size_t & bIt, OutageDataItem & item);
 
-    std::vector<real> inputize(const std::vector<size_t> &skips);
+    std::vector<real> inputize();
     std::vector<real> outputize();
 
     static real bool2Double(const bool & b);
@@ -36,8 +37,20 @@ public:
 
     bool empty() { return _empty; }
 
+    const size_t & inputSize();
+    const size_t & outputSize();
+
+    static const std::vector<size_t> inputSkips() { return _inputSkips; }
+    static void setInputSkips(const std::vector<size_t> & skips);
+
 private:
     bool _empty=false;
+    bool _inputSizeSet=false;
+    bool _outputSizeSet=false;
+    size_t _inputSize = 0;
+    size_t _outputSize = 0;
+
+    static std::vector<size_t> _inputSkips;
 
 };
 

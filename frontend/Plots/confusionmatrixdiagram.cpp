@@ -151,10 +151,10 @@ QString ConfusionMatrixDiagram::classifierLabelStyle() {
 
 QString ConfusionMatrixDiagram::styleSheetColorMaker(const QString & label, const QColor & color) {
     QString stylesheet;
-    stylesheet.append("{ ");
+    //stylesheet.append("{ ");
     stylesheet.append(label);
     stylesheet.append(colorToStyleSheet(color));
-    stylesheet.append("}");
+    //stylesheet.append("}");
     return stylesheet;
 }
 
@@ -178,6 +178,7 @@ QString ConfusionMatrixDiagram::styleSheetColorMaker(const QVector<QString> & la
         }
     }
     stylesheet.append('}');
+    return stylesheet;
 }
 
 void ConfusionMatrixDiagram::constructDataTable() {
@@ -282,6 +283,16 @@ QColor ConfusionMatrixDiagram::linearGradient(const real & val, const real & min
     int b = static_cast<int>(linearGradientChannel(val, minVal, maxVal, lowColor.blueF(), highColor.blueF()) * 255.0);
     int a = static_cast<int>(linearGradientChannel(val, minVal, maxVal, lowColor.alphaF(), highColor.alphaF()) * 255.0);
 
+    r = r < 0 ? 0 : r;
+    g = g < 0 ? 0 : g;
+    b = b < 0 ? 0 : b;
+    a = a < 0 ? 0 : a;
+
+    r = r > 255 ? 255 : r;
+    g = g > 255 ? 255 : g;
+    b = b > 255 ? 255 : b;
+    a = a > 255 ? 255 : a;
+
     return QColor(r, g, b, a);
 }
 
@@ -295,6 +306,17 @@ QColor ConfusionMatrixDiagram::linearGradient(const real & ratio, const QColor &
     int g = static_cast<int>(linearGradientChannel(ratio, lowColor.greenF(), highColor.greenF()) * 255.0);
     int b = static_cast<int>(linearGradientChannel(ratio, lowColor.blueF(), highColor.blueF()) * 255.0);
     int a = static_cast<int>(linearGradientChannel(ratio, lowColor.alphaF(), highColor.alphaF()) * 255.0);
+
+    r = r < 0 ? 0 : r;
+    g = g < 0 ? 0 : g;
+    b = b < 0 ? 0 : b;
+    a = a < 0 ? 0 : a;
+
+    r = r > 255 ? 255 : r;
+    g = g > 255 ? 255 : g;
+    b = b > 255 ? 255 : b;
+    a = a > 255 ? 255 : a;
+
     return QColor(r, g, b, a);
 }
 

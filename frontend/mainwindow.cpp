@@ -443,12 +443,11 @@ void MainWindow::setParameterDefaults() {
 
     OutageDataWrapper dataWrapper = (*_inputCache)[0];
 
-    _params->np.inputs = static_cast<int>(
-                dataWrapper.inputize(_params->ep.inputSkips()).size());
+    _params->np.inputs = static_cast<int>( dataWrapper.inputSize() );
     _params->np.innerNetNodes.clear();
     _params->np.innerNetNodes.push_back(8);
     _params->np.innerNets = static_cast<int>(_params->np.innerNetNodes.size());
-    _params->np.outputs = static_cast<int>(dataWrapper.outputize().size());
+    _params->np.outputs = static_cast<int>(dataWrapper.outputSize());
     _params->np.trainingIterations = 20;
     _params->np.validationIterations = 200;
     _params->np.testIterations = 500; //500
@@ -604,9 +603,8 @@ void MainWindow::applyElementSkips() {
     _params->ep.longitude = ui->enLocLong_cb->isChecked();
 
     OutageDataWrapper dataWrapper = (*_inputCache)[0];
-    _params->np.inputs = static_cast<int>(
-                dataWrapper.inputize(_params->ep.inputSkips()).size());
-    _params->np.outputs = static_cast<int>(dataWrapper.outputize().size());
+    _params->np.inputs = static_cast<int>( dataWrapper.inputSize() );
+    _params->np.outputs = static_cast<int>(dataWrapper.outputSize());
 }
 
 void MainWindow::updateElementSkips() {
