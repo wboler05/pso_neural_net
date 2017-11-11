@@ -54,6 +54,8 @@ public:
     bool built () { return _built; }
     void updateMatrix();
 
+    void updateDataTable();
+
 protected slots:
     void updateFromCM();
 
@@ -82,10 +84,13 @@ private:
 
     void updateTestStatistics();
 
+    void initializeClassifierLabels();
+    void constructLayout();
     void constructClassLabel();
     void constructActualPredictLabels();
     void constructDataTable();
 
+    QLabel * constructDataCellLabel(const real & number, const int & prec);
     QWidget * constructDataCell(const real & number, const real & ratio);
     QWidget * constructFPNCell(const real & number, const real & ratio);
     QWidget * constructCell(const real & number, const real & ratio, const QColor & background, const QColor & foreground);

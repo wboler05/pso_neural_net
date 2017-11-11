@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_21" stretch="20,1,4,1">
     <item>
-     <layout class="QHBoxLayout" name="plotLayout" stretch="5,10,10,0">
+     <layout class="QHBoxLayout" name="plotLayout" stretch="10,10,10,0">
       <item>
        <widget class="QGroupBox" name="confusionMatrix_gb">
         <property name="styleSheet">
@@ -25,7 +25,7 @@
         <property name="title">
          <string>Confusion Matrix</string>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_13">
+        <layout class="QVBoxLayout" name="verticalLayout_13" stretch="1000,0,0,0,0">
          <item>
           <widget class="ConfusionMatrixDiagram" name="confusionMatrix" native="true"/>
          </item>

@@ -304,12 +304,15 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
     TestStatistics::ClassificationError ce = cm.overallError();
     cm.overallError().mse = finalMse;
 
-    return -finalMse;
-
     real acc = 0;
     cm.costlyComputeClassStats();
+    real corCount = 0;
     for (size_t i = 0; i < cm.numberOfClassifiers(); i++) {
-        acc += cm.getTruePositiveRatios()[i];
+        acc += cm.getTruePositiveRatios()[i] / _implicitBiasWeights[i];
+        if (cm.getTruePositiveValues()[i] > 0) {
+            corCount += 1.0;
+        }
+
         /*if (_implicitBiasWeights[i] != 0.0) {
             acc += (cm.getTruePositiveRatios()[i] / _implicitBiasWeights[i]) * (_equalizationFactors[i]);
         } else {
@@ -318,9 +321,9 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
         }*/
     }
     //qDebug() << "Test output: " << test;
-    acc /= static_cast<real>(_totalClasses);
+    acc /= CustomMath::pow(static_cast<real>(_totalClasses), 2);
     //acc /= _fitnessNormalizationFactor;
-    return acc;
+    return acc + corCount;
 
 
 
