@@ -246,7 +246,7 @@ std::vector<real> OutageDataWrapper::inputize(const std::vector<size_t> & skips)
 std::vector<real> OutageDataWrapper::outputize() {
     std::vector<real> output;
 
-    std::vector<real> ranges = {3, 42};
+    std::vector<real> ranges = {10, 100, 1000};
 
     output.resize(ranges.size()+2, -1);
 

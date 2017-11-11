@@ -13,6 +13,11 @@ OutageTrainer::OutageTrainer(const std::shared_ptr<TrainingParameters> & pe, con
         neuralNet()->buildANN();
     }
     _outputNodeStats.resize(5);
+    // Querry and get the number of classes
+    OutageDataWrapper dataItem = (*_inputCache)[0];
+    vector<real> outputClassVector = dataItem.outputize();
+    _numClasses = outputClassVector.size();
+    // Build
     build();
 }
 
@@ -21,7 +26,7 @@ void OutageTrainer::build() {
     //_inputCache = std::make_shared<InputCache>(_params->cp);
 
     // Split between training, testing, and validation set.
-    partitionData();
+    partitionData(10); // 10 Folds are hard coded but can make a GUI element later
 
     // Calculate the implicit bias weights of each class
     calcImplicitBiasWeights();
@@ -31,90 +36,12 @@ void OutageTrainer::build() {
     updateMinMax();
 }
 
-int OutageTrainer::getNextValidationSet(){
-    _foldIdx++;
-    if(_foldIdx < _kFolds){
-        for(int i = 0; i < _numElePerValidationRound; i++){
-            std::swap(&_validationInputs[i], &_trainingInputs[(_foldIdx-1)*_numElePerValidationRound + i]);
-        }
-        return 1;
-    }
-    return -1;
+size_t OutageTrainer::getNextValidationSet(){
+    return _dataSets.nextFold();
 }
 
 void OutageTrainer::partitionData(int kFolds){
-
-    const real boundRatio = 0.90;
-    _kFolds = kFolds;
-
-    std::vector<int> indicies;
-    int numInputSamples = static_cast<int>(_inputCache->totalInputItemsInFile());
-    int swpIdx;
-    int temp;
-
-    // Initialize the vector
-    for (int i = 0; i < numInputSamples; i++){
-        indicies.push_back(i);
-    }
-
-    // Shuffle it
-    for (int i = 1; i < numInputSamples; i++){
-        swpIdx = _randomEngine.uniformUnsignedInt(0,i);
-        if (swpIdx == i){
-            continue;
-        }
-        else{
-            temp = indicies[swpIdx];
-            indicies[swpIdx] = indicies[i];
-            indicies[i] = temp;
-        }
-    }
-
-    // Calculate the bounding index (inclusive)
-    int testBound = numInputSamples * boundRatio;
-    _numElePerValidationRound = std::ceil(testBound/(_kFolds+1));
-
-
-    // Clear input lists
-    _trainingInputs.clear();
-    _testInputs.clear();
-    _validationInputs.clear();
-
-    // Fill the vectors
-    for (int i = 0; i < _numElePerValidationRound; i++){
-        _validationInputs.push_back(indicies[i]);
-    }
-    for (int i = _numElePerValidationRound; i < testBound; i++){
-        _trainingInputs.push_back(indicies[i]);
-    }
-    for (int i = testBound; i < numInputSamples; i++){
-        _testInputs.push_back(indicies[i]);
-    }
-}
-
-void OutageTrainer::randomlyDistributeData() {
-    /** TEST **/
-
-    std::vector<real> splitPdf = {0.81L, .09L, .10L};          // Setup PDF
-    std::vector<real> splitCdf = cdfUniform(splitPdf);      // Calculate CDF
-
-//    std::uniform_real_distribution<double> dist(0, 1);
-
-    const size_t & inputSize = _inputCache->length();       // Get total inputs
-    _trainingInputs.clear();                                // Clear input lists
-    _testInputs.clear();
-    _validationInputs.clear();
-    for (size_t i = 0; i < inputSize; i++) {
-//        double randChoice = dist(_randomEngine.engine());   // Separate data
-        real randChoice = _randomEngine.uniformReal(0.0L, 1.0L);
-        if (randChoice < splitCdf[0]) {
-            _trainingInputs.push_back(i);
-        } else if (randChoice < splitCdf[1]) {
-            _testInputs.push_back(i);
-        } else {
-            _validationInputs.push_back(i);
-        }
-    }
+    _dataSets = dataPartioner(kFolds,static_cast<size_t>(_inputCache->totalInputItemsInFile()));
 }
 
 void OutageTrainer::calcImplicitBiasWeights() {
@@ -182,7 +109,7 @@ void OutageTrainer::trainingRun() {
         }
 
         // Get fitness
-        real fit = trainingStep(_trainingInputs);
+        real fit = trainingStep(_dataSets);
         p->_fit = fit;
     }
 }
@@ -201,7 +128,7 @@ void OutageTrainer::trainingRun() {
 * @return
 * @todo Need to swap iterators.  Train all particles on same dataset
 */
-real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
+real OutageTrainer::trainingStep(const dataPartioner & dataSets) {
     // Validate that a path is good first
     if (!networkPathValidation()) {
         return -std::numeric_limits<real>::max();
@@ -225,7 +152,7 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
         qApp->processEvents();
 
         // Get the appropiate training input index
-        size_t I = _trainingInputs[((_epochs-1)*trainingIterations + someSets) % _trainingInputs.size()];
+        size_t I = _dataSets.trainingSet(((_epochs-1)*trainingIterations + someSets) % _dataSets.trainingSetSize());
         OutageDataWrapper dataItem = (*_inputCache)[I];
         std::vector<real> inputs = normalizeInput(I);
         _neuralNet->loadInputs(inputs);
@@ -359,21 +286,21 @@ bool OutageTrainer::networkPathValidation() {
 void OutageTrainer::validateGB() {
     _neuralNet->setState(_gb._x);
     TestStatistics::ClassificationError ce;
-    classError(_validationInputs, _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
+    classError(_dataSets.getValidationSet(), _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
 }
 
 TestStatistics::ClassificationError && OutageTrainer::validateCurrentNet() {
     TestStatistics::ClassificationError ce;
-    classError(_validationInputs, _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
+    classError(_dataSets.getValidationSet(), _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
     return std::move(ce);
 }
 
 OutageDataWrapper && OutageTrainer::loadTestInput(const size_t & I) {
     OutageDataWrapper wrapper;
-    if (I >= _testInputs.size()) {
+    if (I >= _dataSets.testSetSize()) {
         return std::move(wrapper);
     }
-    size_t it = _testInputs[I];
+    size_t it = _dataSets.testSet(I);
 
     _neuralNet->resetAllNodes();
 
@@ -388,11 +315,11 @@ OutageDataWrapper && OutageTrainer::loadTestInput(const size_t & I) {
 }
 
 OutageDataWrapper && OutageTrainer::loadValidationInput(const size_t & I) {
-    if (I >= _validationInputs.size()) {
+    if (I >= _dataSets.validationSetSize()) {
         OutageDataWrapper empty;
         return std::move(empty);
     }
-    size_t it = _validationInputs[I];
+    size_t it = _dataSets.validationSet(I);
 
     _neuralNet->resetAllNodes();
 
@@ -410,7 +337,7 @@ void OutageTrainer::testGB() {
     /** TEST **/
   _neuralNet->setState(_gb._x);
 
-    classError(_testInputs, _testConfusionMatrix, _neuralNet->nParams()->testIterations);
+    classError(_dataSets.getTestSet(), _testConfusionMatrix, _neuralNet->nParams()->testIterations);
 
     _recent_gb.state = _gb._x;
     _recent_gb.cm = _testConfusionMatrix;
@@ -448,7 +375,7 @@ void OutageTrainer::testGB() {
 
 void OutageTrainer::testSelectedGB() {
     _neuralNet->setState(_best_gb.state);
-    classError(_testInputs, _best_gb.cm, _neuralNet->nParams()->testIterations);
+    classError(_dataSets.getTestSet(), _best_gb.cm, _neuralNet->nParams()->testIterations);
 }
 
 /**

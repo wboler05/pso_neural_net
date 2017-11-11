@@ -202,7 +202,8 @@ SOURCES += \
     frontend/particleplot.cpp \
     frontend/particleplotwindow.cpp \
     frontend/Plots/confusionmatrixdiagram.cpp \
-    backend/confusionmatrix.cpp
+    backend/confusionmatrix.cpp \
+    frontend/Trainer/datapartioner.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -235,7 +236,8 @@ HEADERS += \
     frontend/particleplot.h \
     frontend/particleplotwindow.h \
     frontend/Plots/confusionmatrixdiagram.h \
-    backend/confusionmatrix.h
+    backend/confusionmatrix.h \
+    frontend/Trainer/datapartioner.h
 
 FORMS += \
     frontend/mainwindow.ui \

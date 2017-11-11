@@ -4,6 +4,7 @@
 #include "neuralpso.h"
 #include "outagedataitem.h"
 #include "confusionmatrix.h"
+#include "datapartioner.h"
 
 #include "inputcache.h"
 #include "statobject.h"
@@ -70,14 +71,14 @@ public:
                   const std::shared_ptr<InputCache> & inputCache);
 
     void build();
-    void randomlyDistributeData();
-    void partitionData();
+    void partitionData(int kFolds);
+    size_t getNextValidationSet();
 
     void calcImplicitBiasWeights();
     void biasAgainstLOA();
 
     void trainingRun();
-    real trainingStep(const std::vector<size_t> & trainingInputs);
+    real trainingStep(const dataPartioner & dataSets);
     real trainingStepBaseCase();
     void testGB();
     void testSelectedGB();
@@ -114,6 +115,8 @@ public:
     std::vector<StatObject> _outputNodeStats;
 
 private:
+
+    dataPartioner _dataSets;
     GlobalBestObject _recent_gb;
     GlobalBestObject _best_gb;
     std::shared_ptr<TrainingParameters> _params;
@@ -121,21 +124,14 @@ private:
     ConfusionMatrix _validationConfusionMatrix;
     ConfusionMatrix _selectedConfusionMatrix;
     std::shared_ptr<InputCache> _inputCache;
-    std::vector<size_t> _trainingInputs;
-    std::vector<size_t> _testInputs;
-    std::vector<size_t> _validationInputs;
     std::vector<real> _implicitBiasWeights;
     std::vector<size_t> _trueNumElesPerClass;
     std::vector<real> _equalizationFactors;
     real _fitnessNormalizationFactor;
     std::vector<size_t> _inputSkips;
+    size_t _numClasses;
 
     std::string _functionMsg;
-
-    int _kFolds = 0; // Number of validation rounds
-    int _foldIdx = 0; // The current validation fold
-    int _numElePerValidationRound = 0; // Number of elements in each validation round
-
     std::vector<real> _minInputData;
     std::vector<real> _maxInputData;
 
