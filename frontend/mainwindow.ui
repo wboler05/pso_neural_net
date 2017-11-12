@@ -408,6 +408,13 @@
              </property>
             </widget>
            </item>
+           <item row="3" column="2">
+            <widget class="QCheckBox" name="enableIteration_cb">
+             <property name="text">
+              <string>Enable</string>
+             </property>
+            </widget>
+           </item>
            <item row="4" column="0">
             <widget class="QLabel" name="label_5">
              <property name="text">
@@ -415,10 +422,10 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="2">
-            <widget class="QCheckBox" name="enableIteration_cb">
+           <item row="8" column="0">
+            <widget class="QLabel" name="label_6">
              <property name="text">
-              <string>Enable</string>
+              <string>Window Size</string>
              </property>
             </widget>
            </item>
@@ -446,13 +453,6 @@
              </property>
             </widget>
            </item>
-           <item row="8" column="0">
-            <widget class="QLabel" name="label_6">
-             <property name="text">
-              <string>Window Size</string>
-             </property>
-            </widget>
-           </item>
            <item row="4" column="1">
             <widget class="QDoubleSpinBox" name="delta_dsb">
              <property name="decimals">
@@ -463,10 +463,10 @@
              </property>
             </widget>
            </item>
-           <item row="8" column="1">
-            <widget class="QSpinBox" name="window_sb">
-             <property name="maximum">
-              <number>10000</number>
+           <item row="4" column="2">
+            <widget class="QCheckBox" name="enableDelta_cb">
+             <property name="text">
+              <string>Enable</string>
              </property>
             </widget>
            </item>
@@ -482,6 +482,13 @@
              <property name="minimum">
               <number>1</number>
              </property>
+             <property name="maximum">
+              <number>10000</number>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="1">
+            <widget class="QSpinBox" name="window_sb">
              <property name="maximum">
               <number>10000</number>
              </property>
@@ -507,13 +514,6 @@
              </item>
             </widget>
            </item>
-           <item row="4" column="2">
-            <widget class="QCheckBox" name="enableDelta_cb">
-             <property name="text">
-              <string>Enable</string>
-             </property>
-            </widget>
-           </item>
            <item row="9" column="0">
             <widget class="QPushButton" name="innerNet_btn">
              <property name="text">
@@ -528,6 +528,13 @@
              </property>
             </widget>
            </item>
+           <item row="5" column="1">
+            <widget class="QSpinBox" name="trainingIterations_sb">
+             <property name="maximum">
+              <number>10000</number>
+             </property>
+            </widget>
+           </item>
            <item row="2" column="1">
             <widget class="QSpinBox" name="minEpochs_sb">
              <property name="minimum">
@@ -538,17 +545,17 @@
              </property>
             </widget>
            </item>
-           <item row="5" column="1">
-            <widget class="QSpinBox" name="trainingIterations_sb">
-             <property name="maximum">
-              <number>10000</number>
-             </property>
-            </widget>
-           </item>
            <item row="5" column="0">
             <widget class="QLabel" name="label_30">
              <property name="text">
               <string>Train Iterations</string>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="0">
+            <widget class="QLabel" name="label_41">
+             <property name="text">
+              <string>Topo. Training</string>
              </property>
             </widget>
            </item>
@@ -573,11 +580,30 @@
              </property>
             </widget>
            </item>
-           <item row="10" column="0">
-            <widget class="QLabel" name="label_41">
+           <item row="11" column="0">
+            <widget class="QLabel" name="label_19">
              <property name="text">
-              <string>Topo. Training</string>
+              <string>Activation Fn.</string>
              </property>
+            </widget>
+           </item>
+           <item row="11" column="1">
+            <widget class="QComboBox" name="activation_cb">
+             <item>
+              <property name="text">
+               <string>ReLU</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Sigmoid</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Linear</string>
+              </property>
+             </item>
             </widget>
            </item>
           </layout>
@@ -1470,6 +1496,13 @@
        </spacer>
       </item>
       <item>
+       <widget class="QPushButton" name="testFullSet_btn">
+        <property name="text">
+         <string>Full Monty!</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="testBaseCase_btn">
         <property name="font">
          <font>
@@ -1581,6 +1614,7 @@
      <property name="title">
       <string>Save</string>
      </property>
+     <addaction name="actionSaveSelected_ANN"/>
      <addaction name="actionGB_Neural_Net"/>
      <addaction name="actionSave_PSO_State"/>
     </widget>
@@ -2092,7 +2126,7 @@
   </action>
   <action name="actionGB_Neural_Net">
    <property name="text">
-    <string>GB Neural Net</string>
+    <string>GB ANN</string>
    </property>
   </action>
   <action name="actionSave_PSO_State">
@@ -2113,7 +2147,7 @@
   </action>
   <action name="actionLoad_GB_Neural_Net">
    <property name="text">
-    <string>Load GB Neural Net</string>
+    <string>Load Neural Net</string>
    </property>
   </action>
   <action name="actionLoad_PSO_State">
@@ -2134,6 +2168,11 @@
   <action name="actionParticle_Plotter">
    <property name="text">
     <string>Particle Plotter</string>
+   </property>
+  </action>
+  <action name="actionSaveSelected_ANN">
+   <property name="text">
+    <string>Selected ANN</string>
    </property>
   </action>
  </widget>

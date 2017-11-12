@@ -1,6 +1,7 @@
 #include "outagedatawrapper.h"
 
 std::vector<size_t> OutageDataWrapper::_inputSkips;
+bool OutageDataWrapper::_inputSkipsModified = true;
 
 OutageDataWrapper::OutageDataWrapper() :
     OutageDataItem(),
@@ -264,6 +265,7 @@ std::vector<real> OutageDataWrapper::inputize() {
     */
 
     _inputSizeSet = true;
+    _inputSkipsModified = false;
     _inputSize = inputs_v.size();
 
     return inputs_v;
@@ -277,7 +279,10 @@ std::vector<real> OutageDataWrapper::inputize() {
 std::vector<real> OutageDataWrapper::outputize() {
     std::vector<real> output;
 
-    std::vector<real> ranges = {3, 42};
+    std::vector<real> ranges = {10, 100, 1000};
+    // 10 100 1000
+    // 1 9 72
+    // 3 42
 
     output.resize(ranges.size()+2, -1);
 
@@ -438,7 +443,7 @@ OutageDataItem OutageDataWrapper::copy(const OutageDataItem & l) {
 }
 
 const size_t & OutageDataWrapper::inputSize() {
-    if (!_inputSizeSet) {
+    if (!_inputSizeSet || _inputSkipsModified) {
         inputize();
     }
     return _inputSize;
@@ -454,4 +459,5 @@ const size_t & OutageDataWrapper::outputSize() {
 void OutageDataWrapper::setInputSkips(const std::vector<size_t> & skips) {
     _inputSkips = skips;
     CustomSort::quickSort(_inputSkips);
+    _inputSkipsModified = true;
 }

@@ -51,6 +51,7 @@ private:
     size_t _outputSize = 0;
 
     static std::vector<size_t> _inputSkips;
+    static bool _inputSkipsModified;
 
 };
 

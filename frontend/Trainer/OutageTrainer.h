@@ -112,12 +112,15 @@ public:
     GlobalBestObject & getRecentGlobalBest() { return _recent_gb; }
     GlobalBestObject & getSelectedGlobalBest() { return _best_gb; }
 
+    void fullTestState();
+
     // Test
     std::vector<StatObject> _outputNodeStats;
 
 private:
     GlobalBestObject _recent_gb;
     GlobalBestObject _best_gb;
+    std::vector<GlobalBestObject> _selectedBestList;
     std::shared_ptr<TrainingParameters> _params;
     ConfusionMatrix _testConfusionMatrix;
     ConfusionMatrix _validationConfusionMatrix;

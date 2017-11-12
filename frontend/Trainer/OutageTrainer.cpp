@@ -8,6 +8,7 @@ OutageTrainer::OutageTrainer(const std::shared_ptr<TrainingParameters> & pe, con
     _inputCache(inputCache)
 {
     _inputSkips = pe->ep.inputSkips();
+    OutageDataWrapper::setInputSkips(_inputSkips);
     updateEnableParameters();
     if (_params->enableBaseCase) {
         neuralNet()->setTotalInputs(5);
@@ -303,7 +304,22 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
     trainingStats = cm.overallStats();
     TestStatistics::ClassificationError ce = cm.overallError();
     cm.overallError().mse = finalMse;
+return -finalMse;
 
+    cm.costlyComputeClassStats();
+    std::vector<real> zeroVec(cm.numberOfClassifiers(), 0);
+    real fitA = CustomMath::mean(cm.getFalseNegativeRatios());// / (1 + ConfusionMatrix::MSE(cm.getFalseNegativeRatios(), zeroVec));
+    real fitB = CustomMath::mean(cm.getFalsePositiveRatios());// / (1 + ConfusionMatrix::MSE(cm.getFalsePositiveRatios(), zeroVec));
+    real fitC = 0;
+    for (size_t i = 0; i < cm.numberOfClassifiers(); i++) {
+        if (cm.getTruePositiveValues()[i] > 0) {
+            fitC += 1.0;
+        }
+    }
+    return _params->alpha * fitC - (_params->beta * fitA + _params->gamma * fitB);
+
+
+    /// This one is good.
     real acc = 0;
     cm.costlyComputeClassStats();
     real corCount = 0;
@@ -324,46 +340,6 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
     acc /= CustomMath::pow(static_cast<real>(_totalClasses), 2);
     //acc /= _fitnessNormalizationFactor;
     return acc + corCount;
-
-
-
-
-
-
-
-
-    for (size_t i = 0; i < cm.numberOfClassifiers(); i++) {
-        acc += CustomMath::pow(cm.classErrors()[i].accuracy,2);
-    }
-    return sqrt(acc);
-
-std::vector<real> zeroVec(cm.numberOfClassifiers(), 0.0);
-return ConfusionMatrix::MSE(cm.getTruePositiveRatios(), zeroVec);
-
-return (_params->alpha * cm.overallError().accuracy - _params->beta * finalMse) /
-        (_params->alpha + _params->beta);
-
-
-    real penalty = 0.0;
-    if (trainingStats.tp() < 1)
-    {
-        penalty += trainingStats.fp();
-    }
-    if (trainingStats.tn() < 1)
-    {
-        penalty += trainingStats.fn();
-    }
-
-    // Calculate the weighted MSE
-    real costA = finalMse;
-
-    // Life is a balancing act
-    real costB = sqrt(pow(ce.specificity, 2) + pow(ce.sensitivity, 2));
-
-    real cost = (_params->alpha * (-costA)) +
-                (_params->beta * costB) -
-                (_params->gamma * penalty);
-    return cost;
 }
 
 bool OutageTrainer::networkPathValidation() {
@@ -449,10 +425,12 @@ void OutageTrainer::testGB() {
     real gbAcc = _best_gb.cm.overallError().accuracy;
 
     if (validated_gb_flag) {
-        if (newAcc > gbAcc || _best_gb.state.size() == 0) {
+        if (newAcc >= gbAcc || _best_gb.state.size() == 0) {
 //        if (ce.mse < _best_gb.ce.mse || _best_gb.state.size() == 0) {
             _best_gb.state = _gb._x;
             _best_gb.cm = _testConfusionMatrix;
+            _selectedBestList.push_back(_best_gb);
+            //fullTestState();
         }
     }
     /// test
@@ -511,7 +489,7 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
     ConfusionMatrix::ClassifierMatrix results = ConfusionMatrix::evaluateResults(predictions, actuals);
     cm.setResults(results);
     cm.overallError().mse = ConfusionMatrix::MSE(actuals, predictions);
-    cm.print();
+    //cm.print();
 
 //  string outputString = testStats.outputString(ce);
 //  Logger::write(outputString);
@@ -610,4 +588,47 @@ std::vector<real> OutageTrainer::normalizeInput(std::vector<real> & input) {
         }
     }
     return input;
+}
+
+void OutageTrainer::fullTestState(/*pass the gb or selected best option*/) {
+    NeuralNet::State state;
+
+    GlobalBestObject bestGb = _best_gb;
+    real acc = 0.0;
+
+    for (size_t i = 0; i < _selectedBestList.size(); i++) {
+
+        _neuralNet->setState(_selectedBestList[i].state);
+        _neuralNet->setState(state);
+
+        std::vector<std::vector<real>> predictions, actuals;
+        for (size_t i = 0; i < (*_inputCache).length(); i++) {
+            qApp->processEvents();
+
+            OutageDataWrapper data = (*_inputCache)[i];
+            if (_params->enableBaseCase) {
+                _neuralNet->loadInputs(data.outputize());
+            } else {
+                _neuralNet->loadInputs(data.inputize());
+            }
+            std::vector<real> prediction = _neuralNet->process();
+            std::vector<real> actual = data.outputize();
+
+            predictions.push_back(prediction);
+            actuals.push_back(actual);
+        }
+        ConfusionMatrix::ClassifierMatrix results = ConfusionMatrix::evaluateResults(predictions, actuals);
+        ConfusionMatrix cm(results);
+        cm.costlyComputeClassStats();
+        _selectedBestList[i].cm = cm;
+        qDebug() << "AccX: " << acc;
+        if (cm.overallError().accuracy > acc) {
+            acc = cm.overallError().accuracy;
+            bestGb.state = _selectedBestList[i].state;
+            bestGb.cm = _selectedBestList[i].cm;
+        }
+    }
+   _best_gb.cm = bestGb.cm; ///TODO: Replace this with its own object
+   _best_gb.state = bestGb.state;
+
 }

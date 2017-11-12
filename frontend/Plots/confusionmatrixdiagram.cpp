@@ -80,10 +80,7 @@ void ConfusionMatrixDiagram::setLabels(const QStringList & stringList) {
 void ConfusionMatrixDiagram::buildMatrix() {
     _tableWidget.clear();
 
-    initializeClassifierLabels();
-
     constructActualPredictLabels();
-    constructClassLabel();
     constructDataTable();
 
     constructLayout();
@@ -112,15 +109,15 @@ void ConfusionMatrixDiagram::constructLayout() {
     glayout->addWidget(_vertView, 1, 0);
     glayout->addWidget(_horzView, 0, 1);
     glayout->addWidget(&_tableWidget, 1, 1);
-    glayout->setColumnStretch(0, 1);
+    glayout->setColumnStretch(0, 0);
     glayout->setColumnStretch(1, 1000);
-    glayout->setRowStretch(0, 1);
+    glayout->setRowStretch(0, 0);
     glayout->setRowStretch(1, 1000);
 
-    glayout->setColumnMinimumWidth(0, 20);
-    glayout->setColumnMinimumWidth(1, 205);
-    glayout->setRowMinimumHeight(0, 20);
-    glayout->setRowMinimumHeight(1, 205);
+    glayout->setColumnMinimumWidth(0, 5);
+    glayout->setColumnMinimumWidth(1, 245);
+    glayout->setRowMinimumHeight(0, 5);
+    glayout->setRowMinimumHeight(1, 245);
     setLayout(glayout);
 }
 
@@ -140,18 +137,28 @@ size_t ConfusionMatrixDiagram::cols() {
 
 void ConfusionMatrixDiagram::constructActualPredictLabels() {
     QLabel * horzLabel = new QLabel("Actual");
+    horzLabel->setMinimumHeight(12);
     QGraphicsScene * horzScene = new QGraphicsScene();
     QGraphicsProxyWidget * horzProxy = horzScene->addWidget(horzLabel);
     _horzView = new QGraphicsView(horzScene);
+    _horzView->setMinimumSize(20, 20);
+    _horzView->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
     QLabel * vertLabel = new QLabel("Predicted");
+    vertLabel->setMinimumHeight(12);
     QGraphicsScene * vertScene = new QGraphicsScene();
     QGraphicsProxyWidget * vertProxy = vertScene->addWidget(vertLabel);
+    vertProxy->setMinimumHeight(12);
+    vertProxy->setMinimumWidth(12);
     vertProxy->setRotation(-90);
     _vertView = new QGraphicsView(vertScene);
+    _vertView->setMinimumSize(20, 20);
+    _vertView->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 }
 
 void ConfusionMatrixDiagram::constructClassLabel() {
+    initializeClassifierLabels();
+
     QStringList horzLabels = _classifierLabels;
     horzLabels.append("FN");
     _tableWidget.setHorizontalHeaderLabels(horzLabels);
@@ -215,6 +222,8 @@ void ConfusionMatrixDiagram::constructDataTable() {
 }
 
 void ConfusionMatrixDiagram::updateDataTable() {
+    constructClassLabel();
+
     // Load Table with Data
     for (size_t i = 0; i < _numberOfClassifiers; i++) {
         for (size_t j = 0; j < _numberOfClassifiers; j++) {

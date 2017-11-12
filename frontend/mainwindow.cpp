@@ -300,6 +300,51 @@ void MainWindow::setCurrentNet() {
     }
 }
 
+void MainWindow::on_actionSaveSelected_ANN_triggered() {
+    using namespace NeuralPsoStream;
+
+    if (_neuralPsoTrainer == nullptr) {
+        QMessageBox * msgBox = new QMessageBox();
+        msgBox->setText("Error, you have not ran the simulation!\nNo data to save.");
+        msgBox->exec();
+        return;
+    }
+
+    QDir curDir(qApp->applicationDirPath());
+    QString fileName = QFileDialog::getSaveFileName(this, "Save the Selected Best", curDir.absolutePath(), "PSO (*.pso)");
+
+    //QString psoState(_neuralPsoTrainer->stringifyState().c_str());
+    std::string psoState;
+    psoState.append(openToken("_selected_best"));
+    psoState.append("\n");
+    psoState.append(stringifyState(_neuralPsoTrainer->getSelectedGlobalBest().state));
+    psoState.append(closeToken("_selected_best"));
+
+
+    QFile outputFile(fileName);
+    if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
+        QTextStream outputStream(&outputFile);
+        outputStream << QString(psoState.c_str());
+        outputFile.close();
+
+        QMessageBox * msgBox = new QMessageBox();
+        QString msgBoxTxt;
+        msgBoxTxt.append("PSO State Saved!\n");
+        msgBoxTxt.append(fileName);
+        msgBox->setText(msgBoxTxt);
+        msgBox->exec();
+        return;
+    } else {
+        QMessageBox * msgBox = new QMessageBox();
+        QString msgBoxTxt;
+        msgBoxTxt.append("Error, could not open file:\n");
+        msgBoxTxt.append(fileName);
+        msgBox->setText(msgBoxTxt);
+        msgBox->exec();
+        return;
+    }
+}
+
 void MainWindow::initializeData() {
     if (!_params) {
         _params = std::make_shared<TrainingParameters>();
@@ -441,6 +486,8 @@ void MainWindow::setParameterDefaults() {
     nParams.outputs = 10;
     */
 
+    OutageDataWrapper::setInputSkips(_params->ep.inputSkips());
+
     OutageDataWrapper dataWrapper = (*_inputCache)[0];
 
     _params->np.inputs = static_cast<int>( dataWrapper.inputSize() );
@@ -477,6 +524,8 @@ void MainWindow::setParameterDefaults() {
 }
 
 void MainWindow::applyParameterChanges() {
+    applyElementSkips();
+
     _params->pp.population = static_cast<size_t>(ui->totalParticles_sb->value());
     _params->pp.neighbors = static_cast<size_t>(ui->totalNeighbors_sb->value());
     _params->pp.minEpochs = static_cast<size_t>(ui->minEpochs_sb->value());
@@ -511,8 +560,6 @@ void MainWindow::applyParameterChanges() {
     _params->gamma = static_cast<real>(ui->gamma_dsb->value());
 
     setNetTypeByIndex(ui->netType_cb->currentIndex());
-
-    applyElementSkips();
 }
 
 void MainWindow::updateParameterGui() {
@@ -812,6 +859,27 @@ void MainWindow::stopPso() {
     NeuralPso::interruptProcess();
 }
 
+void MainWindow::on_testFullSet_btn_clicked() {
+    if (_neuralPsoTrainer) {
+
+        QTimer * fitnessPlotTimer = new QTimer(this);
+        fitnessPlotTimer->setInterval(200);
+        connect(fitnessPlotTimer, SIGNAL(timeout()), this, SLOT(updateFitnessPlot()));
+        fitnessPlotTimer->start();
+
+        QString weAreRunning("Please wait while we test everything.");
+        setOutputLabel(weAreRunning);
+
+        _neuralPsoTrainer->fullTestState();
+
+        QString completionMsg("Complete!");
+        setOutputLabel(completionMsg);
+
+        disconnect(fitnessPlotTimer, SIGNAL(timeout()), this, SLOT(updateFitnessPlot()));
+        fitnessPlotTimer->deleteLater();
+    }
+}
+
 void MainWindow::setOutputLabel(const QString & s) {
     ui->output_lbl->setText(s);
 }
@@ -843,11 +911,12 @@ void MainWindow::runNeuralPso() {
   enableParameterInput(false);
 
   // Make sure that parameters are ready
-  //!FIXME Not actually updaing parameters.
+  //!FIXME Not actually updating parameters.
   applyParameterChanges();
   tellParameters();
 
-  if (_neuralPsoTrainer == nullptr) {
+  if (_neuralPsoTrainer == nullptr || !_runOnce) {
+      _runOnce = true;
       clearPSOState();  // Initializer for PSO training
   }
 
@@ -863,6 +932,8 @@ void MainWindow::runNeuralPso() {
   //_neuralPsoTrainer->classError(ce);
 
   stopPso();
+
+  _neuralPsoTrainer->fullTestState();updatePlot();
 
   enableParameterInput(true);
 
@@ -924,6 +995,7 @@ void MainWindow::on_clearState_btn_clicked() {
 }
 
 void MainWindow::clearPSOState() {
+    applyParameterChanges();
     _neuralPsoTrainer = std::make_unique<OutageTrainer>(_params, _inputCache);
     //_neuralPsoTrainer->build(_inputData, _labelsData);
     _neuralPsoTrainer->setFunctionMsg("Outage Data");

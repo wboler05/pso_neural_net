@@ -432,11 +432,12 @@ NeuralNet::ExternalNodes NeuralNet::inputs() {
 }
 
 real NeuralNet::activation(const real & in, const real & k) {
-//  if (in >= 0) {
-//      return in;
-//  } else {
-//      return 0;
-//    }
+    /*
+    if (in >= 0) {
+        return k*in;
+    } else {
+        return 0;
+    }*/
 
     //real act = in / (1 + abs(in));  // Softsign
   //real act = 1 / (1 + exp(-in));  // Logistics

@@ -49,8 +49,10 @@ void InnerNetNodesInput::fillBuffer() {
 
         if (i > tempNodeCounts.size()) {
             tempNodeCounts.push_back(0);
-        } else {
+        } else if (tempNodeCounts.size() != i) {
             tempNodeCounts[i] = box->value();
+        } else {
+            tempNodeCounts.push_back(box->value());
         }
     }
 }
