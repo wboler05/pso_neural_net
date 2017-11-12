@@ -304,13 +304,19 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingInputs) {
     trainingStats = cm.overallStats();
     TestStatistics::ClassificationError ce = cm.overallError();
     cm.overallError().mse = finalMse;
-return -finalMse;
+    real fitC = 0;
+    for (size_t i = 0; i < cm.numberOfClassifiers(); i++) {
+        if (cm.getTruePositiveValues()[i] > 0) {
+            fitC += 1.0;
+        }
+    }
+return fitC-finalMse;
 
     cm.costlyComputeClassStats();
     std::vector<real> zeroVec(cm.numberOfClassifiers(), 0);
     real fitA = CustomMath::mean(cm.getFalseNegativeRatios());// / (1 + ConfusionMatrix::MSE(cm.getFalseNegativeRatios(), zeroVec));
     real fitB = CustomMath::mean(cm.getFalsePositiveRatios());// / (1 + ConfusionMatrix::MSE(cm.getFalsePositiveRatios(), zeroVec));
-    real fitC = 0;
+    ///real fitC = 0;
     for (size_t i = 0; i < cm.numberOfClassifiers(); i++) {
         if (cm.getTruePositiveValues()[i] > 0) {
             fitC += 1.0;

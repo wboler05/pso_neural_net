@@ -375,12 +375,20 @@ bool NeuralNet::enableNodeValueToBool(const real & val) {
 }
 
 void NeuralNet::randomDropoutNodes(const real &mean=0, const real & sigma=1) {
-    std::normal_distribution<real> dist(mean, sigma);
+    //std::normal_distribution<real> dist(mean, sigma);
     //std::uniform_real_distribution<real> dist(-1, 1);
 
     for (size_t i = 0; i < _state[0].size(); i++) {
         for (size_t j = 0; j < _state[0][i].size(); j++) {
-      //      _state[0][i][j] = dist(_randomEngine.engine());
+            _state[0][i][j] = _randomEngine.normal(mean, sigma);
+        }
+    }
+}
+
+void NeuralNet::randomizeEnabledNodes() {
+    for (size_t i = 0; i < _state[0].size(); i++) {
+        for (size_t j = 0; j < _state[0][i].size(); j++) {
+            _state[0][i][j] = _randomEngine.uniformReal(-1.0, 1.0);
         }
     }
 }
@@ -432,12 +440,14 @@ NeuralNet::ExternalNodes NeuralNet::inputs() {
 }
 
 real NeuralNet::activation(const real & in, const real & k) {
-    /*
-    if (in >= 0) {
-        return k*in;
-    } else {
-        return 0;
-    }*/
+    return sin(in * 2 * 3.1459);
+    //return exp(-CustomMath::pow(in / (k+0.0001), 2)); // Gaussian with K constant
+
+//    if (in >= 0) {
+//        return k*in;
+//    } else {
+//        return 0;
+//    }
 
     //real act = in / (1 + abs(in));  // Softsign
   //real act = 1 / (1 + exp(-in));  // Logistics

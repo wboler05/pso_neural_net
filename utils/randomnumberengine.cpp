@@ -29,3 +29,8 @@ long double RandomNumberEngine::uniformReal(const long double & low, const long 
     std::uniform_real_distribution<long double> dist(low, high);
     return dist(_engine);
 }
+
+real RandomNumberEngine::normal(const real & mean, const real & sigma) {
+    std::normal_distribution<real> dist(mean, sigma);
+    return dist(_engine);
+}

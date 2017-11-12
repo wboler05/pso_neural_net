@@ -37,6 +37,7 @@ void NeuralPso::buildPso() {
     for (size_t i = 0; i < _psoParams.population; i++) {
         _neuralNet->randomizeState();
         _neuralNet->randomizeActivationConstants();
+        _neuralNet->randomizeEnabledNodes();
         const NeuralNet::State & randomState = _neuralNet->state();
 
         // Create the number of inner columns
@@ -415,11 +416,11 @@ real NeuralPso::flyIteration(const size_t & particleId,
 //                + (c3*(*w_gb - *w_x))
                 );
 
-    if (*w_v > _psoParams.vLimit) {
-        *w_v = _psoParams.vLimit;
-    } else if (*w_v < -_psoParams.vLimit) {
-        *w_v = -_psoParams.vLimit;
-    }
+//    if (*w_v > _psoParams.vLimit) {
+//        *w_v = _psoParams.vLimit;
+//    } else if (*w_v < -_psoParams.vLimit) {
+//        *w_v = -_psoParams.vLimit;
+//    }
 
     *w_v *= psoParams().dt;
     *w_x += *w_v;

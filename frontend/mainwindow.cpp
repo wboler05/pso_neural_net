@@ -357,6 +357,8 @@ void MainWindow::initializeData() {
     setParameterDefaults();
     setInputsForTrainedNetFromGui();
 
+    updateFitnessPlotWindowSize();
+
     if (!iniFileLoaded) {
         saveIniFile();
     }
