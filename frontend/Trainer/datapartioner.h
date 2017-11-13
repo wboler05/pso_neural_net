@@ -7,11 +7,11 @@
 #include <ctime>
 #include "inputcache.h"
 
-class dataPartioner{
+class DataPartioner{
 public:
-    dataPartioner();
-    dataPartioner(size_t kFolds, size_t totalNumInputs, size_t numClasses, const std::shared_ptr<InputCache> & inputCache);
-    dataPartioner & operator=(dataPartioner && r);
+    DataPartioner() {}
+    DataPartioner(size_t kFolds, size_t totalNumInputs, size_t numClasses, const std::shared_ptr<InputCache> & inputCache);
+    DataPartioner & operator=(DataPartioner && r);
     size_t trainingSet(size_t i);
     size_t trainingSetSize();
     size_t testSet(size_t i);
@@ -20,7 +20,7 @@ public:
     size_t validationSetSize();
     const std::vector<size_t> & getTestSet() const;
     const std::vector<size_t> & getValidationSet() const;
-    const std::vector<size_t> & getTrainingVector(std::vector<size_t> & tr, const size_t & iterations);
+    void getTrainingVector(std::vector<size_t> & tr, const size_t & iterations);
     const real & getImplicitBiasWeight(int classNum) const;
     const real & getFittnessNormFactor() const;
     void reset();

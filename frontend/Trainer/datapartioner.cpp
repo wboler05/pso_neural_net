@@ -1,16 +1,17 @@
 #include "datapartioner.h"
 
-dataPartioner::dataPartioner(size_t kFolds, size_t totalNumInputs, size_t numClasses, const std::shared_ptr<InputCache> & inputCache){
+DataPartioner::DataPartioner(size_t kFolds, size_t totalNumInputs, size_t numClasses, const std::shared_ptr<InputCache> & inputCache) :
+    _inputCache(inputCache),
+    _totalNumInputs(totalNumInputs),
+    _kFolds(kFolds),
+    _numClasses(numClasses)
+
+{
 
     //Init random engine
     time_t currentTime;
     time(&currentTime);
     _randomEngine = RandomNumberEngine(currentTime);
-
-    _kFolds = kFolds;
-    _totalNumInputs = totalNumInputs;
-    _numClasses = numClasses;
-    _inputCache = inputCache;
 
     std::vector<size_t> indicies;
 
@@ -49,7 +50,28 @@ dataPartioner::dataPartioner(size_t kFolds, size_t totalNumInputs, size_t numCla
     calcImplicitBiasWeights();
 }
 
-void dataPartioner::reset(){
+DataPartioner & DataPartioner::operator=(DataPartioner && d) {
+    _randomEngine = std::move(d._randomEngine);
+    _trainingSetClassBins = std::move(d._trainingSetClassBins);
+    _trainingSet = std::move(d._trainingSet);
+    _testSet = std::move(d._testSet);
+    _validationSet = std::move(d._validationSet);
+    _implicitBiasWeights = std::move(d._implicitBiasWeights);
+    _trueNumElesPerClass = std::move(d._trueNumElesPerClass);
+    _equalizationFactors = std::move(d._equalizationFactors);
+    _fitnessNormalizationFactor = std::move(d._fitnessNormalizationFactor);
+    _inputCache = std::move(d._inputCache);
+    _totalNumInputs = std::move(d._totalNumInputs);
+    _testBound = std::move(d._testBound);
+    _kFolds = std::move(d._kFolds);
+    _foldIdx = std::move(d._foldIdx);
+    _numElePerValidationRound = std::move(d._numElePerValidationRound);
+    _numClasses = std::move(d._numClasses);
+
+    return *this;
+}
+
+void DataPartioner::reset(){
 
     std::vector<size_t> indicies;
     // Initialize the vector
@@ -80,7 +102,7 @@ void dataPartioner::reset(){
     splitTrainingClasses();
 }
 
-size_t dataPartioner::nextFold(){
+size_t DataPartioner::nextFold(){
     size_t temp;
     _foldIdx++;
     if(_foldIdx < _kFolds){
@@ -96,47 +118,47 @@ size_t dataPartioner::nextFold(){
     return -1;
 }
 
-size_t dataPartioner::trainingSet(size_t i){
+size_t DataPartioner::trainingSet(size_t i){
     return _trainingSet[i];
 }
 
-size_t dataPartioner::testSet(size_t i){
+size_t DataPartioner::testSet(size_t i){
     return _testSet[i];
 }
 
-size_t dataPartioner::validationSet(size_t i){
+size_t DataPartioner::validationSet(size_t i){
     return _validationSet[i];
 }
 
-size_t dataPartioner::trainingSetSize(){
+size_t DataPartioner::trainingSetSize(){
     return _trainingSet.size();
 }
 
-size_t dataPartioner::testSetSize(){
+size_t DataPartioner::testSetSize(){
     return _testSet.size();
 }
 
-size_t dataPartioner::validationSetSize(){
+size_t DataPartioner::validationSetSize(){
     return _validationSet.size();
 }
 
-const std::vector<size_t> & dataPartioner::getTestSet() const{
+const std::vector<size_t> & DataPartioner::getTestSet() const{
     return _testSet;
 }
 
-const std::vector<size_t> & dataPartioner::getValidationSet() const{
+const std::vector<size_t> & DataPartioner::getValidationSet() const{
     return _validationSet;
 }
 
-const real & dataPartioner::getImplicitBiasWeight(int classNum) const{
+const real & DataPartioner::getImplicitBiasWeight(int classNum) const{
     return _implicitBiasWeights[classNum];
 }
 
-const real & dataPartioner::getFittnessNormFactor() const {
+const real & DataPartioner::getFittnessNormFactor() const {
     return _fitnessNormalizationFactor;
 }
 
-const std::vector<size_t> & dataPartioner::getTrainingVector(std::vector<size_t> & tr, const size_t & iterations){
+void DataPartioner::getTrainingVector(std::vector<size_t> & tr, const size_t & iterations){
     tr.clear();
     tr.resize(iterations);
     for (size_t i = 0; i < iterations; i++) {
@@ -152,7 +174,7 @@ const std::vector<size_t> & dataPartioner::getTrainingVector(std::vector<size_t>
     }
 }
 
-void dataPartioner::splitTrainingClasses() {
+void DataPartioner::splitTrainingClasses() {
 
     // Clear equi-probable vector and resize to # of classes
     _trainingSetClassBins.clear();
@@ -184,7 +206,7 @@ void dataPartioner::splitTrainingClasses() {
     }
 }
 
-void dataPartioner::shuffleVector(std::vector<size_t> * toShuffle){
+void DataPartioner::shuffleVector(std::vector<size_t> * toShuffle){
     size_t swpIdx, temp;
     for (size_t i = 1; i < toShuffle->size(); i++){
         swpIdx = _randomEngine.uniformUnsignedInt(0,i);
@@ -199,7 +221,7 @@ void dataPartioner::shuffleVector(std::vector<size_t> * toShuffle){
     }
 }
 
-void dataPartioner::calculateClassFrequency() {
+void DataPartioner::calculateClassFrequency() {
 
     _trueNumElesPerClass.resize(_numClasses,0);
 
@@ -221,14 +243,14 @@ void dataPartioner::calculateClassFrequency() {
     }
 }
 
-void dataPartioner::initializeBiasVectors() {
+void DataPartioner::initializeBiasVectors() {
     _implicitBiasWeights.resize(_numClasses,0);
     _trueNumElesPerClass.resize(_numClasses,0);
     _equalizationFactors.resize(_numClasses,0);
     _fitnessNormalizationFactor = 0;
 }
 
-void dataPartioner::calcImplicitBiasWeights() {
+void DataPartioner::calcImplicitBiasWeights() {
 
     // Initialize vectors
     initializeBiasVectors();

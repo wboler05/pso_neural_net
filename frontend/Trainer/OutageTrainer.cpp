@@ -40,7 +40,7 @@ size_t OutageTrainer::getNextValidationSet(){
 }
 
 void OutageTrainer::partitionData(int kFolds, size_t numClasses){
-    _dataSets = dataPartioner(kFolds,static_cast<size_t>(_inputCache->totalInputItemsInFile()), numClasses, _inputCache);
+    _dataSets = DataPartioner(kFolds,static_cast<size_t>(_inputCache->totalInputItemsInFile()), numClasses, _inputCache);
 }
 
 
@@ -72,7 +72,8 @@ void OutageTrainer::trainingRun() {
         }
 
         // Get fitness
-        real fit = trainingStep(_dataSets.getTrainingVector(trainingVector,_params->np.trainingIterations));
+        _dataSets.getTrainingVector(trainingVector,_params->np.trainingIterations);
+        real fit = trainingStep(trainingVector);
         p->_fit = fit;
     }
 }
@@ -212,6 +213,9 @@ void OutageTrainer::validateGB() {
     _neuralNet->setState(_gb._x);
     TestStatistics::ClassificationError ce;
     classError(_dataSets.getValidationSet(), _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
+
+    _recent_gb.state = _gb._x;
+    _recent_gb.cm = _validationConfusionMatrix;
 }
 
 TestStatistics::ClassificationError && OutageTrainer::validateCurrentNet() {

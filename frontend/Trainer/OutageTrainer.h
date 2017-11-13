@@ -112,7 +112,7 @@ public:
 
 private:
 
-    dataPartioner _dataSets;
+    DataPartioner _dataSets;
     GlobalBestObject _recent_gb;
     GlobalBestObject _best_gb;
     std::shared_ptr<TrainingParameters> _params;

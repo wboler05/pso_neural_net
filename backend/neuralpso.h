@@ -27,6 +27,23 @@ class NeuralNet;
 template struct Particle<NeuralNet::State>;
 
 struct GlobalBestObject {
+
+    GlobalBestObject() {}
+    GlobalBestObject(const GlobalBestObject & l) : state(l.state), cm(l.cm) {}
+    GlobalBestObject(GlobalBestObject && r) : state(std::move(r.state)), cm(std::move(r.cm)) {}
+
+    GlobalBestObject & operator=(const GlobalBestObject & l) {
+        state = l.state;
+        cm = l.cm;
+        return *this;
+    }
+
+    GlobalBestObject & operator=(GlobalBestObject && r) {
+        state = std::move(r.state);
+        cm = std::move(r.cm);
+        return *this;
+    }
+
     NeuralNet::State state;
     ConfusionMatrix cm;
 };
