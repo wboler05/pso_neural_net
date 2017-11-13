@@ -78,7 +78,7 @@ public:
     void biasAgainstLOA();
 
     void trainingRun();
-    real trainingStep(const dataPartioner & dataSets);
+    real trainingStep(const DataPartioner & dataSets);
     real trainingStepBaseCase();
     void testGB();
     void testSelectedGB();
@@ -116,7 +116,7 @@ public:
 
 private:
 
-    dataPartioner _dataSets;
+    DataPartioner _dataSets;
     GlobalBestObject _recent_gb;
     GlobalBestObject _best_gb;
     std::shared_ptr<TrainingParameters> _params;

@@ -41,7 +41,7 @@ size_t OutageTrainer::getNextValidationSet(){
 }
 
 void OutageTrainer::partitionData(int kFolds){
-    _dataSets = dataPartioner(kFolds,static_cast<size_t>(_inputCache->totalInputItemsInFile()));
+    _dataSets = DataPartioner(kFolds,static_cast<size_t>(_inputCache->totalInputItemsInFile()));
 }
 
 void OutageTrainer::calcImplicitBiasWeights() {
@@ -128,7 +128,7 @@ void OutageTrainer::trainingRun() {
 * @return
 * @todo Need to swap iterators.  Train all particles on same dataset
 */
-real OutageTrainer::trainingStep(const dataPartioner & dataSets) {
+real OutageTrainer::trainingStep(const DataPartioner & dataSets) {
     // Validate that a path is good first
     if (!networkPathValidation()) {
         return -std::numeric_limits<real>::max();
