@@ -4,6 +4,7 @@ debug/
 release/
 run*
 *.app
+*.depend
 
 # C++ objects and libs
 
