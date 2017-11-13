@@ -44,11 +44,6 @@ struct EnableParameters {
     std::vector<size_t> inputSkips();
 };
 
-struct GlobalBestObject {
-    NeuralNet::State state;
-    ConfusionMatrix cm;
-};
-
 struct TrainingParameters {
     PsoParams pp;
     NeuralNet::NeuralNetParameters np;
@@ -71,14 +66,16 @@ public:
                   const std::shared_ptr<InputCache> & inputCache);
 
     void build();
-    void partitionData(int kFolds);
+    void partitionData(int kFolds, size_t numClasses);
     size_t getNextValidationSet();
 
     void calcImplicitBiasWeights();
-    void biasAgainstLOA();
+
+    void biasAgainstProbability();
+    void randomlyGenerateTrainingInputs(std::vector<size_t> & tr, const size_t & iterations);
 
     void trainingRun();
-    real trainingStep(const DataPartioner & dataSets);
+    real trainingStep(const vector<size_t> & trainingVector);
     real trainingStepBaseCase();
     void testGB();
     void testSelectedGB();
@@ -108,8 +105,7 @@ public:
     void updateEnableParameters();
     const EnableParameters & enableParameters() { return _params->ep; }
 
-    GlobalBestObject & getRecentGlobalBest() { return _recent_gb; }
-    GlobalBestObject & getSelectedGlobalBest() { return _best_gb; }
+    void fullTestState();
 
     // Test
     std::vector<StatObject> _outputNodeStats;
@@ -124,12 +120,9 @@ private:
     ConfusionMatrix _validationConfusionMatrix;
     ConfusionMatrix _selectedConfusionMatrix;
     std::shared_ptr<InputCache> _inputCache;
-    std::vector<real> _implicitBiasWeights;
-    std::vector<size_t> _trueNumElesPerClass;
-    std::vector<real> _equalizationFactors;
-    real _fitnessNormalizationFactor;
+
     std::vector<size_t> _inputSkips;
-    size_t _numClasses;
+    size_t _numClasses = 0;
 
     std::string _functionMsg;
     std::vector<real> _minInputData;

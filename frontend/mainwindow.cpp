@@ -124,6 +124,7 @@ MainWindow::MainWindow(QWidget *parent) :
     updateTimer->start(500);
 
     ui->OutageInputBox->setVisible(false);
+    ui->fitnessLimitsWidget->setVisible(false);
 
     // Init before running things
     initializeData();
@@ -300,6 +301,51 @@ void MainWindow::setCurrentNet() {
     }
 }
 
+void MainWindow::on_actionSaveSelected_ANN_triggered() {
+    using namespace NeuralPsoStream;
+
+    if (_neuralPsoTrainer == nullptr) {
+        QMessageBox * msgBox = new QMessageBox();
+        msgBox->setText("Error, you have not ran the simulation!\nNo data to save.");
+        msgBox->exec();
+        return;
+    }
+
+    QDir curDir(qApp->applicationDirPath());
+    QString fileName = QFileDialog::getSaveFileName(this, "Save the Selected Best", curDir.absolutePath(), "PSO (*.pso)");
+
+    //QString psoState(_neuralPsoTrainer->stringifyState().c_str());
+    std::string psoState;
+    psoState.append(openToken("_selected_best"));
+    psoState.append("\n");
+    psoState.append(stringifyState(_neuralPsoTrainer->getSelectedGlobalBest().state));
+    psoState.append(closeToken("_selected_best"));
+
+
+    QFile outputFile(fileName);
+    if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
+        QTextStream outputStream(&outputFile);
+        outputStream << QString(psoState.c_str());
+        outputFile.close();
+
+        QMessageBox * msgBox = new QMessageBox();
+        QString msgBoxTxt;
+        msgBoxTxt.append("PSO State Saved!\n");
+        msgBoxTxt.append(fileName);
+        msgBox->setText(msgBoxTxt);
+        msgBox->exec();
+        return;
+    } else {
+        QMessageBox * msgBox = new QMessageBox();
+        QString msgBoxTxt;
+        msgBoxTxt.append("Error, could not open file:\n");
+        msgBoxTxt.append(fileName);
+        msgBox->setText(msgBoxTxt);
+        msgBox->exec();
+        return;
+    }
+}
+
 void MainWindow::initializeData() {
     if (!_params) {
         _params = std::make_shared<TrainingParameters>();
@@ -311,6 +357,8 @@ void MainWindow::initializeData() {
 
     setParameterDefaults();
     setInputsForTrainedNetFromGui();
+
+    updateFitnessPlotWindowSize();
 
     if (!iniFileLoaded) {
         saveIniFile();
@@ -400,6 +448,9 @@ void MainWindow::initializeCache() {
 //                "\tLOA: " << index._loa <<
 //                "\tLat: " << index._latlong.latitude() << "\tLong: " << index._latlong.longitude();
         }
+        if (_inputCache->length() > 0) {
+            ui->confusionMatrix->setNumberOfClassifiers((*_inputCache)[0].outputize().size());
+        }
         qDebug() << "Cache creation complete.";
     } else {
         qDebug() << "Failed to open input file.";
@@ -428,6 +479,7 @@ void MainWindow::setParameterDefaults() {
     _params->pp.termIterationFlag = false;
     _params->pp.termDeltaFlag = true;
     _params->pp.windowSize = 1500;
+    _params->pp.dt = 0.025;
 
     /*
     NeuralNetParameters nParams;
@@ -438,14 +490,15 @@ void MainWindow::setParameterDefaults() {
     nParams.outputs = 10;
     */
 
+    OutageDataWrapper::setInputSkips(_params->ep.inputSkips());
+
     OutageDataWrapper dataWrapper = (*_inputCache)[0];
 
-    _params->np.inputs = static_cast<int>(
-                dataWrapper.inputize(_params->ep.inputSkips()).size());
+    _params->np.inputs = static_cast<int>( dataWrapper.inputSize() );
     _params->np.innerNetNodes.clear();
     _params->np.innerNetNodes.push_back(8);
     _params->np.innerNets = static_cast<int>(_params->np.innerNetNodes.size());
-    _params->np.outputs = static_cast<int>(dataWrapper.outputize().size());
+    _params->np.outputs = static_cast<int>(dataWrapper.outputSize());
     _params->np.trainingIterations = 20;
     _params->np.validationIterations = 200;
     _params->np.testIterations = 500; //500
@@ -475,6 +528,8 @@ void MainWindow::setParameterDefaults() {
 }
 
 void MainWindow::applyParameterChanges() {
+    applyElementSkips();
+
     _params->pp.population = static_cast<size_t>(ui->totalParticles_sb->value());
     _params->pp.neighbors = static_cast<size_t>(ui->totalNeighbors_sb->value());
     _params->pp.minEpochs = static_cast<size_t>(ui->minEpochs_sb->value());
@@ -483,6 +538,7 @@ void MainWindow::applyParameterChanges() {
     _params->pp.windowSize = static_cast<size_t>(ui->window_sb->value());
     _params->pp.termIterationFlag = static_cast<size_t>(ui->enableIteration_cb->isChecked());
     _params->pp.termDeltaFlag = static_cast<size_t>(ui->enableDelta_cb->isChecked());
+    _params->pp.dt = static_cast<double>(ui->dt_dsb->value());
 
     _params->np.trainingIterations = ui->trainingIterations_sb->value();
     _params->np.validationIterations = ui->validationIterations_sb->value();
@@ -509,8 +565,6 @@ void MainWindow::applyParameterChanges() {
     _params->gamma = static_cast<real>(ui->gamma_dsb->value());
 
     setNetTypeByIndex(ui->netType_cb->currentIndex());
-
-    applyElementSkips();
 }
 
 void MainWindow::updateParameterGui() {
@@ -522,6 +576,7 @@ void MainWindow::updateParameterGui() {
     ui->delta_dsb->setValue(static_cast<double>(_params->pp.delta));
     ui->enableIteration_cb->setChecked(_params->pp.termIterationFlag);
     ui->enableDelta_cb->setChecked(_params->pp.termDeltaFlag);
+    ui->dt_dsb->setValue(static_cast<double>(_params->pp.dt));
 
     ui->trainingIterations_sb->setValue(_params->np.trainingIterations);
     ui->validationIterations_sb->setValue(_params->np.validationIterations);
@@ -601,9 +656,8 @@ void MainWindow::applyElementSkips() {
     _params->ep.longitude = ui->enLocLong_cb->isChecked();
 
     OutageDataWrapper dataWrapper = (*_inputCache)[0];
-    _params->np.inputs = static_cast<int>(
-                dataWrapper.inputize(_params->ep.inputSkips()).size());
-    _params->np.outputs = static_cast<int>(dataWrapper.outputize().size());
+    _params->np.inputs = static_cast<int>( dataWrapper.inputSize() );
+    _params->np.outputs = static_cast<int>(dataWrapper.outputSize());
 }
 
 void MainWindow::updateElementSkips() {
@@ -681,18 +735,24 @@ bool MainWindow::showBestSelected() {
 
 void MainWindow::updateConfusionMatrix() {
 
-    TestStatistics ts;
-    TestStatistics::ClassificationError ce;
+    ConfusionMatrix cm;
 
     if (showBestSelected()) {
         GlobalBestObject selGb = _neuralPsoTrainer->getSelectedGlobalBest();
-        ts = selGb.cm.overallStats();
-        ce = selGb.cm.overallError();
+        cm = selGb.cm;
+        //ts = selGb.cm.overallStats();
+        //ce = selGb.cm.overallError();
     } else {
         GlobalBestObject recGb = _neuralPsoTrainer->getRecentGlobalBest();
-        ts = recGb.cm.overallStats();
-        ce = recGb.cm.overallError();
+        cm = recGb.cm;
+        //ts = recGb.cm.overallStats();
+        //ce = recGb.cm.overallError();
     }
+
+    TestStatistics ts = cm.overallStats();
+    TestStatistics::ClassificationError ce = cm.overallError();
+
+    ui->confusionMatrix->updateConfusionMatrix(cm);
 
     double actPos = static_cast<double>(ts.tp() + ts.fn());
     double actNeg = static_cast<double>(ts.fp() + ts.tn());
@@ -706,7 +766,7 @@ void MainWindow::updateConfusionMatrix() {
     ui->spec_lbl->setText(QString::number(static_cast<double>(ce.specificity)));
     ui->fscore_lbl->setText(QString::number(static_cast<double>(ce.f_score)));
     ui->mse_lbl->setText(QString::number(static_cast<double>(ce.mse)));
-
+/*
     ui->actPosNum_lbl->setText(QString::number(actPos));
     ui->actPosPerc_lbl->setText(QString::number(actPos / pop));
     ui->actNegNum_lbl->setText(QString::number(actNeg));
@@ -724,6 +784,10 @@ void MainWindow::updateConfusionMatrix() {
     ui->falsePosPerc_lbl->setText(QString::number(static_cast<double>(ts.fp_norm())));
     ui->falseNegNum_lbl->setText(QString::number(static_cast<double>(ts.fn())));
     ui->falseNegPerc_lbl->setText(QString::number(static_cast<double>(ts.fn_norm())));
+    */
+
+//    ui->confusionMatrix_gb->adjustSize();
+//    ui->plotLayout->update();
 }
 
 void MainWindow::on_actionParticle_Plotter_triggered() {
@@ -801,6 +865,27 @@ void MainWindow::stopPso() {
     NeuralPso::interruptProcess();
 }
 
+void MainWindow::on_testFullSet_btn_clicked() {
+    if (_neuralPsoTrainer) {
+
+        QTimer * fitnessPlotTimer = new QTimer(this);
+        fitnessPlotTimer->setInterval(200);
+        connect(fitnessPlotTimer, SIGNAL(timeout()), this, SLOT(updateFitnessPlot()));
+        fitnessPlotTimer->start();
+
+        QString weAreRunning("Please wait while we test everything.");
+        setOutputLabel(weAreRunning);
+
+        _neuralPsoTrainer->fullTestState();
+
+        QString completionMsg("Complete!");
+        setOutputLabel(completionMsg);
+
+        disconnect(fitnessPlotTimer, SIGNAL(timeout()), this, SLOT(updateFitnessPlot()));
+        fitnessPlotTimer->deleteLater();
+    }
+}
+
 void MainWindow::setOutputLabel(const QString & s) {
     ui->output_lbl->setText(s);
 }
@@ -832,11 +917,12 @@ void MainWindow::runNeuralPso() {
   enableParameterInput(false);
 
   // Make sure that parameters are ready
-  //!FIXME Not actually updaing parameters.
+  //!FIXME Not actually updating parameters.
   applyParameterChanges();
   tellParameters();
 
-  if (_neuralPsoTrainer == nullptr) {
+  if (_neuralPsoTrainer == nullptr || !_runOnce) {
+      _runOnce = true;
       clearPSOState();  // Initializer for PSO training
   }
 
@@ -852,6 +938,8 @@ void MainWindow::runNeuralPso() {
   //_neuralPsoTrainer->classError(ce);
 
   stopPso();
+
+  _neuralPsoTrainer->fullTestState();updatePlot();
 
   enableParameterInput(true);
 
@@ -913,6 +1001,7 @@ void MainWindow::on_clearState_btn_clicked() {
 }
 
 void MainWindow::clearPSOState() {
+    applyParameterChanges();
     _neuralPsoTrainer = std::make_unique<OutageTrainer>(_params, _inputCache);
     //_neuralPsoTrainer->build(_inputData, _labelsData);
     _neuralPsoTrainer->setFunctionMsg("Outage Data");

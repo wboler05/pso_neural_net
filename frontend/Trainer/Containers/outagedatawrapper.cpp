@@ -1,5 +1,8 @@
 #include "outagedatawrapper.h"
 
+std::vector<size_t> OutageDataWrapper::_inputSkips;
+bool OutageDataWrapper::_inputSkipsModified = true;
+
 OutageDataWrapper::OutageDataWrapper() :
     OutageDataItem(),
     _empty(true)
@@ -171,71 +174,101 @@ void OutageDataWrapper::parseStormEvents(
  * @param skips
  * @return
  */
-std::vector<real> OutageDataWrapper::inputize(const std::vector<size_t> & skips) {
-    std::vector<real> input;
+std::vector<real> OutageDataWrapper::inputize() {
+    //std::vector<real> input;
+    std::list<real> inputs_l;
 
-    input.push_back(_loa);
+    inputs_l.push_back(_loa);
 
     // Lat and Long
-    input.push_back(_latlong.latitude());
-    input.push_back(_latlong.longitude());
+    inputs_l.push_back(_latlong.latitude());
+    inputs_l.push_back(_latlong.longitude());
 
     // Date
-    input.push_back(static_cast<real>(_date.year()));
-    input.push_back(static_cast<real>(_date.month()));
-    input.push_back(static_cast<real>(_date.day()));
+    inputs_l.push_back(static_cast<real>(_date.year()));
+    inputs_l.push_back(static_cast<real>(_date.month()));
+    inputs_l.push_back(static_cast<real>(_date.day()));
 
     // Temperature
-    input.push_back(_temp.lo());
-    input.push_back(_temp.avg());
-    input.push_back(_temp.hi());
+    inputs_l.push_back(_temp.lo());
+    inputs_l.push_back(_temp.avg());
+    inputs_l.push_back(_temp.hi());
 
     // Dew Point
-    input.push_back(_dew.lo());
-    input.push_back(_dew.avg());
-    input.push_back(_dew.hi());
+    inputs_l.push_back(_dew.lo());
+    inputs_l.push_back(_dew.avg());
+    inputs_l.push_back(_dew.hi());
 
     // Humidity
-    input.push_back(_humidity.lo());
-    input.push_back(_humidity.avg());
-    input.push_back(_humidity.hi());
+    inputs_l.push_back(_humidity.lo());
+    inputs_l.push_back(_humidity.avg());
+    inputs_l.push_back(_humidity.hi());
 
     // Sea Level Pressure
-    input.push_back(_pressure.lo());
-    input.push_back(_pressure.avg());
-    input.push_back(_pressure.hi());
+    inputs_l.push_back(_pressure.lo());
+    inputs_l.push_back(_pressure.avg());
+    inputs_l.push_back(_pressure.hi());
 
     // Visibility
-    input.push_back(_visibility.lo());
-    input.push_back(_visibility.avg());
-    input.push_back(_visibility.hi());
+    inputs_l.push_back(_visibility.lo());
+    inputs_l.push_back(_visibility.avg());
+    inputs_l.push_back(_visibility.hi());
 
     // Wind
-    input.push_back(_wind.gust());
-    input.push_back(_wind.avg());
-    input.push_back(_wind.hi());
+    inputs_l.push_back(_wind.gust());
+    inputs_l.push_back(_wind.avg());
+    inputs_l.push_back(_wind.hi());
 
     // Precipitation
-    input.push_back(_precipitation);
+    inputs_l.push_back(_precipitation);
 
     // Strings
     //input.push_back(cityToNumber(_city));
     //input.push_back(countyToNumber(_county));
     //input.push_back(reportedEventToNumber(_reported_event));
     //input.push_back(stormTypeToNumber(_storm_event));
-    input.push_back(bool2Double(_fog));
-    input.push_back(bool2Double(_rain));
-    input.push_back(bool2Double(_snow));
-    input.push_back(bool2Double(_thunderstorm));
+    inputs_l.push_back(bool2Double(_fog));
+    inputs_l.push_back(bool2Double(_rain));
+    inputs_l.push_back(bool2Double(_snow));
+    inputs_l.push_back(bool2Double(_thunderstorm));
 
+    std::vector<real> inputs_v;
+    size_t skipOffset = 0;
+    size_t i = 0;
+    while (inputs_l.size()) {
+        if (_inputSkips.size() > 0) {
+            if (i != _inputSkips[skipOffset]) {
+                inputs_v.push_back(inputs_l.front());
+            } else {
+                skipOffset++;
+            }
+        } else {
+            inputs_v.push_back(inputs_l.front());
+        }
+        i++;
+        inputs_l.pop_front();
+    }
+
+    /*
     size_t offset = 0;
-    for (size_t i = 0; i < skips.size(); i++) {
-        size_t skipElement = skips[i] - offset;
-        input.erase(input.begin() + skipElement);
+    for (size_t i = 0; i < _inputSkips.size(); i++) {
+        size_t skipElement = _inputSkips[i] - offset;
+        inputs_l.erase(inputs_l.begin() + skipElement);
         ++offset;
     }
 
-    return input;
+
+    for (size_t i = 0; i < input.size(); i++) {
+        inputs_v[i] = input[i];
+        input.pop_front();
+    }
+    */
+
+    _inputSizeSet = true;
+    _inputSkipsModified = false;
+    _inputSize = inputs_v.size();
+
+    return inputs_v;
 }
 
 /**
@@ -247,6 +280,9 @@ std::vector<real> OutageDataWrapper::outputize() {
     std::vector<real> output;
 
     std::vector<real> ranges = {10, 100, 1000};
+    // 10 100 1000
+    // 1 9 72
+    // 3 42
 
     output.resize(ranges.size()+2, -1);
 
@@ -268,19 +304,10 @@ std::vector<real> OutageDataWrapper::outputize() {
             }
         }
     }
-/*
-    if (_affectedCustomers == 0) {
-        output[0] = 1;
-    } else if (_affectedCustomers <= 1) {   // 10   | 1
-        output[1] = 1;
-    } else if (_affectedCustomers <= 10) {  // 100  | 9
-        output[2] = 1;
-    } else if (_affectedCustomers <= 100) { // 1000 | 73
-        output[3] = 1;
-    } else {
-        output[4] = 1;
-    }
-*/
+
+    _outputSizeSet = true;
+    _outputSize = output.size();
+
     return output;
 }
 
@@ -413,4 +440,24 @@ OutageDataItem OutageDataWrapper::copy(const OutageDataItem & l) {
     r._affectedCustomers = l._affectedCustomers;
 
     return r;
+}
+
+const size_t & OutageDataWrapper::inputSize() {
+    if (!_inputSizeSet || _inputSkipsModified) {
+        inputize();
+    }
+    return _inputSize;
+}
+
+const size_t & OutageDataWrapper::outputSize() {
+    if (!_outputSizeSet) {
+        outputize();
+    }
+    return _outputSize;
+}
+
+void OutageDataWrapper::setInputSkips(const std::vector<size_t> & skips) {
+    _inputSkips = skips;
+    CustomSort::quickSort(_inputSkips);
+    _inputSkipsModified = true;
 }

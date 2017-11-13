@@ -34,7 +34,7 @@ Pso<T>::~Pso() {
 
 template <class T>
 void Pso<T>::run() {
-  size_t epochs = 0;
+  size_t epochs = _epochs;
 
   resetProcess();
   _history.clear();

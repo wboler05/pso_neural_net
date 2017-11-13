@@ -16,6 +16,11 @@ public:
     ConfusionMatrix();
     ConfusionMatrix(const ClassifierMatrix & results);
 
+    ConfusionMatrix( const ConfusionMatrix & l);
+    ConfusionMatrix( ConfusionMatrix && r);
+    ConfusionMatrix & operator=(const ConfusionMatrix & l);
+    ConfusionMatrix & operator=(ConfusionMatrix && r);
+
     bool setResults(const ClassifierMatrix & results);
     bool validate(const ClassifierMatrix & results);
 

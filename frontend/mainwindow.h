@@ -88,6 +88,8 @@ protected slots:
     void updateFitnessPlotWindowSize();
     void resizeEvent(QResizeEvent * event);
     void on_testBaseCase_btn_clicked();
+    void on_actionSaveSelected_ANN_triggered();
+    void on_testFullSet_btn_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -104,6 +106,7 @@ private:
     std::vector<int> _inputskips;
 
     bool _runPso = false;
+    bool _runOnce = false;
 
 #ifdef OPENCL_DEFINED
     std::vector<cl::Device> _cpuDevices;

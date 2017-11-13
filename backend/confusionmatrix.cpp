@@ -13,6 +13,80 @@ ConfusionMatrix::ConfusionMatrix(const ClassifierMatrix & results) {
     setResults(results);
 }
 
+ConfusionMatrix::ConfusionMatrix( const ConfusionMatrix & l) :
+    _overallStats(l._overallStats),
+    _overallError(l._overallError),
+    _classStats(l._classStats),
+    _classErrors(l._classErrors),
+    _resultValues(l._resultValues),
+    _resultRatios(l._resultRatios),
+    _truePositiveValues(l._truePositiveValues),
+    _falsePositiveValues(l._falsePositiveValues),
+    _falseNegativeValues(l._falseNegativeValues),
+    _truePositiveRatios(l._truePositiveRatios),
+    _falsePositiveRatios(l._falsePositiveRatios),
+    _falseNegativeRatios(l._falseNegativeRatios),
+    _numberOfClassifiers(l._numberOfClassifiers),
+    _totalPopulation(l._totalPopulation)
+{
+
+}
+
+ConfusionMatrix::ConfusionMatrix( ConfusionMatrix && r) :
+    _overallStats(std::move(r._overallStats)),
+    _overallError(std::move(r._overallError)),
+    _classStats(std::move(r._classStats)),
+    _classErrors(std::move(r._classErrors)),
+    _resultValues(std::move(r._resultValues)),
+    _resultRatios(std::move(r._resultRatios)),
+    _truePositiveValues(std::move(r._truePositiveValues)),
+    _falsePositiveValues(std::move(r._falsePositiveValues)),
+    _falseNegativeValues(std::move(r._falseNegativeValues)),
+    _truePositiveRatios(std::move(r._truePositiveRatios)),
+    _falsePositiveRatios(std::move(r._falsePositiveRatios)),
+    _falseNegativeRatios(std::move(r._falseNegativeRatios)),
+    _numberOfClassifiers(std::move(r._numberOfClassifiers)),
+    _totalPopulation(std::move(r._totalPopulation))
+{
+
+}
+
+ConfusionMatrix & ConfusionMatrix::operator=(const ConfusionMatrix & l) {
+    _overallStats = l._overallStats;
+    _overallError = l._overallError;
+    _classStats = l._classStats;
+    _classErrors = l._classErrors;
+    _resultValues = l._resultValues;
+    _resultRatios = l._resultRatios;
+    _truePositiveValues = l._truePositiveValues;
+    _falsePositiveValues = l._falsePositiveValues;
+    _falseNegativeValues = l._falseNegativeValues;
+    _truePositiveRatios = l._truePositiveRatios;
+    _falsePositiveRatios = l._falsePositiveRatios;
+    _falseNegativeRatios = l._falseNegativeRatios;
+    _numberOfClassifiers = l._numberOfClassifiers;
+    _totalPopulation = l._totalPopulation;
+    return *this;
+}
+
+ConfusionMatrix & ConfusionMatrix::operator=(ConfusionMatrix && r) {
+    _overallStats = std::move(r._overallStats);
+    _overallError = std::move(r._overallError);
+    _classStats = std::move(r._classStats);
+    _classErrors = std::move(r._classErrors);
+    _resultValues = std::move(r._resultValues);
+    _resultRatios = std::move(r._resultRatios);
+    _truePositiveValues = std::move(r._truePositiveValues);
+    _falsePositiveValues = std::move(r._falsePositiveValues);
+    _falseNegativeValues = std::move(r._falseNegativeValues);
+    _truePositiveRatios = std::move(r._truePositiveRatios);
+    _falsePositiveRatios = std::move(r._falsePositiveRatios);
+    _falseNegativeRatios = std::move(r._falseNegativeRatios);
+    _numberOfClassifiers = std::move(r._numberOfClassifiers);
+    _totalPopulation = std::move(r._totalPopulation);
+    return *this;
+}
+
 /**
  * @brief ConfusionMatrix::setResults
  * @param predictions
@@ -284,8 +358,12 @@ void ConfusionMatrix::constructFalsePositiveRatios() {
         for (size_t pre = 0; pre < _numberOfClassifiers; pre++) {
             sum += _resultValues[act][pre];
         }
-        _falsePositiveRatios[act] = static_cast<real>(_falsePositiveValues[act]) /
-                static_cast<real>(sum);
+        if (sum == 0) {
+            _falsePositiveRatios[act] = 0;
+        } else {
+            _falsePositiveRatios[act] = static_cast<real>(_falsePositiveValues[act]) /
+                    static_cast<real>(sum);
+        }
     }
 }
 
@@ -300,8 +378,12 @@ void ConfusionMatrix::constructFalseNegativeRatios() {
         for (size_t act = 0; act < _numberOfClassifiers; act++) {
             sum += _resultValues[act][pre];
         }
-        _falseNegativeRatios[pre] = static_cast<real>(_falseNegativeValues[pre]) /
-                static_cast<real>(sum);
+        if (sum == 0) {
+            _falseNegativeRatios[pre] = 0.0;
+        } else {
+            _falseNegativeRatios[pre] = static_cast<real>(_falseNegativeValues[pre]) /
+                    static_cast<real>(sum);
+        }
     }
 }
 
