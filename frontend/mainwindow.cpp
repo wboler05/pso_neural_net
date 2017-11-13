@@ -743,7 +743,7 @@ void MainWindow::updateConfusionMatrix() {
         //ts = selGb.cm.overallStats();
         //ce = selGb.cm.overallError();
     } else {
-        GlobalBestObject recGb = _neuralPsoTrainer->getRecentGlobalBest();
+        GlobalBestObject & recGb = _neuralPsoTrainer->getRecentGlobalBest();
         cm = recGb.cm;
         //ts = recGb.cm.overallStats();
         //ce = recGb.cm.overallError();
