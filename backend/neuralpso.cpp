@@ -37,6 +37,8 @@ void NeuralPso::buildPso() {
     for (size_t i = 0; i < _psoParams.population; i++) {
         _neuralNet->randomizeState();
         _neuralNet->randomizeActivationConstants();
+        if (_fParams.enableTopologyTraining)
+            _neuralNet->randomizeEnabledNodes();
         const NeuralNet::State & randomState = _neuralNet->state();
 
         // Create the number of inner columns
@@ -415,11 +417,11 @@ real NeuralPso::flyIteration(const size_t & particleId,
 //                + (c3*(*w_gb - *w_x))
                 );
 
-    if (*w_v > _psoParams.vLimit) {
-        *w_v = _psoParams.vLimit;
-    } else if (*w_v < -_psoParams.vLimit) {
-        *w_v = -_psoParams.vLimit;
-    }
+//    if (*w_v > _psoParams.vLimit) {
+//        *w_v = _psoParams.vLimit;
+//    } else if (*w_v < -_psoParams.vLimit) {
+//        *w_v = -_psoParams.vLimit;
+//    }
 
     *w_v *= psoParams().dt;
     *w_x += *w_v;
@@ -811,7 +813,15 @@ std::string NeuralPso::stringifyState() {
 
     stringState.append(stringifyPParams(psoParams()));
     stringState.append(stringifyNParams(*_neuralNet->nParams()));
-
+/*
+    stringState.append(openToken("_selectedBestList"));
+    for (size_t i = 0; i < _selectedBestList.size(); i++) {
+        stringState.append("\n");
+        stringState.append(NeuralPsoStream::stringifyState(_selectedBestList[i].state));
+        stringState.append("\n");
+    }
+    stringState.append(closeToken("_selectedBestList"));
+*/
     // Get Global Best
     stringState.append(openToken("_gb"));
     stringState.append("\n");
@@ -861,6 +871,16 @@ bool NeuralPso::loadStatefromString(const string &psoState) {
     if (nParamString.size() == 0) return false;
     NeuralNet::NeuralNetParameters newNParams = nParametersFromString(nParamString);
     _neuralNet->initialize(newNParams);
+/*
+    _selectedBestList.clear();
+    std::string selBest;
+    do {
+        selBest = subStringByToken(cleanString, "_selectedBestList", it);
+        if (selBest.size() != 0) {
+            stateFromNuggetString()
+        }
+    } while (selBest.size() != 0);
+*/
 
     std::string gbString = subStringByToken(cleanString, "_gb", it);
     if (gbString.size() == 0) return false;

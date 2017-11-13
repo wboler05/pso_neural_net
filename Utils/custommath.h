@@ -39,6 +39,15 @@ namespace CustomMath
     }
 
     template <class T>
+    T total(const std::vector<T> & v) {
+        T tot = 0;
+        for (size_t i = 0; i < v.size(); i++) {
+            tot += v[i];
+        }
+        return tot;
+    }
+
+    template <class T>
     real mean(const std::vector<T> & v) {
         if (v.size() == 0) {
             return 0;
@@ -46,15 +55,6 @@ namespace CustomMath
 
         real tot = static_cast<real>(total(v));
         return tot / static_cast<real>(v.size());
-    }
-
-    template <class T>
-    T total(const std::vector<T> & v) {
-        T tot = 0;
-        for (size_t i = 0; i < v.size(); i++) {
-            tot += v[i];
-        }
-        return tot;
     }
 }
 

@@ -18,6 +18,7 @@ public:
     int uniformSignedInt(const int & low, const int & high);
     double uniformReal(const double & low, const double & high);
     long double uniformReal(const long double & low, const long double & high);
+    real normal(const real & mean, const real & sigma);
 
 private:
     std::default_random_engine _engine;

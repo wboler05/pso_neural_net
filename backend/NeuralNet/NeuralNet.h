@@ -101,6 +101,7 @@ public:
     //TODO
     void enableAllNodes(const bool & t);
     void randomDropoutNodes(const real & mean, const real & sigma);
+    void randomizeEnabledNodes();
 
     static real enableNodeBoolToValue(const bool &t);
     static bool enableNodeValueToBool(const real &val);

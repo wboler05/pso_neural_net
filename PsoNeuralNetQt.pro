@@ -237,7 +237,8 @@ HEADERS += \
     frontend/particleplotwindow.h \
     frontend/Plots/confusionmatrixdiagram.h \
     backend/confusionmatrix.h \
-    frontend/Trainer/datapartioner.h
+    frontend/Trainer/datapartioner.h \
+    utils/sort.hpp
 
 FORMS += \
     frontend/mainwindow.ui \

@@ -284,8 +284,12 @@ void ConfusionMatrix::constructFalsePositiveRatios() {
         for (size_t pre = 0; pre < _numberOfClassifiers; pre++) {
             sum += _resultValues[act][pre];
         }
-        _falsePositiveRatios[act] = static_cast<real>(_falsePositiveValues[act]) /
-                static_cast<real>(sum);
+        if (sum == 0) {
+            _falsePositiveRatios[act] = 0;
+        } else {
+            _falsePositiveRatios[act] = static_cast<real>(_falsePositiveValues[act]) /
+                    static_cast<real>(sum);
+        }
     }
 }
 
@@ -300,8 +304,12 @@ void ConfusionMatrix::constructFalseNegativeRatios() {
         for (size_t act = 0; act < _numberOfClassifiers; act++) {
             sum += _resultValues[act][pre];
         }
-        _falseNegativeRatios[pre] = static_cast<real>(_falseNegativeValues[pre]) /
-                static_cast<real>(sum);
+        if (sum == 0) {
+            _falseNegativeRatios[pre] = 0.0;
+        } else {
+            _falseNegativeRatios[pre] = static_cast<real>(_falseNegativeValues[pre]) /
+                    static_cast<real>(sum);
+        }
     }
 }
 
