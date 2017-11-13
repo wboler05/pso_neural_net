@@ -35,6 +35,7 @@ private:
 
     std::vector<std::vector<size_t>> _trainingSetClassBins;
     std::vector<std::vector<size_t>> _trainingBinIndicies;
+    std::vector<size_t> _trainingBinCounters;
     std::vector<size_t> _trainingSet;
     std::vector<size_t> _testSet;
     std::vector<size_t> _validationSet;

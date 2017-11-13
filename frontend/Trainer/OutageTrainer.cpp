@@ -46,13 +46,20 @@ void OutageTrainer::partitionData(int kFolds, size_t numClasses){
 
 void OutageTrainer::runTrainer() {
 
-  run();    // Pso
+    size_t report = 1;
+    while (report){
+        run();    // Pso
 
-  // Termination
-  printGB();
-  _neuralNet->setState(gb()->_x);
+        // Save Stats (NEEDS TO BE IMPLEMENTED)
 
-  _selectedBestList.push_back(_recent_gb);
+        // Switch sets for next fold
+        size_t report = getNextValidationSet();
+    }
+
+    // Termination
+    printGB();
+    _neuralNet->setState(gb()->_x);
+    _selectedBestList.push_back(_recent_gb);
 }
 
 void OutageTrainer::trainingRun() {

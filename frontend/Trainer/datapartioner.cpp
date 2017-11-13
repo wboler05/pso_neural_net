@@ -115,7 +115,7 @@ size_t DataPartioner::nextFold(){
         splitTrainingClasses();
         return 1;
     }
-    return -1;
+    return 0;
 }
 
 size_t DataPartioner::trainingSet(size_t i){
@@ -168,8 +168,11 @@ void DataPartioner::getTrainingVector(std::vector<size_t> & tr, const size_t & i
             randClass = _randomEngine.uniformUnsignedInt(0, _numClasses-1);
             breakMe++;
         } while (_trainingSetClassBins[randClass].size() == 0 && breakMe < _totalNumInputs);
-        size_t randTrainingIt = _randomEngine.uniformUnsignedInt(0, _trainingSetClassBins[randClass].size()-1);
-        size_t realIterator = _trainingSetClassBins[randClass][randTrainingIt];
+        size_t realIterator = _trainingSetClassBins[randClass][
+                _trainingBinIndicies[randClass][
+                    _trainingBinCounters[randClass]++ % _trainingBinIndicies[randClass].size()
+                ]
+        ];
         tr[i] = realIterator;
     }
 }
@@ -181,6 +184,7 @@ void DataPartioner::splitTrainingClasses() {
     _trainingBinIndicies.clear();
     _trainingSetClassBins.resize(_numClasses);
     _trainingBinIndicies.resize(_numClasses);
+    _trainingBinCounters.resize(_numClasses, 0);
 
     // Go through every data inside the file
     for (size_t i = 0; i < _trainingSet.size(); i++) {
