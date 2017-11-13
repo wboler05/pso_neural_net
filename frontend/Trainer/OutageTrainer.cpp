@@ -182,6 +182,8 @@ void OutageTrainer::runTrainer() {
   // Termination
   printGB();
   _neuralNet->setState(gb()->_x);
+
+  _selectedBestList.push_back(_recent_gb);
 }
 
 void OutageTrainer::trainingRun() {
@@ -605,13 +607,13 @@ void OutageTrainer::fullTestState(/*pass the gb or selected best option*/) {
     for (size_t i = 0; i < _selectedBestList.size(); i++) {
 
         _neuralNet->setState(_selectedBestList[i].state);
-        _neuralNet->setState(state);
+        //_neuralNet->setState(state);
 
         std::vector<std::vector<real>> predictions, actuals;
-        for (size_t i = 0; i < (*_inputCache).length(); i++) {
+        for (size_t j = 0; j < (*_inputCache).length(); j++) {
             qApp->processEvents();
 
-            OutageDataWrapper data = (*_inputCache)[i];
+            OutageDataWrapper data = (*_inputCache)[j];
             if (_params->enableBaseCase) {
                 _neuralNet->loadInputs(data.outputize());
             } else {

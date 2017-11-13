@@ -17,6 +17,7 @@
 
 #include "logger.h"
 #include "neuralpsostream.h"
+#include "confusionmatrix.h"
 
 #ifdef OPENCL_DEFINED
 #include "CL/cl.hpp"
@@ -24,6 +25,11 @@
 
 class NeuralNet;
 template struct Particle<NeuralNet::State>;
+
+struct GlobalBestObject {
+    NeuralNet::State state;
+    ConfusionMatrix cm;
+};
 
 struct FitnessParameters {
     real mse_weight;
@@ -85,9 +91,17 @@ public:
 
   NeuralNet::State & getGbState();
 
+  GlobalBestObject & getRecentGlobalBest() { return _recent_gb; }
+  GlobalBestObject & getSelectedGlobalBest() { return _best_gb; }
+  std::vector<GlobalBestObject> & selectedBestList() { return _selectedBestList; }
+
 protected:
     NeuralNet *_neuralNet;
     FitnessParameters _fParams;
+
+    GlobalBestObject _recent_gb;
+    GlobalBestObject _best_gb;
+    std::vector<GlobalBestObject> _selectedBestList;
 
 private:
   static bool printGBFlag;

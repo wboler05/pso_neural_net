@@ -37,7 +37,8 @@ void NeuralPso::buildPso() {
     for (size_t i = 0; i < _psoParams.population; i++) {
         _neuralNet->randomizeState();
         _neuralNet->randomizeActivationConstants();
-        _neuralNet->randomizeEnabledNodes();
+        if (_fParams.enableTopologyTraining)
+            _neuralNet->randomizeEnabledNodes();
         const NeuralNet::State & randomState = _neuralNet->state();
 
         // Create the number of inner columns
@@ -812,7 +813,15 @@ std::string NeuralPso::stringifyState() {
 
     stringState.append(stringifyPParams(psoParams()));
     stringState.append(stringifyNParams(*_neuralNet->nParams()));
-
+/*
+    stringState.append(openToken("_selectedBestList"));
+    for (size_t i = 0; i < _selectedBestList.size(); i++) {
+        stringState.append("\n");
+        stringState.append(NeuralPsoStream::stringifyState(_selectedBestList[i].state));
+        stringState.append("\n");
+    }
+    stringState.append(closeToken("_selectedBestList"));
+*/
     // Get Global Best
     stringState.append(openToken("_gb"));
     stringState.append("\n");
@@ -862,6 +871,16 @@ bool NeuralPso::loadStatefromString(const string &psoState) {
     if (nParamString.size() == 0) return false;
     NeuralNet::NeuralNetParameters newNParams = nParametersFromString(nParamString);
     _neuralNet->initialize(newNParams);
+/*
+    _selectedBestList.clear();
+    std::string selBest;
+    do {
+        selBest = subStringByToken(cleanString, "_selectedBestList", it);
+        if (selBest.size() != 0) {
+            stateFromNuggetString()
+        }
+    } while (selBest.size() != 0);
+*/
 
     std::string gbString = subStringByToken(cleanString, "_gb", it);
     if (gbString.size() == 0) return false;

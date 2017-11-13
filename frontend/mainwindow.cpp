@@ -124,6 +124,7 @@ MainWindow::MainWindow(QWidget *parent) :
     updateTimer->start(500);
 
     ui->OutageInputBox->setVisible(false);
+    ui->fitnessLimitsWidget->setVisible(false);
 
     // Init before running things
     initializeData();
@@ -478,6 +479,7 @@ void MainWindow::setParameterDefaults() {
     _params->pp.termIterationFlag = false;
     _params->pp.termDeltaFlag = true;
     _params->pp.windowSize = 1500;
+    _params->pp.dt = 0.025;
 
     /*
     NeuralNetParameters nParams;
@@ -536,6 +538,7 @@ void MainWindow::applyParameterChanges() {
     _params->pp.windowSize = static_cast<size_t>(ui->window_sb->value());
     _params->pp.termIterationFlag = static_cast<size_t>(ui->enableIteration_cb->isChecked());
     _params->pp.termDeltaFlag = static_cast<size_t>(ui->enableDelta_cb->isChecked());
+    _params->pp.dt = static_cast<double>(ui->dt_dsb->value());
 
     _params->np.trainingIterations = ui->trainingIterations_sb->value();
     _params->np.validationIterations = ui->validationIterations_sb->value();
@@ -573,6 +576,7 @@ void MainWindow::updateParameterGui() {
     ui->delta_dsb->setValue(static_cast<double>(_params->pp.delta));
     ui->enableIteration_cb->setChecked(_params->pp.termIterationFlag);
     ui->enableDelta_cb->setChecked(_params->pp.termDeltaFlag);
+    ui->dt_dsb->setValue(static_cast<double>(_params->pp.dt));
 
     ui->trainingIterations_sb->setValue(_params->np.trainingIterations);
     ui->validationIterations_sb->setValue(_params->np.validationIterations);
