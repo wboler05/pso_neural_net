@@ -6,11 +6,11 @@
 #include "randomnumberengine.h"
 #include <ctime>
 
-class dataPartioner{
+class DataPartioner{
 public:
-    dataPartioner();
-    dataPartioner(size_t kFolds, size_t totalNumInputs);
-    dataPartioner & operator=(dataPartioner && r);
+    DataPartioner();
+    DataPartioner(size_t kFolds, size_t totalNumInputs);
+    DataPartioner & operator=(DataPartioner && r);
     size_t trainingSet(size_t i);
     size_t trainingSetSize();
     size_t testSet(size_t i);

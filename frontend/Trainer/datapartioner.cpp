@@ -1,6 +1,6 @@
 #include "datapartioner.h"
 
-dataPartioner::dataPartioner(size_t kFolds, size_t totalNumInputs){
+DataPartioner::DataPartioner(size_t kFolds, size_t totalNumInputs){
 
     //Init random engine
     time_t currentTime;
@@ -43,7 +43,7 @@ dataPartioner::dataPartioner(size_t kFolds, size_t totalNumInputs){
     }
 }
 
-void dataPartioner::reset(){
+void DataPartioner::reset(){
 
     std::vector<size_t> indicies;
     // Initialize the vector
@@ -73,7 +73,7 @@ void dataPartioner::reset(){
     }
 }
 
-size_t dataPartioner::nextFold(){
+size_t DataPartioner::nextFold(){
     size_t temp;
     _foldIdx++;
     if(_foldIdx < _kFolds){
@@ -88,39 +88,39 @@ size_t dataPartioner::nextFold(){
     return -1;
 }
 
-size_t dataPartioner::trainingSet(size_t i){
+size_t DataPartioner::trainingSet(size_t i){
     return _trainingSet[_trainingOrder[i]];
 }
 
-size_t dataPartioner::testSet(size_t i){
+size_t DataPartioner::testSet(size_t i){
     return _testSet[i];
 }
 
-size_t dataPartioner::validationSet(size_t i){
+size_t DataPartioner::validationSet(size_t i){
     return _validationSet[i];
 }
 
-size_t dataPartioner::trainingSetSize(){
+size_t DataPartioner::trainingSetSize(){
     return _trainingSet.size();
 }
 
-size_t dataPartioner::testSetSize(){
+size_t DataPartioner::testSetSize(){
     return _testSet.size();
 }
 
-size_t dataPartioner::validationSetSize(){
+size_t DataPartioner::validationSetSize(){
     return _validationSet.size();
 }
 
-const std::vector<size_t> & dataPartioner::getTestSet() const{
+const std::vector<size_t> & DataPartioner::getTestSet() const{
     return _testSet;
 }
 
-const std::vector<size_t> & dataPartioner::getValidationSet() const{
+const std::vector<size_t> & DataPartioner::getValidationSet() const{
     return _validationSet;
 }
 
-void dataPartioner::shuffleVector(std::vector<size_t> * toShuffle){
+void DataPartioner::shuffleVector(std::vector<size_t> * toShuffle){
     size_t swpIdx, temp;
     for (size_t i = 1; i < toShuffle->size(); i++){
         swpIdx = _randomEngine.uniformUnsignedInt(0,i);
