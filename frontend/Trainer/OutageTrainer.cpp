@@ -213,9 +213,6 @@ void OutageTrainer::validateGB() {
     _neuralNet->setState(_gb._x);
     TestStatistics::ClassificationError ce;
     classError(_dataSets.getValidationSet(), _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
-
-    _recent_gb.state = _gb._x;
-    _recent_gb.cm = _validationConfusionMatrix;
 }
 
 TestStatistics::ClassificationError && OutageTrainer::validateCurrentNet() {
