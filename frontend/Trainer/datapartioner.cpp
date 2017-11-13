@@ -156,7 +156,9 @@ void dataPartioner::splitTrainingClasses() {
 
     // Clear equi-probable vector and resize to # of classes
     _trainingSetClassBins.clear();
+    _trainingBinIndicies.clear();
     _trainingSetClassBins.resize(_numClasses);
+    _trainingBinIndicies.resize(_numClasses);
 
     // Go through every data inside the file
     for (size_t i = 0; i < _trainingSet.size(); i++) {
@@ -170,6 +172,15 @@ void dataPartioner::splitTrainingClasses() {
                 _trainingSetClassBins[j].push_back(realIterator);
             }
         }
+    }
+
+    // initalize the index arrays
+    for(size_t i = 0; i < _numClasses; i++){
+        _trainingBinIndicies[i].resize(_trainingSetClassBins[i].size());
+        for(size_t j = 0; j < _trainingSetClassBins[i].size(); j++){
+            _trainingBinIndicies[i][j] = j;
+        }
+        shuffleVector(_trainingBinIndicies[i]);
     }
 }
 
