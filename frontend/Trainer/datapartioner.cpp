@@ -21,7 +21,7 @@ DataPartioner::DataPartioner(size_t kFolds, size_t totalNumInputs, size_t numCla
     }
 
     // Shuffle it
-    this->shuffleVector(&indicies);
+    this->shuffleVector(indicies);
 
     // Calculate the bounding index (inclusive)
     _testBound = _totalNumInputs * _boundRatio;
@@ -53,6 +53,8 @@ DataPartioner::DataPartioner(size_t kFolds, size_t totalNumInputs, size_t numCla
 DataPartioner & DataPartioner::operator=(DataPartioner && d) {
     _randomEngine = std::move(d._randomEngine);
     _trainingSetClassBins = std::move(d._trainingSetClassBins);
+    _trainingBinIndicies = std::move(d._trainingBinIndicies);
+    _trainingBinCounters = std::move(d._trainingBinCounters);
     _trainingSet = std::move(d._trainingSet);
     _testSet = std::move(d._testSet);
     _validationSet = std::move(d._validationSet);
@@ -80,7 +82,7 @@ void DataPartioner::reset(){
     }
 
     // Shuffle it
-    this->shuffleVector(&indicies);
+    this->shuffleVector(indicies);
 
     // Clear input lists
     _trainingSet.clear();
@@ -210,17 +212,17 @@ void DataPartioner::splitTrainingClasses() {
     }
 }
 
-void DataPartioner::shuffleVector(std::vector<size_t> * toShuffle){
+void DataPartioner::shuffleVector(std::vector<size_t> & toShuffle){
     size_t swpIdx, temp;
-    for (size_t i = 1; i < toShuffle->size(); i++){
+    for (size_t i = 1; i < toShuffle.size(); i++){
         swpIdx = _randomEngine.uniformUnsignedInt(0,i);
         if (swpIdx == i){
             continue;
         }
         else{
-            temp = (*toShuffle)[swpIdx];
-            (*toShuffle)[swpIdx] = (*toShuffle)[i];
-            (*toShuffle)[i] = temp;
+            temp = toShuffle[swpIdx];
+            toShuffle[swpIdx] = toShuffle[i];
+            toShuffle[i] = temp;
         }
     }
 }

@@ -132,7 +132,6 @@ private:
     void updateElementSkips();
     void setGlobalBestSelectionBox();
     void getGlobalBestSelectionFromBox();
-    bool showBestSelected();
 };
 
 #endif // MAINWINDOW_H

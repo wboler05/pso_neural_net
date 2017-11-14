@@ -45,6 +45,8 @@ struct EnableParameters {
 };
 
 struct TrainingParameters {
+    enum ShowBestSelected { Recent_Global_Best, Selected_Global_Best, Sanity_Check_Best };
+
     PsoParams pp;
     NeuralNet::NeuralNetParameters np;
     FitnessParameters fp;
@@ -53,7 +55,7 @@ struct TrainingParameters {
     real alpha = 1.0L;
     real beta = 1.0L;
     real gamma = 1.0L;
-    bool showBestSelected = false;
+    ShowBestSelected showBestSelected = Recent_Global_Best;
     bool enableBaseCase = false;
 };
 
@@ -110,9 +112,15 @@ public:
     // Test
     std::vector<StatObject> _outputNodeStats;
 
+    const GlobalBestObject & sanityCheckGb() { return _sanityCheck_gb; }
+
+    void stopValidation() { _stopValidation = true; }
+
 private:
 
     DataPartioner _dataSets;
+    std::vector<GlobalBestObject> _validatedBests;
+    GlobalBestObject _sanityCheck_gb;
     std::shared_ptr<TrainingParameters> _params;
     ConfusionMatrix _testConfusionMatrix;
     ConfusionMatrix _validationConfusionMatrix;
@@ -121,6 +129,7 @@ private:
 
     std::vector<size_t> _inputSkips;
     size_t _numClasses = 0;
+    bool _stopValidation=false;
 
     std::string _functionMsg;
     std::vector<real> _minInputData;

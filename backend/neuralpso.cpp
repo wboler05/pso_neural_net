@@ -494,7 +494,7 @@ real NeuralPso::evaluate() {
     }
     printGBMtx.unlock();
 
-    testGB(); // This needs to be validateGB()
+    testGB(); /// This needs to be validateGB()
     return gb()->_fit_pb;
 }
 

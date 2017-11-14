@@ -609,18 +609,26 @@ void MainWindow::updateParameterGui() {
 }
 
 void MainWindow::setGlobalBestSelectionBox() {
-    if (_params->showBestSelected) {
-        ui->globalBestSelection_cb->setCurrentIndex(1);
-    } else {
+    switch(_params->showBestSelected) {
+    case TrainingParameters::Recent_Global_Best:
         ui->globalBestSelection_cb->setCurrentIndex(0);
+        break;
+    case TrainingParameters::Selected_Global_Best:
+        ui->globalBestSelection_cb->setCurrentIndex(1);
+        break;
+    case TrainingParameters::Sanity_Check_Best:
+        ui->globalBestSelection_cb->setCurrentIndex(2);
+        break;
     }
 }
 
 void MainWindow::getGlobalBestSelectionFromBox() {
     if (ui->globalBestSelection_cb->currentIndex() == 0) {
-        _params->showBestSelected = false;
+        _params->showBestSelected = TrainingParameters::Recent_Global_Best;
+    } else if (ui->globalBestSelection_cb->currentIndex() == 1){
+        _params->showBestSelected = TrainingParameters::Selected_Global_Best;
     } else {
-        _params->showBestSelected = true;
+        _params->showBestSelected = TrainingParameters::Sanity_Check_Best;
     }
 }
 
@@ -725,28 +733,20 @@ void MainWindow::setInputsForTrainedNetFromGui() {
     //_inputCache.b = ui->b_cb->isChecked();
 }
 
-bool MainWindow::showBestSelected() {
-    if (ui->globalBestSelection_cb->currentIndex() == 0) {
-        return false;
-    } else {
-        return true;
-    }
-}
-
 void MainWindow::updateConfusionMatrix() {
 
     ConfusionMatrix cm;
 
-    if (showBestSelected()) {
-        GlobalBestObject selGb = _neuralPsoTrainer->getSelectedGlobalBest();
-        cm = selGb.cm;
-        //ts = selGb.cm.overallStats();
-        //ce = selGb.cm.overallError();
-    } else {
-        GlobalBestObject & recGb = _neuralPsoTrainer->getRecentGlobalBest();
-        cm = recGb.cm;
-        //ts = recGb.cm.overallStats();
-        //ce = recGb.cm.overallError();
+    switch(_params->showBestSelected) {
+    case TrainingParameters::Recent_Global_Best:
+        cm = _neuralPsoTrainer->getRecentGlobalBest().cm;
+        break;
+    case TrainingParameters::Selected_Global_Best:
+        cm = _neuralPsoTrainer->getSelectedGlobalBest().cm;
+        break;
+    case TrainingParameters::Sanity_Check_Best:
+        cm = _neuralPsoTrainer->sanityCheckGb().cm;
+        break;
     }
 
     TestStatistics ts = cm.overallStats();
@@ -861,6 +861,7 @@ void MainWindow::testTrainedNetWithInput() {
 void MainWindow::stopPso() {
     _runPso = false;
     cout << "Ending process.  Please wait. " << endl;
+    _neuralPsoTrainer->stopValidation();
 
     NeuralPso::interruptProcess();
 }

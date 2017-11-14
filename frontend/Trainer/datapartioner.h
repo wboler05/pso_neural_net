@@ -25,9 +25,10 @@ public:
     const real & getFittnessNormFactor() const;
     void reset();
     size_t nextFold();
+    const size_t & foldIndex() { return _foldIdx; }
 private:
     RandomNumberEngine _randomEngine;
-    void shuffleVector(std::vector<size_t> * toShuffle);
+    void shuffleVector(std::vector<size_t> & toShuffle);
     void splitTrainingClasses();
     void calculateClassFrequency();
     void initializeBiasVectors();

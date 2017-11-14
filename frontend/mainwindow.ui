@@ -278,6 +278,11 @@
              <string>Selected Best</string>
             </property>
            </item>
+           <item>
+            <property name="text">
+             <string>Sanity Check</string>
+            </property>
+           </item>
           </widget>
          </item>
         </layout>

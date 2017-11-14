@@ -46,20 +46,31 @@ void OutageTrainer::partitionData(int kFolds, size_t numClasses){
 
 void OutageTrainer::runTrainer() {
 
+    _stopValidation = false;
+
     size_t report = 1;
     while (report){
+        _selectedBestList.clear();
+
         run();    // Pso
 
-        // Save Stats (NEEDS TO BE IMPLEMENTED)
+        _selectedBestList.push_back(_recent_gb);
+        fullTestState();
+        _neuralNet->setState(gb()->_x);
+
+        // Save Stats
+        _validatedBests.push_back(_best_gb);   ///DO SOMETHING WITH THIS
+        /// We need to do validation on the GB here.
 
         // Switch sets for next fold
-        size_t report = getNextValidationSet();
-    }
+        report = getNextValidationSet();
 
-    // Termination
-    printGB();
-    _neuralNet->setState(gb()->_x);
-    _selectedBestList.push_back(_recent_gb);
+        qDebug( )<< "Validation Fold: " << _dataSets.foldIndex();
+
+        if (_stopValidation) {
+            break;
+        }
+    }
 }
 
 void OutageTrainer::trainingRun() {
@@ -494,7 +505,7 @@ void OutageTrainer::fullTestState(/*pass the gb or selected best option*/) {
             bestGb.cm = _selectedBestList[i].cm;
         }
     }
-   _best_gb.cm = bestGb.cm; ///TODO: Replace this with its own object
-   _best_gb.state = bestGb.state;
+   _sanityCheck_gb.cm = bestGb.cm; ///TODO: Replace this with its own object
+   _sanityCheck_gb.state = bestGb.state;
 
 }
