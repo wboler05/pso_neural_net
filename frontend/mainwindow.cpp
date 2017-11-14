@@ -860,7 +860,7 @@ void MainWindow::testTrainedNetWithInput() {
 
 void MainWindow::stopPso() {
     _runPso = false;
-    cout << "Ending process.  Please wait. " << endl;
+    qDebug() << "Ending process.  Please wait. ";
     _neuralPsoTrainer->stopValidation();
 
     NeuralPso::interruptProcess();
@@ -938,7 +938,8 @@ void MainWindow::runNeuralPso() {
   //TestStatistics::ClassificationError ce;
   //_neuralPsoTrainer->classError(ce);
 
-  stopPso();
+  //stopPso();
+  _runPso = false;
 
   _neuralPsoTrainer->fullTestState();updatePlot();
 
@@ -1022,11 +1023,20 @@ void MainWindow::tryInjectGB() {
 void MainWindow::updatePlot() {
     if (_neuralPsoTrainer != nullptr) {
         NeuralNet::State * state = nullptr;
-        if (ui->globalBestSelection_cb->currentIndex() == 0) {
+
+        getGlobalBestSelectionFromBox();
+        switch(_params->showBestSelected) {
+        case TrainingParameters::Recent_Global_Best:
             state = &(_neuralPsoTrainer->getRecentGlobalBest().state);
-        } else {
+            break;
+        case TrainingParameters::Selected_Global_Best:
             state = &(_neuralPsoTrainer->getSelectedGlobalBest().state);
+            break;
+        case TrainingParameters::Sanity_Check_Best:
+            state = &(_neuralPsoTrainer->sanityCheckGb().state);
+            break;
         }
+
         ui->neuralNetPlot->setState(state, _params->np.type);
         updateConfusionMatrix();
 

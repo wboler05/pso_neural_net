@@ -51,6 +51,7 @@ void OutageTrainer::runTrainer() {
     size_t report = 1;
     while (report){
         _selectedBestList.clear();
+        _epochs = 0;
 
         run();    // Pso
 
@@ -71,6 +72,7 @@ void OutageTrainer::runTrainer() {
             break;
         }
     }
+    interruptProcess();
 }
 
 void OutageTrainer::trainingRun() {

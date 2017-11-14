@@ -112,7 +112,7 @@ public:
     // Test
     std::vector<StatObject> _outputNodeStats;
 
-    const GlobalBestObject & sanityCheckGb() { return _sanityCheck_gb; }
+    GlobalBestObject & sanityCheckGb() { return _sanityCheck_gb; }
 
     void stopValidation() { _stopValidation = true; }
 
