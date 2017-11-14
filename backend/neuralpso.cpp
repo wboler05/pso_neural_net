@@ -494,7 +494,7 @@ real NeuralPso::evaluate() {
     }
     printGBMtx.unlock();
 
-    testGB(); /// This needs to be validateGB()
+    validateGb(); /// This needs to be validateGB()
     return gb()->_fit_pb;
 }
 
@@ -653,8 +653,12 @@ void NeuralPso::trainingRun() {
     return;
 }
 
-void NeuralPso::testGB() {
-    std::cout << "Error, must be implemented via inherited training class." << std::endl;
+void NeuralPso::testGb() {
+    std::cout << "Error, testing must be implemented via inherited training class." << std::endl;
+}
+
+void NeuralPso::validateGb() {
+    std::cout << "Error, validation must be implemented via inherited training class." << std::endl;
 }
 
 void NeuralPso::processEvents() {

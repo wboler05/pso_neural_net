@@ -88,7 +88,8 @@ public:
   void updateGlobalBest(NeuralParticle & p);
 
   virtual void trainingRun();
-  virtual void testGB();
+  virtual void testGb();
+  virtual void validateGb();
 
   NeuralNet * neuralNet() { return _neuralNet; }
   std::unique_ptr<NeuralNet> buildNeuralNetFromGb();

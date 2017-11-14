@@ -82,7 +82,6 @@ public:
     void testGB();
     void testSelectedGB();
     void validateGB();
-    TestStatistics::ClassificationError && validateCurrentNet();
 
     void runTrainer();
     OutageDataWrapper && loadTestInput(const size_t & I);

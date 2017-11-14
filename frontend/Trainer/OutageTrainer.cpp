@@ -227,18 +227,6 @@ bool OutageTrainer::networkPathValidation() {
     }
 }
 
-void OutageTrainer::validateGB() {
-    _neuralNet->setState(_gb._x);
-    TestStatistics::ClassificationError ce;
-    classError(_dataSets.getValidationSet(), _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
-}
-
-TestStatistics::ClassificationError && OutageTrainer::validateCurrentNet() {
-    TestStatistics::ClassificationError ce;
-    classError(_dataSets.getValidationSet(), _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
-    return std::move(ce);
-}
-
 OutageDataWrapper && OutageTrainer::loadTestInput(const size_t & I) {
     OutageDataWrapper wrapper;
     if (I >= _dataSets.testSetSize()) {
@@ -275,6 +263,12 @@ OutageDataWrapper && OutageTrainer::loadValidationInput(const size_t & I) {
       _neuralNet->loadInput(inputItems[i], i);
     }
     return std::move(item);
+}
+
+void OutageTrainer::validateGB() {
+    _neuralNet->setState(_gb._x);
+    TestStatistics::ClassificationError ce;
+    classError(_dataSets.getValidationSet(), _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
 }
 
 void OutageTrainer::testGB() {
