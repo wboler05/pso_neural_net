@@ -414,7 +414,7 @@
             </widget>
            </item>
            <item row="3" column="2">
-            <widget class="QCheckBox" name="enableIteration_cb">
+            <widget class="QCheckBox" name="enableMaxEpochs_cb">
              <property name="text">
               <string>Enable</string>
              </property>
@@ -628,6 +628,13 @@
              </property>
              <property name="singleStep">
               <double>0.020000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QCheckBox" name="enableMinEpochs_cb">
+             <property name="text">
+              <string>Enable</string>
              </property>
             </widget>
            </item>
@@ -2247,7 +2254,7 @@
   <tabstop>totalParticles_sb</tabstop>
   <tabstop>totalNeighbors_sb</tabstop>
   <tabstop>maxEpochs_sb</tabstop>
-  <tabstop>enableIteration_cb</tabstop>
+  <tabstop>enableMaxEpochs_cb</tabstop>
   <tabstop>delta_dsb</tabstop>
   <tabstop>enableDelta_cb</tabstop>
   <tabstop>testIt_sb</tabstop>

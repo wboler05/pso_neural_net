@@ -476,8 +476,9 @@ void MainWindow::setParameterDefaults() {
     _params->pp.maxEpochs = 1000;
     _params->pp.delta = 5E-8L;
     _params->pp.vDelta = 5E-200L;
-    _params->pp.termIterationFlag = false;
-    _params->pp.termDeltaFlag = true;
+    _params->pp.termMinEpochsFlag = true;
+    _params->pp.termMaxEpochsFlag = true;
+    _params->pp.termDeltaFlag = false;
     _params->pp.windowSize = 1500;
     _params->pp.dt = 0.025;
 
@@ -536,7 +537,8 @@ void MainWindow::applyParameterChanges() {
     _params->pp.maxEpochs = static_cast<size_t>(ui->maxEpochs_sb->value());
     _params->pp.delta = static_cast<real>(ui->delta_dsb->value());
     _params->pp.windowSize = static_cast<size_t>(ui->window_sb->value());
-    _params->pp.termIterationFlag = static_cast<size_t>(ui->enableIteration_cb->isChecked());
+    _params->pp.termMinEpochsFlag = ui->enableMinEpochs_cb->isChecked();
+    _params->pp.termMaxEpochsFlag = ui->enableMaxEpochs_cb->isChecked();
     _params->pp.termDeltaFlag = static_cast<size_t>(ui->enableDelta_cb->isChecked());
     _params->pp.dt = static_cast<double>(ui->dt_dsb->value());
 
@@ -574,7 +576,8 @@ void MainWindow::updateParameterGui() {
     ui->maxEpochs_sb->setValue(static_cast<int>(_params->pp.maxEpochs));
     ui->window_sb->setValue(static_cast<int>(_params->pp.windowSize));
     ui->delta_dsb->setValue(static_cast<double>(_params->pp.delta));
-    ui->enableIteration_cb->setChecked(_params->pp.termIterationFlag);
+    ui->enableMinEpochs_cb->setChecked(_params->pp.termMinEpochsFlag);
+    ui->enableMaxEpochs_cb->setChecked(_params->pp.termMaxEpochsFlag);
     ui->enableDelta_cb->setChecked(_params->pp.termDeltaFlag);
     ui->dt_dsb->setValue(static_cast<double>(_params->pp.dt));
 

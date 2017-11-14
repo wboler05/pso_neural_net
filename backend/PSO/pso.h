@@ -26,7 +26,8 @@ struct PsoParams {
   size_t windowSize = 50;
   real dt = 0.025;
 
-  bool termIterationFlag;
+  bool termMinEpochsFlag;
+  bool termMaxEpochsFlag;
   bool termDeltaFlag;
 
   ///TODO These NeuralPso parameters

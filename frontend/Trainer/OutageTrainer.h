@@ -115,6 +115,7 @@ public:
     GlobalBestObject & sanityCheckGb() { return _sanityCheck_gb; }
 
     void stopValidation() { _stopValidation = true; }
+    void resetFitnessScores();
 
 private:
 

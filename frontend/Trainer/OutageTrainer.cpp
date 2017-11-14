@@ -52,11 +52,12 @@ void OutageTrainer::runTrainer() {
     while (report){
         _selectedBestList.clear();
         _epochs = 0;
+        resetFitnessScores();
 
         run();    // Pso
 
         _selectedBestList.push_back(_recent_gb);
-        fullTestState();
+        //fullTestState();
         _neuralNet->setState(gb()->_x);
 
         // Save Stats
@@ -68,11 +69,25 @@ void OutageTrainer::runTrainer() {
 
         qDebug( )<< "Validation Fold: " << _dataSets.foldIndex();
 
+        if (!report) {
+            qDebug() << "Report is done.";
+        }
+
         if (_stopValidation) {
             break;
         }
     }
     interruptProcess();
+}
+
+void OutageTrainer::resetFitnessScores() {
+    _recent_gb.cm.reset();
+    foreach (auto particle, (*_particles)) {
+        particle._fit_pb = -std::numeric_limits<real>::max();
+        particle._fit_lb = -std::numeric_limits<real>::max();
+        particle._fit = -std::numeric_limits<real>::max();
+    }
+
 }
 
 void OutageTrainer::trainingRun() {

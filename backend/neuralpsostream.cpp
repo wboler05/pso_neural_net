@@ -520,9 +520,13 @@ std::string stringifyPParams(const PsoParams & p) {
     // Window
     ps.append(stringifyParamsNugget<uint32_t>("windowSize", p.windowSize));
 
-    // termIterationFlag
-    int termIterationFlag = p.termIterationFlag ? 1 : 0;
-    ps.append(stringifyParamsNugget<int>("termIterationFlag", termIterationFlag));
+    // termMinEpochsFlag
+    int termMinEpochsFlag = p.termMinEpochsFlag ? 1 : 0;
+    ps.append(stringifyParamsNugget<int>("termMinEpochsFlag", termMinEpochsFlag));
+
+    // termMaxEpochsFlag
+    int termMaxEpochsFlag = p.termMaxEpochsFlag ? 1 : 0;
+    ps.append(stringifyParamsNugget<int>("termMaxEpochsFlag", termMaxEpochsFlag));
 
     // TermDeltaFlag
     int termDeltaFlag = p.termDeltaFlag ? 1 : 0;
@@ -726,12 +730,20 @@ PsoParams psoParametersFromString(const std::string & ps) {
         p.windowSize = windowSize;
     }
 
-    // TermIterationFlag (bool)
-    int termIterationFlag = 0;
-    if (!valFromNuggetString(ps, "termIterationFlag", it, termIterationFlag)) {
+    // TermMinEpochsFlag (bool)
+    int termMinEpochsFlag = 0;
+    if (!valFromNuggetString(ps, "termMinEpochsFlag", it, termMinEpochsFlag)) {
         return emptyP;
     } else {
-        p.termIterationFlag = termIterationFlag == 1;
+        p.termMinEpochsFlag = termMinEpochsFlag == 1;
+    }
+
+    // TermMaxEpochsFlag (bool)
+    int termMaxEpochsFlag = 0;
+    if (!valFromNuggetString(ps, "termMaxEpochsFlag", it, termMaxEpochsFlag)) {
+        return emptyP;
+    } else {
+        p.termMaxEpochsFlag = termMaxEpochsFlag == 1;
     }
 
     // TermDeltaFlag (bool)

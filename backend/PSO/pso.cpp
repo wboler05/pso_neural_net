@@ -63,14 +63,16 @@ void Pso<T>::run() {
     }
 
     // Terminate based on delta
-    if (epochs >= _psoParams.minEpochs && _psoParams.termDeltaFlag) {
-        // If delta is less than the setting and flag is set, break
-        if (getDelta() < _psoParams.delta)
+    if (getDelta() < _psoParams.delta && _psoParams.termDeltaFlag) {
+        if ((epochs >= _psoParams.minEpochs && _psoParams.termMinEpochsFlag) ||
+                !_psoParams.termMinEpochsFlag)
+        {
             break;
+        }
     }
 
     // Terminate based on maxEpochs
-    if ((_psoParams.termIterationFlag) && (epochs >= _psoParams.maxEpochs))
+    if ((_psoParams.termMaxEpochsFlag) && (epochs >= _psoParams.maxEpochs))
         break;
 
   } while (!checkTermProcess());  // Check for user interrupt
