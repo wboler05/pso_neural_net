@@ -40,6 +40,7 @@ struct EnableParameters {
     bool loa=false;
     bool latitude=false;
     bool longitude=false;
+    bool population = true;
 
     std::vector<size_t> inputSkips();
 };

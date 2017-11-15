@@ -4,6 +4,7 @@ size_t OutageDataItem::_total_objects = 0;
 
 OutageDataItem::OutageDataItem() :
     _precipitation(0),
+    _population(0),
     _outage(false),
     _affectedCustomers(0)
 {
@@ -33,6 +34,7 @@ OutageDataItem::OutageDataItem(const OutageDataItem &l) {
     _rain = l._rain;
     _snow = l._snow;
     _thunderstorm = l._thunderstorm;
+    _population = l._population;
     _outage = l._outage;
     _affectedCustomers = l._affectedCustomers;
 
@@ -58,6 +60,7 @@ OutageDataItem::OutageDataItem(OutageDataItem &&r) {
     _rain = std::move(r._rain);
     _snow = std::move(r._snow);
     _thunderstorm = std::move(r._thunderstorm);
+    _population = std::move(r._population);
     _outage = std::move(r._outage);
     _affectedCustomers = std::move(r._affectedCustomers);
 
@@ -83,6 +86,7 @@ OutageDataItem & OutageDataItem::operator= (OutageDataItem && r) {
     _rain = std::move(r._rain);
     _snow = std::move(r._snow);
     _thunderstorm = std::move(r._thunderstorm);
+    _population = std::move(r._population);
     _outage = std::move(r._outage);
     _affectedCustomers = std::move(r._affectedCustomers);
     _id = _total_objects++;
@@ -109,6 +113,7 @@ OutageDataItem & OutageDataItem::operator=(const OutageDataItem &l) {
     _rain = l._rain;
     _snow = l._snow;
     _thunderstorm = l._thunderstorm;
+    _population = l._population;
     _outage = l._outage;
     _affectedCustomers = l._affectedCustomers;
 

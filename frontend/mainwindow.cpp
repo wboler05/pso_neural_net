@@ -466,17 +466,17 @@ void MainWindow::setParameterDefaults() {
     //_params->cp.inputFileName = QString ("C:\\Users\\wboler\\Desktop\\TestCodeHere\\pso_neural_net\\Outage Data\\Final Sets\\ECE570_Final_Dataset.csv");
     _params->cp.maxBytes = 512*1024*1024;
     _params->cp.totalSlicesPerCache = 8;
-    _params->cp.headerSize = 2;
+    _params->cp.headerSize = 0;
 
     initializeCache();
 
-    _params->pp.population = 150; // 50
-    _params->pp.neighbors = 30; // 10
+    _params->pp.population = 90; // 50 | 150
+    _params->pp.neighbors = 9; // 10 | 30
     _params->pp.minEpochs = 50;
-    _params->pp.maxEpochs = 1000;
+    _params->pp.maxEpochs = 500; // 1000
     _params->pp.delta = 5E-8L;
     _params->pp.vDelta = 5E-200L;
-    _params->pp.termMinEpochsFlag = true;
+    _params->pp.termMinEpochsFlag = false;
     _params->pp.termMaxEpochsFlag = true;
     _params->pp.termDeltaFlag = false;
     _params->pp.windowSize = 1500;
@@ -500,7 +500,7 @@ void MainWindow::setParameterDefaults() {
     _params->np.innerNetNodes.push_back(8);
     _params->np.innerNets = static_cast<int>(_params->np.innerNetNodes.size());
     _params->np.outputs = static_cast<int>(dataWrapper.outputSize());
-    _params->np.trainingIterations = 20;
+    _params->np.trainingIterations = 200; // 20
     _params->np.validationIterations = 200;
     _params->np.testIterations = 500; //500
 

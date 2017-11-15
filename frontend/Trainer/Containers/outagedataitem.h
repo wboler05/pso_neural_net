@@ -41,6 +41,7 @@ public:
     bool _rain;
     bool _snow;
     bool _thunderstorm;
+    size_t _population;
 
     // Labels
     bool _outage=false;

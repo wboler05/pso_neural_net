@@ -573,7 +573,7 @@ real ConfusionMatrix::MSE(const std::vector<real> &result, const std::vector<rea
         error += CustomMath::pow((result[i] - expected[i]), 2);
     }
     // Divide by total error size
-    error /= result.size();
+    error /= static_cast<real>(result.size());
 
     // Return our error
     return error;

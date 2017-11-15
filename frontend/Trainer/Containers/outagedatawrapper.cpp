@@ -37,6 +37,7 @@ OutageDataWrapper::OutageDataWrapper(OutageDataWrapper && r) {
     _rain = std::move(r._rain);
     _snow = std::move(r._snow);
     _thunderstorm = std::move(r._thunderstorm);
+    _population = std::move(r._population);
     _outage = std::move(r._outage);
     _affectedCustomers = std::move(r._affectedCustomers);
 }
@@ -58,6 +59,7 @@ OutageDataWrapper & OutageDataWrapper::operator = (OutageDataItem && r) {
     _rain = std::move(r._rain);
     _snow = std::move(r._snow);
     _thunderstorm = std::move(r._thunderstorm);
+    _population = std::move(r._population);
     _outage = std::move(r._outage);
     _affectedCustomers = std::move(r._affectedCustomers);
 
@@ -81,6 +83,7 @@ OutageDataWrapper & OutageDataWrapper::operator = (OutageDataWrapper && r) {
     _rain = std::move(r._rain);
     _snow = std::move(r._snow);
     _thunderstorm = std::move(r._thunderstorm);
+    _population = std::move(r._population);
     _outage = std::move(r._outage);
     _affectedCustomers = std::move(r._affectedCustomers);
 
@@ -143,6 +146,8 @@ OutageDataItem OutageDataWrapper::parseInputString(const QString & line) {
     } else {
         newItem._outage = false;
     }
+
+    newItem._population = lineList[30].toUInt(&ok);
 
     return newItem;
 }
@@ -232,15 +237,19 @@ std::vector<real> OutageDataWrapper::inputize() {
     inputs_l.push_back(bool2Double(_snow));
     inputs_l.push_back(bool2Double(_thunderstorm));
 
+    inputs_l.push_back(static_cast<real>(_population));
+
     std::vector<real> inputs_v;
     size_t skipOffset = 0;
     size_t i = 0;
     while (inputs_l.size()) {
         if (_inputSkips.size() > 0) {
-            if (i != _inputSkips[skipOffset]) {
-                inputs_v.push_back(inputs_l.front());
-            } else {
-                skipOffset++;
+            if (skipOffset < _inputSkips.size()) {
+                if (i != _inputSkips[skipOffset]) {
+                    inputs_v.push_back(inputs_l.front());
+                } else {
+                    skipOffset++;
+                }
             }
         } else {
             inputs_v.push_back(inputs_l.front());
@@ -279,30 +288,43 @@ std::vector<real> OutageDataWrapper::inputize() {
 std::vector<real> OutageDataWrapper::outputize() {
     std::vector<real> output;
 
-    std::vector<real> ranges = {10, 100, 1000};
+    //std::vector<real> ranges = {10, 100, 1000};
+    std::vector<real> ranges = { 1 };
     // 10 100 1000
     // 1 9 72
     // 3 42
 
-    output.resize(ranges.size()+2, -1);
+    if (ranges.size() > 1) {
+        output.resize(ranges.size()+2, -1);
 
-    for (size_t i = 0; i < ranges.size()+2; i++) {
-        if (i == 0) {
-            if (_affectedCustomers == 0) {
-                output[0] = 1;
-                break;
-            }
-        } else if (i == ranges.size() + 1) {
-            if (_affectedCustomers > ranges[i-2]) {
-                output[i] = 1;
-                break;
-            }
-        } else {
-            if (_affectedCustomers <= ranges[i-1]) {
-                output[i] = 1;
-                break;
+        for (size_t i = 0; i < ranges.size()+2; i++) {
+            if (i == 0) {
+                if (_affectedCustomers == 0) {
+                    output[0] = 1;
+                    break;
+                }
+            } else if (i == ranges.size() + 1) {
+                if (_affectedCustomers >= ranges[i-2]) {
+                    output[i] = 1;
+                    break;
+                }
+            } else {
+                if (_affectedCustomers <= ranges[i-1]) {
+                    output[i] = 1;
+                    break;
+                }
             }
         }
+    } else if (ranges.size() == 1) {
+        output.resize(2, -1);
+        if (_affectedCustomers < ranges[0]) {
+            output[0] = 1.0;
+        } else {
+            output[1] = 1.0;
+        }
+    } else {
+        qDebug() << "What are you doing?";
+        exit(1);
     }
 
     _outputSizeSet = true;
@@ -435,6 +457,7 @@ OutageDataItem OutageDataWrapper::copy(const OutageDataItem & l) {
     r._rain = l._rain;
     r._snow = l._snow;
     r._thunderstorm = l._thunderstorm;
+    r._population = l._population;
 
     r._outage = l._outage;
     r._affectedCustomers = l._affectedCustomers;
@@ -458,6 +481,8 @@ const size_t & OutageDataWrapper::outputSize() {
 
 void OutageDataWrapper::setInputSkips(const std::vector<size_t> & skips) {
     _inputSkips = skips;
-    CustomSort::quickSort(_inputSkips);
+    if (_inputSkips.size() > 0) {
+        CustomSort::quickSort(_inputSkips);
+    }
     _inputSkipsModified = true;
 }

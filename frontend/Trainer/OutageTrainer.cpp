@@ -50,7 +50,6 @@ void OutageTrainer::runTrainer() {
 
     size_t report = 1;
     while (report){
-        _selectedBestList.clear();
         _epochs = 0;
         resetFitnessScores();
 
@@ -77,6 +76,7 @@ void OutageTrainer::runTrainer() {
             break;
         }
     }
+    fullTestState();
     interruptProcess();
 }
 
@@ -180,7 +180,7 @@ real OutageTrainer::trainingStep(const vector<size_t> & trainingVector) {
     }
     real finalMse = 0;
     for (size_t i = 0; i < mse.size(); i++) {
-        finalMse += mse[i];
+        finalMse += mse[i] / _dataSets.getImplicitBiasWeight(i);
     }
     finalMse /= static_cast<real>(mse.size());
 
@@ -198,6 +198,7 @@ real OutageTrainer::trainingStep(const vector<size_t> & trainingVector) {
             fitC += 1.0;
         }
     }
+return -finalMse;
 return fitC-finalMse;
 
     cm.costlyComputeClassStats();
@@ -446,6 +447,7 @@ std::vector<size_t> EnableParameters::inputSkips() {
     if (!loa) { _inputSkips.push_back(26); }
     if (!latitude) { _inputSkips.push_back(27); }
     if (!longitude) { _inputSkips.push_back(28); }
+    if (!population) { _inputSkips.push_back(29); }
     return _inputSkips;
 }
 
@@ -475,7 +477,14 @@ std::vector<real> OutageTrainer::normalizeInput(const size_t & id) {
 }
 
 std::vector<real> OutageTrainer::normalizeInput(std::vector<real> & input) {
+    size_t skipIterator = 0;
     for (size_t i = 0; i < input.size(); i++) {
+        if (_inputSkips.size() > 0) {
+            if (_inputSkips[skipIterator] == i) {
+                skipIterator++;
+                continue;
+            }
+        }
         if (_maxInputData[i] - _minInputData[i] != 0) {
             input[i] = (2.0*input[i] - (_minInputData[i] + _maxInputData[i])) /
                     (_maxInputData[i] - _minInputData[i]);
