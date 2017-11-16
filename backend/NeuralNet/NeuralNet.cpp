@@ -710,15 +710,27 @@ bool NeuralNet::setState(const State & s) {
     int inputsFromState = 0, outputsFromState = 0;
     std::vector<int> innerNodesFromState;
 
-    if (s.size() == 0) return false;
+    if (s.size() == 0) {
+        std::cout << "Failed to set State: s.size() == 0" << std::endl;
+        return false;
+    }
     innerNodesFromState.resize(s[0].size());
     for (size_t i = 0; i < s[0].size(); i++) {
         innerNodesFromState[i] = s[0][i].size();
     }
-    if (s.size() < 1) return false;
+    if (s.size() < 1) {
+        std::cout << "Failed to set State: s.size() < 1" << std::endl;
+        return false;
+    }
     inputsFromState = s[1].size() - 1;
-    if (s.size() < 1+innerNodesFromState.size()) return false;
-    if (s[innerNodesFromState.size()].size() == 0) return false;
+    if (s.size() < 1+innerNodesFromState.size()) {
+        std::cout << "Failed to set State: s.size() < 1+innerNodesFromState.size()=" << 1+innerNodesFromState.size() << std::endl;
+        return false;
+    }
+    if (s[innerNodesFromState.size()].size() == 0) {
+        std::cout << "Failed to set State: s[innerNodesFromState.size()=" << innerNodesFromState.size() << "] == 0" << std::endl;
+        return false;
+    }
     outputsFromState = s[innerNodesFromState.size()+1][0].size();
 
     _nParams.inputs = inputsFromState;
@@ -731,14 +743,17 @@ bool NeuralNet::setState(const State & s) {
             if (_state[i].size() == s[i].size()) {
                 for (size_t j = 0; j < s[i].size(); j++) {
                     if (_state[i][j].size() != s[i][j].size()) {
+                        std::cout << "Failed to set State: _state[" << i << "][" << j << "].size()=" << _state[i][j].size() << " != s[" << i << "][" << j << "].size()=" << s[i][j].size() << std::endl;
                         return false;
                     }
                 }
             } else {
+                std::cout << "Failed to set State: _state[" << i << "].size()=" << _state[i].size() << " != s[" << i << "].size()=" << s[i].size() << std::endl;
                 return false;
             }
         }
     } else {
+        std::cout << "Failed to set State: _state.size()=" << _state.size() << " != s.size()=" << s.size() << std::endl;
         return false;
     }
 

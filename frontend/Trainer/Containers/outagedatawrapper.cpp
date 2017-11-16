@@ -100,9 +100,9 @@ OutageDataItem OutageDataWrapper::parseInputString(const QString & line) {
         return newItem;
     }
     bool ok;
-    newItem._date.year(lineList[0].toInt(&ok));
-    newItem._date.month(lineList[1].toInt(&ok));
-    newItem._date.day(lineList[2].toInt(&ok));
+    newItem._date.year(static_cast<int>(lineList[0].toDouble(&ok)));
+    newItem._date.month(static_cast<int>(lineList[1].toDouble(&ok)));
+    newItem._date.day(static_cast<int>(lineList[2].toDouble(&ok)));
 
     newItem._temp.hi(static_cast<real>(lineList[3].toDouble(&ok)));
     newItem._temp.avg(static_cast<real>(lineList[4].toDouble(&ok)));
@@ -130,24 +130,24 @@ OutageDataItem OutageDataWrapper::parseInputString(const QString & line) {
 
     newItem._precipitation = static_cast<real>(lineList[21].toDouble(&ok));
 
-    newItem._fog = lineList[22].toInt(&ok) == 1 ? true : false;
-    newItem._rain = lineList[23].toInt(&ok) == 1 ? true : false;
-    newItem._snow = lineList[24].toInt(&ok) == 1 ? true : false;
-    newItem._thunderstorm = lineList[25].toInt(&ok) == 1 ? true : false;
+    newItem._fog = static_cast<int>(lineList[22].toDouble(&ok)) == 1 ? true : false;
+    newItem._rain = static_cast<int>(lineList[23].toDouble(&ok)) == 1 ? true : false;
+    newItem._snow = static_cast<int>(lineList[24].toDouble(&ok)) == 1 ? true : false;
+    newItem._thunderstorm = static_cast<int>(lineList[25].toDouble(&ok)) == 1 ? true : false;
 
-    newItem._loa = lineList[26].toInt(&ok);
+    newItem._loa = static_cast<int>(lineList[26].toDouble(&ok));
 
     newItem._latlong.latitude(static_cast<real>(lineList[27].toDouble(&ok)));
     newItem._latlong.longitude(static_cast<real>(lineList[28].toDouble(&ok)));
 
-    newItem._affectedCustomers = lineList[29].toInt(&ok);
+    newItem._affectedCustomers = static_cast<int>(lineList[29].toDouble(&ok));
     if (newItem._affectedCustomers > 0) {
         newItem._outage = true;
     } else {
         newItem._outage = false;
     }
 
-    newItem._population = lineList[30].toUInt(&ok);
+    newItem._population = static_cast<unsigned int>(lineList[30].toDouble(&ok));
 
     return newItem;
 }
