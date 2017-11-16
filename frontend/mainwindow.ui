@@ -601,12 +601,32 @@
              </item>
              <item>
               <property name="text">
+               <string>Sin</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
                <string>Sigmoid</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>Linear</string>
+               <string>HypTan</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Gaussian</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Sinc</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Step</string>
               </property>
              </item>
             </widget>

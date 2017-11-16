@@ -28,7 +28,7 @@ void OutageTrainer::build() {
     //_inputCache = std::make_shared<InputCache>(_params->cp);
 
     // Split between training, testing, and validation set.
-    partitionData(10, _numClasses); // 10 Folds are hard coded but can make a GUI element later
+    partitionData(_params->kFolds, _numClasses);
 
     buildPso();
 
@@ -329,9 +329,9 @@ void OutageTrainer::testGb() {
     _best_overall_gb.cm.reset();
     _best_overall_gb.state.clear();
 
-    foreach (auto validationNet, _validatedBests) {
+    for (size_t i = 0; i < _validatedBests.size(); i++) {
 
-        if (!_neuralNet->setState(validationNet.state)) {
+        if (!_neuralNet->setState(_validatedBests[i].state)) {
             qDebug( )<< "Unable to set NeuralNet: testGb()";
             return;
         }
@@ -343,10 +343,10 @@ void OutageTrainer::testGb() {
         real gbAcc = _best_overall_gb.cm.overallError().accuracy;
 
         if (newAcc > gbAcc || _best_overall_gb.state.size() == 0) {
-            _best_overall_gb.state = validationNet.state;
+            _best_overall_gb.state = _validatedBests[i].state;
             _best_overall_gb.cm = _testConfusionMatrix;
         }
-        _selectedBestList.push_back(validationNet);
+        _selectedBestList.push_back(_validatedBests[i]);
     }
 }
 

@@ -23,6 +23,7 @@ using namespace std;
 
 #include "custommath.h"
 #include "randomnumberengine.h"
+#include "activationfunctions.h"
 
 #ifndef M_PI
 // Qt redifines M_PI, so it disables <cmath>
@@ -43,6 +44,7 @@ public:
     typedef std::vector<real> ExternalNodes;
 
     enum Type { Feedforward = 0, Recurrent };
+    enum Activation { ReLU = 0, Sin = 1, Sigmoid = 2, HypTan = 3, Gaussian = 4, Sinc = 5, Step = 6};
 
     struct NeuralNetParameters {
         int inputs=0;               // Input nodes
@@ -52,6 +54,7 @@ public:
         int validationIterations=20;// Total iterations of validation
         int testIterations=20;      // Total iterations of testing
         NeuralNet::Type type = Feedforward;
+        NeuralNet::Activation act = Sin;
     };
 
     NeuralNet();
@@ -109,7 +112,7 @@ public:
     EdgeLayer * forwardEdgeLayer(const size_t & i);
     EdgeLayer * recurrentEdgeLayer(const size_t & i);
 
-    static real activation(const real & in, const real & k);
+    static real activation(const real & in, const real & k, const NeuralNet::Activation & act);
     static real getSign(const real & in);
 
     NeuralNetParameters * nParams() { return &_nParams; }

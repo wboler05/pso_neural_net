@@ -12,15 +12,15 @@
 
 struct EnableParameters {
     bool year=false;
-    bool month=false;
-    bool day=true;
+    bool month=true;
+    bool day=false;
     bool temp_high=false;
     bool temp_avg=true;
     bool temp_low=false;
     bool dew_high=false;
     bool dew_avg=true;
     bool dew_low=false;
-    bool humidity_high=false;
+    bool humidity_high=true;
     bool humidity_avg=false;
     bool humidity_low=false;
     bool press_high=false;
@@ -28,7 +28,7 @@ struct EnableParameters {
     bool press_low=false;
     bool visibility_high=false;
     bool visibility_avg=false;
-    bool visibility_low=false;
+    bool visibility_low=true;
     bool wind_high=true;
     bool wind_avg=false;
     bool wind_gust=true;
@@ -58,6 +58,7 @@ struct TrainingParameters {
     real gamma = 1.0L;
     ShowBestSelected showBestSelected = Recent_Global_Best;
     bool enableBaseCase = false;
+    size_t kFolds = 10;
 };
 
 class OutageTrainer : public NeuralPso

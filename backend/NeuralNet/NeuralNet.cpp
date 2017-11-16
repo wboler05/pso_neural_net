@@ -452,70 +452,26 @@ NeuralNet::ExternalNodes NeuralNet::inputs() {
     return inputs;
 }
 
-real NeuralNet::activation(const real & in, const real & k) {
-    return sin(in * 2 * 3.1459);
-    //return exp(-CustomMath::pow(in / (k+0.0001), 2)); // Gaussian with K constant
+real NeuralNet::activation(const real & in, const real & k, const NeuralNet::Activation & act) {
 
-//    if (in >= 0) {
-//        return k*in;
-//    } else {
-//        return 0;
-//    }
-
-    //real act = in / (1 + abs(in));  // Softsign
-  //real act = 1 / (1 + exp(-in));  // Logistics
-//  real mean = 1.0;
-  //real act = exp(-pow((in - mean)/sigma, 2));      // Gaussian
-  //real act = 4 * in * in - 4 * in + 1;
-
-//    real sigma = 0.35;
-//    real act = getSign(in) * (1 - exp(-pow(in / sigma, 2)));
-
-//return in;
-    /**
-    // 9th order approximation to tanh
-    static real coeffs[10] = {
-        4.42727699125780,
-        -2.78592124641418e-14,
-        -12.3878821958288,
-        4.49018884445568e-14,
-        13.4092500380177,
-        -2.26603901811258e-14,
-        -7.48382418797760,
-        3.72216702500625e-15,
-        3.04221199452273,
-        -5.55537460355953e-17
-    };
-
-    //real act = tanh(in * M_PI);
-    // Faster than tanh function
-    real act = CustomMath::poly(in * M_PI, coeffs, 9);
-    act = max(min(act, (real)1.0), (real)-1);
-    **/
-
-/*
-    // 9th order approximation of logistic sigmoid
-    static real coeffs[10] = {
-        0.938400463413615,
-        -1.32105382144212e-14,
-        -2.77909962352499,
-        2.29080010982935e-14,
-        3.32023231311074,
-        -1.29358310591960e-14,
-        -2.21971364932927,
-        2.63988723756627e-15,
-        1.23541839801387,
-        0.500000000000000
-    };
-    real act = CustomMath::poly(in, coeffs, 9);
-    act = max(min(act, (real)1.0), (real) -0);
-*/
-
-    // Logistic Sigmoid activation function with dynamic k-constant
-    real act = 1 / (1 + exp(- k * in));
-
-
-    return act;
+    switch(act) {
+    case NeuralNet::ReLU:
+        return ActivationFunctions::ReLU(in);
+    case Sin:
+        return ActivationFunctions::Sin(in);
+    case Sigmoid:
+        return ActivationFunctions::Sigmoid(in, k);
+    case HypTan:
+        return ActivationFunctions::HypTan(in);
+    case Gaussian:
+        return ActivationFunctions::Gaussian(in, k);
+    case Sinc:
+        return ActivationFunctions::Sinc(in);
+    case Step:
+        return ActivationFunctions::Step(in, k);
+    default:
+        return in;
+    }
 }
 
 real NeuralNet::getSign(const real &in) {
@@ -612,7 +568,7 @@ void NeuralNet::processForwardPropagation() {
                             real k_constant = kConstants[layer-1][left_node];
                             _outputNodes[right_node] +=
                                 (*edges)[left_node][right_node] *
-                                  activation(_innerNodes[layer-1][left_node], k_constant);
+                                  activation(_innerNodes[layer-1][left_node], k_constant, _nParams.act);
                         }
                     }
                 }
@@ -632,7 +588,7 @@ void NeuralNet::processForwardPropagation() {
                             real k_constant = kConstants[layer-1][left_node];
                             _innerNodes[layer][right_node] +=
                                     (*edges)[left_node][right_node] *
-                                    activation(_innerNodes[layer-1][left_node], k_constant);
+                                    activation(_innerNodes[layer-1][left_node], k_constant, _nParams.act);
                         }
                     }
                 }
@@ -719,7 +675,7 @@ void NeuralNet::processRecurrentNodes(const size_t &layer) {
                 real k_constant_connode = kConstants[conNode];
                 _recurrentNodes[layer][recNode] +=
                         (*recEdges)[recNode][conNode] *
-                          activation(_innerNodes[layer][conNode], k_constant_connode);
+                          activation(_innerNodes[layer][conNode], k_constant_connode, _nParams.act);
             }
         }
 
@@ -730,7 +686,7 @@ void NeuralNet::processRecurrentNodes(const size_t &layer) {
             _innerNodes[layer][node] +=
                     (*recEdges)[node][recNodeEdge] *
                     //activation(_recurrentNodes[layer][node], k_constant_recnode);
-                    activation(_recurrentNodes[layer][node], 5.0);
+                    activation(_recurrentNodes[layer][node], 5.0, _nParams.act);
         }
     }
 }

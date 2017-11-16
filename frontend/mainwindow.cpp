@@ -103,6 +103,8 @@ MainWindow::MainWindow(QWidget *parent) :
     headerString += "   * PSO Neural Net - Outage Prediction  *\n";
     headerString += "   *       by William Boler, BSCE        *\n";
     headerString += "   *     Research Assistant, IUPUI       *\n";
+    headerString += "   *         Kevin Galler, MSCE          *\n";
+    headerString += "   *               IUPUI                 *\n";
     headerString += "   *                                     *\n";
     headerString += "   *         Course: ECE 57000           *\n";
     headerString += "   *      Created: March 13, 2017        *\n";
@@ -484,14 +486,14 @@ void MainWindow::setParameterDefaults() {
     _params->pp.population = 90; // 50 | 150
     _params->pp.neighbors = 9; // 10 | 30
     _params->pp.minEpochs = 50;
-    _params->pp.maxEpochs = 500; // 1000
+    _params->pp.maxEpochs = 100; // 500 | 1000
     _params->pp.delta = 5E-8L;
     _params->pp.vDelta = 5E-200L;
     _params->pp.termMinEpochsFlag = false;
     _params->pp.termMaxEpochsFlag = true;
     _params->pp.termDeltaFlag = false;
     _params->pp.windowSize = 1500;
-    _params->pp.dt = 0.025;
+    _params->pp.dt = 0.5; // .025
 
     /*
     NeuralNetParameters nParams;
@@ -513,6 +515,7 @@ void MainWindow::setParameterDefaults() {
     _params->np.trainingIterations = 200; // 20
     _params->np.validationIterations = 200;
     _params->np.testIterations = 500; //500
+    _params->np.act = NeuralNet::Sin;
 
     _params->fp.enableTopologyTraining = true;
 
@@ -577,6 +580,7 @@ void MainWindow::applyParameterChanges() {
     _params->gamma = static_cast<real>(ui->gamma_dsb->value());
 
     setNetTypeByIndex(ui->netType_cb->currentIndex());
+    setActivationByCB();
 }
 
 void MainWindow::updateParameterGui() {
@@ -619,6 +623,7 @@ void MainWindow::updateParameterGui() {
 
     updateElementSkips();
     getGlobalBestSelectionFromBox();
+    updateActivationCB();
 }
 
 void MainWindow::setGlobalBestSelectionBox() {
@@ -643,6 +648,14 @@ void MainWindow::getGlobalBestSelectionFromBox() {
     } else {
         _params->showBestSelected = TrainingParameters::Sanity_Check_Best;
     }
+}
+
+void MainWindow::setActivationByCB() {
+    _params->np.act = static_cast<NeuralNet::Activation>(ui->activation_cb->currentIndex());
+}
+
+void MainWindow::updateActivationCB() {
+    ui->activation_cb->setCurrentIndex(_params->np.act);
 }
 
 void MainWindow::applyElementSkips() {

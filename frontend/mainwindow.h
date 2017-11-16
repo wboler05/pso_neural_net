@@ -65,6 +65,8 @@ protected slots:
     void applyParameterChanges();
     void setParameterDefaults();
     void updateParameterGui();
+    void updateActivationCB();
+    void setActivationByCB();
     void setInnerNetNodesFromGui();
     void setCurrentNet();
     void setInputsForTrainedNetFromGui();
