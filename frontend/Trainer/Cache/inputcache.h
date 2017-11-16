@@ -55,6 +55,8 @@ public:
     void clearCache();
     const size_t & length() { return _totalInputItemsInFile; }
 
+    void printHistogram();
+
 private:
     InputCache(const InputCache & l)=delete;
     InputCache & operator=(const InputCache & l)=delete;
@@ -62,6 +64,9 @@ private:
     CacheParameters _cacheParams;
     bool _validFile;
     std::vector<CacheSlice> _cacheSlices;
+
+    std::vector<unsigned long> _histogram;
+    size_t _histogramSize;
 
     unsigned long _effectiveMaxBytes;
     unsigned long _fileEffectiveBytes;
@@ -76,6 +81,10 @@ private:
     bool verifyInputFile();
     void updateCache();
     bool reloadCacheSlice(const size_t & itemIndex);
+
+    // Histogram
+    void calculateHistogramSize();
+    void incHisto(const size_t & index);
 };
 
 #endif // INPUTCACHE_H

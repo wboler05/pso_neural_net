@@ -243,7 +243,7 @@ std::vector<real> OutageDataWrapper::inputize() {
     size_t skipOffset = 0;
     size_t i = 0;
     while (inputs_l.size()) {
-        if (_inputSkips.size() > 0) {
+        if (_inputSkips.size() > 0 && skipOffset < _inputSkips.size()) {
             if (skipOffset < _inputSkips.size()) {
                 if (i != _inputSkips[skipOffset]) {
                     inputs_v.push_back(inputs_l.front());

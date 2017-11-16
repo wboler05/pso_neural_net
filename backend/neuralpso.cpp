@@ -63,7 +63,7 @@ void NeuralPso::buildPso() {
         (*_particles)[i].noneFlag = true;
 
         if (i == 0) {
-            _gb._x.resize(state.size()+1);
+            _gb._x.resize(state.size());
         }
         // Create each inner column edge
         for (size_t j = 0; j < state.size(); j++) {
@@ -494,7 +494,7 @@ real NeuralPso::evaluate() {
     }
     printGBMtx.unlock();
 
-    testGB(); /// This needs to be validateGB()
+    validateGb();
     return gb()->_fit_pb;
 }
 
@@ -653,7 +653,11 @@ void NeuralPso::trainingRun() {
     return;
 }
 
-void NeuralPso::testGB() {
+void NeuralPso::testGb() {
+    std::cout << "Error, must be implemented via inherited training class." << std::endl;
+}
+
+void NeuralPso::validateGb() {
     std::cout << "Error, must be implemented via inherited training class." << std::endl;
 }
 

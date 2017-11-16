@@ -80,9 +80,9 @@ public:
     void trainingRun();
     real trainingStep(const vector<size_t> & trainingVector);
     real trainingStepBaseCase();
-    void testGB();
+    void testGb();
     void testSelectedGB();
-    void validateGB();
+    void validateGb();
     TestStatistics::ClassificationError && validateCurrentNet();
 
     void runTrainer();

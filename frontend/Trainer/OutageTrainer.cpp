@@ -47,6 +47,8 @@ void OutageTrainer::partitionData(int kFolds, size_t numClasses){
 void OutageTrainer::runTrainer() {
 
     _stopValidation = false;
+    _validatedBests.clear();
+    _validatedBests.resize(_dataSets.numFolds());
 
     size_t report = 1;
     while (report){
@@ -55,13 +57,10 @@ void OutageTrainer::runTrainer() {
 
         run();    // Pso
 
-        _selectedBestList.push_back(_recent_gb);
-        //fullTestState();
-        _neuralNet->setState(gb()->_x);
-
-        // Save Stats
-        _validatedBests.push_back(_best_gb);   ///DO SOMETHING WITH THIS
-        /// We need to do validation on the GB here.
+        if (!_neuralNet->setState(gb()->_x)) {
+            qDebug( )<< "Unable to set NeuralNet State: runTrainer()";
+            return;
+        }
 
         // Switch sets for next fold
         report = getNextValidationSet();
@@ -76,17 +75,21 @@ void OutageTrainer::runTrainer() {
             break;
         }
     }
+    testGb();
     fullTestState();
     interruptProcess();
+
+    _inputCache->printHistogram();
 }
 
 void OutageTrainer::resetFitnessScores() {
     _recent_gb.cm.reset();
-    foreach (auto particle, (*_particles)) {
-        particle._fit_pb = -std::numeric_limits<real>::max();
-        particle._fit_lb = -std::numeric_limits<real>::max();
-        particle._fit = -std::numeric_limits<real>::max();
+    for (size_t i = 0; i < _particles->size(); i++) {
+        (*_particles)[i]._fit_pb = -std::numeric_limits<real>::max();
+        (*_particles)[i]._fit_lb = -std::numeric_limits<real>::max();
+        (*_particles)[i]._fit = -std::numeric_limits<real>::max();
     }
+    _gb._fit_pb = -std::numeric_limits<real>::max();
 
 }
 
@@ -245,12 +248,6 @@ bool OutageTrainer::networkPathValidation() {
     }
 }
 
-void OutageTrainer::validateGB() {
-    _neuralNet->setState(_gb._x);
-    TestStatistics::ClassificationError ce;
-    classError(_dataSets.getValidationSet(), _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
-}
-
 TestStatistics::ClassificationError && OutageTrainer::validateCurrentNet() {
     TestStatistics::ClassificationError ce;
     classError(_dataSets.getValidationSet(), _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
@@ -295,51 +292,70 @@ OutageDataWrapper && OutageTrainer::loadValidationInput(const size_t & I) {
     return std::move(item);
 }
 
-void OutageTrainer::testGB() {
-    /** TEST **/
-  _neuralNet->setState(_gb._x);
-
-    classError(_dataSets.getTestSet(), _testConfusionMatrix, _neuralNet->nParams()->testIterations);
+void OutageTrainer::validateGb() {
+    if (!_neuralNet->setState(_gb._x)) {
+        qDebug() << "Unable to validate net, cannot set weights: validateGb()";
+        return;
+    }
+    TestStatistics::ClassificationError ce;
+    classError(_dataSets.getValidationSet(), _validationConfusionMatrix, _dataSets.getValidationSet().size());
 
     _recent_gb.state = _gb._x;
-    _recent_gb.cm = _testConfusionMatrix;
+    _recent_gb.cm = _validationConfusionMatrix;
 
     bool validated_gb_flag = true;
 
-    _testConfusionMatrix.costlyComputeClassStats();
+    _validationConfusionMatrix.costlyComputeClassStats();
 
-    for (size_t i = 0; i < _testConfusionMatrix.numberOfClassifiers(); i++) {
-        int tp = static_cast<int> (round(_testConfusionMatrix.classStats()[i].tp()));
-        int tn = static_cast<int> (round(_testConfusionMatrix.classStats()[i].tn()));
-        if (tp == 0 || tn == 0) {
+    for (size_t i = 0; i < _validationConfusionMatrix.numberOfClassifiers(); i++) {
+        int tp = static_cast<int> (_validationConfusionMatrix.getTruePositiveValues()[i]);
+        if (tp == 0) {
             validated_gb_flag = false;
+            break;
         }
     }
-
-    real newAcc = _testConfusionMatrix.overallError().accuracy;
-    real gbAcc = _best_gb.cm.overallError().accuracy;
 
     if (validated_gb_flag) {
-        if (newAcc >= gbAcc || _best_gb.state.size() == 0) {
-//        if (ce.mse < _best_gb.ce.mse || _best_gb.state.size() == 0) {
-            _best_gb.state = _gb._x;
-            _best_gb.cm = _testConfusionMatrix;
-            _selectedBestList.push_back(_best_gb);
-            //fullTestState();
+        if(_validatedBests[_dataSets.foldIndex()].cm.overallError().accuracy <= _recent_gb.cm.overallError().accuracy){
+            _validatedBests[_dataSets.foldIndex()] = _recent_gb;
         }
     }
-    /// test
-    /*
-    qDebug() << "Test GB For: " << _epochs;
-    for (size_t i = 0; i < _outputNodeStats.size(); i++) {
-        qDebug() << " - (" << i << "): Mean: " << _outputNodeStats[i].avg() << "\tStd: " << _outputNodeStats[i].std_dev();
+
+
+}
+
+void OutageTrainer::testGb() {
+
+    _best_overall_gb.cm.reset();
+    _best_overall_gb.state.clear();
+
+    foreach (auto validationNet, _validatedBests) {
+
+        if (!_neuralNet->setState(validationNet.state)) {
+            qDebug( )<< "Unable to set NeuralNet: testGb()";
+            return;
+        }
+        classError(_dataSets.getTestSet(), _testConfusionMatrix, _dataSets.getTestSet().size());
+
+        _testConfusionMatrix.costlyComputeClassStats();
+
+        real newAcc = _testConfusionMatrix.overallError().accuracy;
+        real gbAcc = _best_overall_gb.cm.overallError().accuracy;
+
+        if (newAcc > gbAcc || _best_overall_gb.state.size() == 0) {
+            _best_overall_gb.state = validationNet.state;
+            _best_overall_gb.cm = _testConfusionMatrix;
+        }
+        _selectedBestList.push_back(validationNet);
     }
-    */
 }
 
 void OutageTrainer::testSelectedGB() {
-    _neuralNet->setState(_best_gb.state);
-    classError(_dataSets.getTestSet(), _best_gb.cm, _neuralNet->nParams()->testIterations);
+    if (!_neuralNet->setState(_best_overall_gb.state)) {
+        qDebug() << "Unable to set NeuralNet: testSelectedGb()";
+        return;
+    }
+    classError(_dataSets.getTestSet(), _best_overall_gb.cm, _neuralNet->nParams()->testIterations);
 }
 
 /**
@@ -418,35 +434,35 @@ void OutageTrainer::updateEnableParameters() {
 
 std::vector<size_t> EnableParameters::inputSkips() {
     std::vector<size_t> _inputSkips;
-    if (!year) { _inputSkips.push_back(0); }
-    if (!month) { _inputSkips.push_back(1); }
-    if (!day) { _inputSkips.push_back(2); }
-    if (!temp_high) { _inputSkips.push_back(3); }
-    if (!temp_avg) { _inputSkips.push_back(4); }
-    if (!temp_low) { _inputSkips.push_back(5); }
-    if (!dew_high) { _inputSkips.push_back(6); }
-    if (!dew_avg) { _inputSkips.push_back(7); }
-    if (!dew_low) { _inputSkips.push_back(8); }
-    if (!humidity_high) { _inputSkips.push_back(9); }
-    if (!humidity_avg) { _inputSkips.push_back(10); }
-    if (!humidity_low) { _inputSkips.push_back(11); }
-    if (!press_high) { _inputSkips.push_back(12); }
-    if (!press_avg) { _inputSkips.push_back(13); }
-    if (!press_low) { _inputSkips.push_back(14); }
-    if (!visibility_high) { _inputSkips.push_back(15); }
-    if (!visibility_avg) { _inputSkips.push_back(16); }
-    if (!visibility_low) { _inputSkips.push_back(17); }
-    if (!wind_high) { _inputSkips.push_back(18); }
-    if (!wind_avg) { _inputSkips.push_back(19); }
-    if (!wind_gust) { _inputSkips.push_back(20); }
-    if (!precipitation) { _inputSkips.push_back(21); }
-    if (!fog) { _inputSkips.push_back(22); }
-    if (!rain) { _inputSkips.push_back(23); }
-    if (!snow) { _inputSkips.push_back(24); }
-    if (!thunderstorm) { _inputSkips.push_back(25); }
-    if (!loa) { _inputSkips.push_back(26); }
-    if (!latitude) { _inputSkips.push_back(27); }
-    if (!longitude) { _inputSkips.push_back(28); }
+    if (!loa) { _inputSkips.push_back(0); }
+    if (!latitude) { _inputSkips.push_back(1); }
+    if (!longitude) { _inputSkips.push_back(2); }
+    if (!year) { _inputSkips.push_back(3); }
+    if (!month) { _inputSkips.push_back(4); }
+    if (!day) { _inputSkips.push_back(5); }
+    if (!temp_low) { _inputSkips.push_back(6); }
+    if (!temp_avg) { _inputSkips.push_back(7); }
+    if (!temp_high) { _inputSkips.push_back(8); }
+    if (!dew_low) { _inputSkips.push_back(9); }
+    if (!dew_avg) { _inputSkips.push_back(10); }
+    if (!dew_high) { _inputSkips.push_back(11); }
+    if (!humidity_low) { _inputSkips.push_back(12); }
+    if (!humidity_avg) { _inputSkips.push_back(13); }
+    if (!humidity_high) { _inputSkips.push_back(14); }
+    if (!press_low) { _inputSkips.push_back(15); }
+    if (!press_avg) { _inputSkips.push_back(16); }
+    if (!press_high) { _inputSkips.push_back(17); }
+    if (!visibility_low) { _inputSkips.push_back(18); }
+    if (!visibility_avg) { _inputSkips.push_back(19); }
+    if (!visibility_high) { _inputSkips.push_back(20); }
+    if (!wind_gust) { _inputSkips.push_back(21); }
+    if (!wind_avg) { _inputSkips.push_back(22); }
+    if (!wind_high) { _inputSkips.push_back(23); }
+    if (!precipitation) { _inputSkips.push_back(24); }
+    if (!fog) { _inputSkips.push_back(25); }
+    if (!rain) { _inputSkips.push_back(26); }
+    if (!snow) { _inputSkips.push_back(27); }
+    if (!thunderstorm) { _inputSkips.push_back(28); }
     if (!population) { _inputSkips.push_back(29); }
     return _inputSkips;
 }
@@ -477,14 +493,7 @@ std::vector<real> OutageTrainer::normalizeInput(const size_t & id) {
 }
 
 std::vector<real> OutageTrainer::normalizeInput(std::vector<real> & input) {
-    size_t skipIterator = 0;
     for (size_t i = 0; i < input.size(); i++) {
-        if (_inputSkips.size() > 0) {
-            if (_inputSkips[skipIterator] == i) {
-                skipIterator++;
-                continue;
-            }
-        }
         if (_maxInputData[i] - _minInputData[i] != 0) {
             input[i] = (2.0*input[i] - (_minInputData[i] + _maxInputData[i])) /
                     (_maxInputData[i] - _minInputData[i]);
@@ -496,12 +505,14 @@ std::vector<real> OutageTrainer::normalizeInput(std::vector<real> & input) {
 void OutageTrainer::fullTestState(/*pass the gb or selected best option*/) {
     NeuralNet::State state;
 
-    GlobalBestObject bestGb = _best_gb;
+    GlobalBestObject bestGb = _best_overall_gb;
     real acc = 0.0;
 
     for (size_t i = 0; i < _selectedBestList.size(); i++) {
 
-        _neuralNet->setState(_selectedBestList[i].state);
+        if (!_neuralNet->setState(_selectedBestList[i].state)) {
+            qDebug() << "Error: Unable to set neural net. fullTestState()";
+        }
         //_neuralNet->setState(state);
 
         std::vector<std::vector<real>> predictions, actuals;
@@ -524,7 +535,7 @@ void OutageTrainer::fullTestState(/*pass the gb or selected best option*/) {
         ConfusionMatrix cm(results);
         cm.costlyComputeClassStats();
         _selectedBestList[i].cm = cm;
-        qDebug() << "AccX: " << acc;
+        qDebug() << "AccX: " << acc << " New guy: " << cm.overallError().accuracy;
         if (cm.overallError().accuracy > acc) {
             acc = cm.overallError().accuracy;
             bestGb.state = _selectedBestList[i].state;

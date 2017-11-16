@@ -46,7 +46,6 @@ public:
 
     struct NeuralNetParameters {
         int inputs=0;               // Input nodes
-        int innerNets=0;            // Total inner layers
         vector<int> innerNetNodes;  // Number of nodes for each layer
         int outputs=0;              // Output nodes
         int trainingIterations=20;  // Total iterations of training
@@ -55,6 +54,7 @@ public:
         NeuralNet::Type type = Feedforward;
     };
 
+    NeuralNet();
     NeuralNet(const NeuralNetParameters &params);
     NeuralNet(const NeuralNetParameters &p, const State &n);
     NeuralNet(const NeuralNet & n);
@@ -120,6 +120,8 @@ public:
     static size_t totalStateElementsFromInnerNodes(const size_t & innerNodes);
     static size_t totalEdgeLayersFromState(const State & state);
     static size_t totalInnerNodeLayersFromState(const State & state);
+    static size_t totalInputsFromState(const State & state);
+    static size_t totalOutputsFromState(const State & state);
 
     bool isSkipNode(const size_t & layer, const size_t & node);
     bool isSkipEdge(const size_t & leftLayer, const size_t & leftNode, const size_t & rightNode);
@@ -138,6 +140,7 @@ private:
     InnerNodes _recurrentNodes; // Columns : Nodes
     ExternalNodes _outputNodes; // Nodes
     bool _modifiedFlag = false;
+    bool _built = false;
 
     State _state;   // [ T[][] : Edges[][] : Recurrent Edges[][] ]
     bool _localEdgesFlag;

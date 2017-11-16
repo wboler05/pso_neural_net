@@ -88,7 +88,8 @@ public:
   void updateGlobalBest(NeuralParticle & p);
 
   virtual void trainingRun();
-  virtual void testGB();
+  virtual void testGb();
+  virtual void validateGb();
 
   NeuralNet * neuralNet() { return _neuralNet; }
   std::unique_ptr<NeuralNet> buildNeuralNetFromGb();
@@ -109,7 +110,8 @@ public:
   NeuralNet::State & getGbState();
 
   GlobalBestObject & getRecentGlobalBest() { return _recent_gb; }
-  GlobalBestObject & getSelectedGlobalBest() { return _best_gb; }
+  GlobalBestObject & getOverallBest() { return _best_overall_gb; }
+  std::vector<GlobalBestObject> & validatedGbList() { return _validated_gb_list; }
   std::vector<GlobalBestObject> & selectedBestList() { return _selectedBestList; }
 
 protected:
@@ -117,7 +119,8 @@ protected:
     FitnessParameters _fParams;
 
     GlobalBestObject _recent_gb;
-    GlobalBestObject _best_gb;
+    GlobalBestObject _best_overall_gb;
+    std::vector<GlobalBestObject> _validated_gb_list;
     std::vector<GlobalBestObject> _selectedBestList;
 
 private:

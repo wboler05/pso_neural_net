@@ -104,9 +104,31 @@ bool InputCache::verifyInputFile() {
         qWarning() << "InputCache: Error, empty columns in input file.";
         return false;
     } else {
+        calculateHistogramSize();
         _validFile = true;
         return true;
     }
+}
+
+void InputCache::calculateHistogramSize() {
+    if (_totalInputItemsInFile != 0) {
+        size_t j = static_cast<size_t> (
+                    ceil(1.0 +
+                        std::log10(static_cast<double>(_totalInputItemsInFile))
+                    )
+                );
+        _histogramSize = j;
+        _histogram.resize(j, 0);
+    }
+
+}
+
+void InputCache::printHistogram() {
+    qDebug() << "Printing Histogram (" << _histogramSize << ") : ";
+    for (size_t i = 0; i < _histogram.size(); i++) {
+        qDebug() << " - " << i << ": " << _histogram[i];
+    }
+    qDebug() << "Histogram Complete\n";
 }
 
 void InputCache::updateCache() {
@@ -194,15 +216,23 @@ OutageDataWrapper InputCache::operator[](size_t index) {
     size_t groupId_ = groupId(index);
     if (groupId_ != cacheSlice._groupId) {
         if (reloadCacheSlice(index)) {
+            incHisto(index);
             size_t sliceIndex_ = sliceIndex(index);
             return cacheSlice._slice.at(sliceIndex_);
         } else {
             return nullObject;
         }
     } else {
+        incHisto(index);
         size_t sliceIndex_ = sliceIndex(index);
         return cacheSlice._slice.at(sliceIndex_);
     }
+
+}
+
+void InputCache::incHisto(const size_t & index) {
+    size_t bin = (index / (_totalInputItemsInFile / _histogramSize));
+    _histogram[bin]++;
 
 }
 

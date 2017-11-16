@@ -3,6 +3,10 @@
 //RandomNumberEngine NeuralNet::_randomEngine(
 //        std::chrono::system_clock::now().time_since_epoch().count());
 
+NeuralNet::NeuralNet() {
+
+}
+
 NeuralNet::NeuralNet(const NeuralNetParameters & p) :
   _nParams(p)
 {
@@ -13,7 +17,9 @@ NeuralNet::NeuralNet(const NeuralNetParameters &p, const State &s) :
     _nParams(p)
 {
     initialize(p);
-    setState(s);
+    if (!setState(s)) {
+        std::cout << "Failed to set NeuralNet: NeuralNet()" << std::endl;
+    }
 }
 
 NeuralNet::NeuralNet(const NeuralNet &n) {
@@ -64,8 +70,8 @@ void NeuralNet::initialize(const NeuralNetParameters & p) {
     _nParams = p;
 
     setTotalInputs(static_cast<size_t>(_nParams.inputs));
-    setTotalInnerNets(static_cast<size_t>(_nParams.innerNets));
-    for (size_t i = 0; i < static_cast<size_t>(_nParams.innerNets); i++) {
+    setTotalInnerNets(static_cast<size_t>(_nParams.innerNetNodes.size()));
+    for (size_t i = 0; i < static_cast<size_t>(_nParams.innerNetNodes.size()); i++) {
       setInnerNetNodes(static_cast<size_t>(_nParams.innerNetNodes[i]), i);
     }
     setTotalOutputs(static_cast<size_t>(_nParams.outputs));
@@ -74,6 +80,8 @@ void NeuralNet::initialize(const NeuralNetParameters & p) {
 
     resetAllNodes();
     resetWeights();
+
+    _built = true;
 }
 
 void NeuralNet::resetAllNodes() {
@@ -220,6 +228,11 @@ size_t NeuralNet::totalInnerNodeLayersFromState(const State & state) {
     int innerNodes = static_cast<int>(totalEdgeLayersFromState(state)) - 1;
     innerNodes = innerNodes < 0 ? 0 : innerNodes;
     return static_cast<size_t>(innerNodes);
+}
+
+size_t NeuralNet::totalInputsFromState(const State & state) {
+    ///TODO
+    return 0;
 }
 
 void NeuralNet::buildTopology() {
@@ -738,6 +751,24 @@ void NeuralNet::resetNodesForRerun() {
 }
 
 bool NeuralNet::setState(const State & s) {
+    int inputsFromState = 0, outputsFromState = 0;
+    std::vector<int> innerNodesFromState;
+
+    if (s.size() == 0) return false;
+    innerNodesFromState.resize(s[0].size());
+    for (size_t i = 0; i < s[0].size(); i++) {
+        innerNodesFromState[i] = s[0][i].size();
+    }
+    if (s.size() < 1) return false;
+    inputsFromState = s[1].size() - 1;
+    if (s.size() < 1+innerNodesFromState.size()) return false;
+    if (s[innerNodesFromState.size()].size() == 0) return false;
+    outputsFromState = s[innerNodesFromState.size()+1][0].size();
+
+    _nParams.inputs = inputsFromState;
+    _nParams.innerNetNodes = innerNodesFromState;
+    _nParams.outputs = outputsFromState;
+    initialize(_nParams);
     // Validate safe to transfer
     if (_state.size() == s.size()) {
         for (size_t i = 0; i < s.size(); i++) {

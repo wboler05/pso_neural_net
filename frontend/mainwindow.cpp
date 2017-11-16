@@ -28,7 +28,6 @@ MainWindow::MainWindow(QWidget *parent) :
     NeuralNet::NeuralNetParameters np;
     np.inputs = 2;
     np.innerNetNodes.push_back(1);
-    np.innerNets = np.innerNetNodes.size();
     np.outputs = 1;
     np.type = NeuralNet::Feedforward;
 
@@ -41,7 +40,14 @@ MainWindow::MainWindow(QWidget *parent) :
     netState[1][2][0] = 0;
     netState[2][0][0] = 1;
     netState[2][1][0] = 0;
-    net.setState(netState);
+    if (!net.setState(netState)) {
+        qDebug() << "MainWindow: Failed to set NeuralNet. Test case failure.";
+    }
+
+    NeuralNet newNet;
+    if (!newNet.setState(netState)) {
+        qDebug() << "MainWindow: Failed to create a net from state. Test Case.";
+    }
 
     std::vector<real> netInput = {1, 1};
     qDebug() << "Inputs: ";
@@ -54,6 +60,11 @@ MainWindow::MainWindow(QWidget *parent) :
     std::vector<real> output = net.process();
 
     qDebug() << "Output: " << output[0];
+
+    newNet.loadInputs(netInput);
+    output = net.process();
+
+    qDebug() << "New Output: " << output[0];
 
     /// end test
 
@@ -312,14 +323,14 @@ void MainWindow::on_actionSaveSelected_ANN_triggered() {
     }
 
     QDir curDir(qApp->applicationDirPath());
-    QString fileName = QFileDialog::getSaveFileName(this, "Save the Selected Best", curDir.absolutePath(), "PSO (*.pso)");
+    QString fileName = QFileDialog::getSaveFileName(this, "Save the Selected Best", curDir.absolutePath(), "PSO (*.state)");
 
     //QString psoState(_neuralPsoTrainer->stringifyState().c_str());
     std::string psoState;
-    psoState.append(openToken("_selected_best"));
+    psoState.append(openToken("_best_overall_gb"));
     psoState.append("\n");
-    psoState.append(stringifyState(_neuralPsoTrainer->getSelectedGlobalBest().state));
-    psoState.append(closeToken("_selected_best"));
+    psoState.append(stringifyState(_neuralPsoTrainer->getOverallBest().state));
+    psoState.append(closeToken("_best_overall_gb"));
 
 
     QFile outputFile(fileName);
@@ -498,7 +509,6 @@ void MainWindow::setParameterDefaults() {
     _params->np.inputs = static_cast<int>( dataWrapper.inputSize() );
     _params->np.innerNetNodes.clear();
     _params->np.innerNetNodes.push_back(8);
-    _params->np.innerNets = static_cast<int>(_params->np.innerNetNodes.size());
     _params->np.outputs = static_cast<int>(dataWrapper.outputSize());
     _params->np.trainingIterations = 200; // 20
     _params->np.validationIterations = 200;
@@ -745,11 +755,14 @@ void MainWindow::updateConfusionMatrix() {
         cm = _neuralPsoTrainer->getRecentGlobalBest().cm;
         break;
     case TrainingParameters::Selected_Global_Best:
-        cm = _neuralPsoTrainer->getSelectedGlobalBest().cm;
+        cm = _neuralPsoTrainer->getOverallBest().cm;
+        //cm = _neuralPsoTrainer->getSelectedGlobalBest().cm;
         break;
     case TrainingParameters::Sanity_Check_Best:
         cm = _neuralPsoTrainer->sanityCheckGb().cm;
         break;
+    default:
+        return;
     }
 
     TestStatistics ts = cm.overallStats();
@@ -937,14 +950,14 @@ void MainWindow::runNeuralPso() {
   tryInjectGB();
   _neuralPsoTrainer->runTrainer();
 
-  _neuralPsoTrainer->testGB();
+  _neuralPsoTrainer->testGb();
   //TestStatistics::ClassificationError ce;
   //_neuralPsoTrainer->classError(ce);
 
   //stopPso();
   _runPso = false;
 
-  _neuralPsoTrainer->fullTestState();updatePlot();
+  //_neuralPsoTrainer->fullTestState();updatePlot();
 
   enableParameterInput(true);
 
@@ -1033,7 +1046,8 @@ void MainWindow::updatePlot() {
             state = &(_neuralPsoTrainer->getRecentGlobalBest().state);
             break;
         case TrainingParameters::Selected_Global_Best:
-            state = &(_neuralPsoTrainer->getSelectedGlobalBest().state);
+            state = &(_neuralPsoTrainer->getOverallBest().state);
+            //state = &(_neuralPsoTrainer->getSelectedGlobalBest().state);
             break;
         case TrainingParameters::Sanity_Check_Best:
             state = &(_neuralPsoTrainer->sanityCheckGb().state);
@@ -1082,7 +1096,7 @@ void MainWindow::tellParameters() {
     outputString += "\n\nInputs: ";
     outputString += stringPut(_params->np.inputs);
     outputString += "\nInner Nets: ";
-    outputString += stringPut(_params->np.innerNets);
+    outputString += stringPut(_params->np.innerNetNodes.size());
     outputString += "\n";
     for (size_t i = 0; i < _params->np.innerNetNodes.size(); i++) {
         outputString += " - ";

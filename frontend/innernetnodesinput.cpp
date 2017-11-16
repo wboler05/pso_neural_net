@@ -90,7 +90,6 @@ void InnerNetNodesInput::buildTable() {
 void InnerNetNodesInput::apply() {
 
     _nParams.innerNetNodes.resize(static_cast<size_t>(_innerNodesCount));
-    _nParams.innerNets = _innerNodesCount;
 
     fillBuffer();
 

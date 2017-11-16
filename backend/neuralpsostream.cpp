@@ -576,7 +576,7 @@ std::string stringifyNParams(const NeuralNet::NeuralNetParameters & p) {
     ps.append(stringifyParamsNugget<int>("inputs", p.inputs));
 
     // innerNets
-    ps.append(stringifyParamsNugget<int>("innerNets", p.innerNets));
+    ps.append(stringifyParamsNugget<int>("innerNets", p.innerNetNodes.size()));
 
     // innerNetNodes
     ps.append(stringifyParamsVector<int>("innerNetNodes", p.innerNetNodes));
@@ -841,7 +841,7 @@ NeuralNet::NeuralNetParameters nParametersFromString(const std::string & ps) {
     if (!valFromNuggetString(ps, "innerNets", it, innerNets)) {
         return emptyP;
     } else {
-        p.innerNets = innerNets;
+        //p.innerNets = innerNets;
     }
 
     {

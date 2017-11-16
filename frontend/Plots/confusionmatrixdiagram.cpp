@@ -105,7 +105,8 @@ void ConfusionMatrixDiagram::initializeClassifierLabels() {
 }
 
 void ConfusionMatrixDiagram::constructLayout() {
-    QGridLayout * glayout = new QGridLayout(this);
+    QGridLayout * glayout = new QGridLayout();
+    //QGridLayout * glayout = new QGridLayout(this);
     glayout->addWidget(_vertView, 1, 0);
     glayout->addWidget(_horzView, 0, 1);
     glayout->addWidget(&_tableWidget, 1, 1);
