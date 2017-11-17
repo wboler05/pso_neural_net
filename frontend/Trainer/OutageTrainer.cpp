@@ -333,7 +333,7 @@ void OutageTrainer::testGb() {
 
         if (!_neuralNet->setState(_validatedBests[i].state)) {
             qDebug( )<< "Unable to set NeuralNet: testGb()";
-            return;
+            continue;
         }
         classError(_dataSets.getTestSet(), _testConfusionMatrix, _dataSets.getTestSet().size());
 

@@ -290,6 +290,7 @@ std::vector<real> OutageDataWrapper::outputize() {
 
     //std::vector<real> ranges = {10, 100, 1000};
     std::vector<real> ranges = { 1 };
+    //std::vector<real> ranges = { 3, 42 };
     // 10 100 1000
     // 1 9 72
     // 3 42
