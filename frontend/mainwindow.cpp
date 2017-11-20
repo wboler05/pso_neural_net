@@ -210,6 +210,7 @@ void MainWindow::updateFileLabel() {
     QString fileLabelString;
     fileLabelString.append("File: " );
     fileLabelString.append(_params->cp.inputFileName);
+    ui->file_lbl->setText(fileLabelString);
 }
 
 void MainWindow::on_actionMax_Memory_triggered() {
@@ -1092,6 +1093,8 @@ void MainWindow::tryInjectGB() {
 }
 
 void MainWindow::updatePlot() {
+    qApp->processEvents();
+    updateFileLabel();
     if (_neuralPsoTrainer != nullptr) {
         NeuralNet::State * state = nullptr;
 
