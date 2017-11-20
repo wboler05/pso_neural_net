@@ -7,11 +7,9 @@ OutageTrainer::OutageTrainer(const std::shared_ptr<TrainingParameters> & pe, con
     _params(pe),
     _inputCache(inputCache)
 {
-    _inputSkips = pe->ep.inputSkips();
-    OutageDataWrapper::setInputSkips(_inputSkips);
     updateEnableParameters();
     if (_params->enableBaseCase) {
-        neuralNet()->setTotalInputs(5);
+        neuralNet()->setTotalInputs(_params->np.outputs);
         neuralNet()->buildANN();
     }
     _outputNodeStats.resize(5);
@@ -329,6 +327,8 @@ void OutageTrainer::testGb() {
     _best_overall_gb.cm.reset();
     _best_overall_gb.state.clear();
 
+    _best_overall_gb = _recent_gb;
+
     for (size_t i = 0; i < _validatedBests.size(); i++) {
 
         if (!_neuralNet->setState(_validatedBests[i].state)) {
@@ -346,8 +346,9 @@ void OutageTrainer::testGb() {
             _best_overall_gb.state = _validatedBests[i].state;
             _best_overall_gb.cm = _testConfusionMatrix;
         }
-        _selectedBestList.push_back(_validatedBests[i]);
+        //_selectedBestList.push_back(_validatedBests[i]);
     }
+    _selectedBestList.push_back(_best_overall_gb);
 }
 
 void OutageTrainer::testSelectedGB() {
@@ -523,7 +524,7 @@ void OutageTrainer::fullTestState(/*pass the gb or selected best option*/) {
             if (_params->enableBaseCase) {
                 _neuralNet->loadInputs(data.outputize());
             } else {
-                _neuralNet->loadInputs(data.inputize());
+                _neuralNet->loadInputs(normalizeInput(j));
             }
             std::vector<real> prediction = _neuralNet->process();
             std::vector<real> actual = data.outputize();

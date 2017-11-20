@@ -136,6 +136,8 @@ public:
 
     bool buildANN();
 
+    std::vector<std::vector<real>> proposedTopology();
+
 private:
     // Weights and Data
     ExternalNodes _inputNodes;  // Nodes

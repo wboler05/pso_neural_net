@@ -1626,6 +1626,19 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="testProcedure_btn">
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Run Test Procedure</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="resetAndRun_btn">
         <property name="font">
          <font>

@@ -4,6 +4,8 @@
 #include "outagedataitem.h"
 #include "utils/sort.hpp"
 
+#include <iostream>
+
 class OutageDataWrapper : public OutageDataItem
 {
 public:
@@ -40,8 +42,10 @@ public:
     const size_t & inputSize();
     const size_t & outputSize();
 
-    static const std::vector<size_t> inputSkips() { return _inputSkips; }
+    static const std::vector<size_t> & inputSkips() { return _inputSkips; }
     static void setInputSkips(const std::vector<size_t> & skips);
+    static const std::vector<real> & outputRanges() { return _outputRanges; }
+    static void setOutputRanges (const std::vector<real> & ranges);
 
 private:
     bool _empty=false;
@@ -52,6 +56,7 @@ private:
 
     static std::vector<size_t> _inputSkips;
     static bool _inputSkipsModified;
+    static std::vector<real> _outputRanges;
 
 };
 

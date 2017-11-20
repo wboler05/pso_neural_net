@@ -542,6 +542,7 @@ void MainWindow::setParameterDefaults() {
 }
 
 void MainWindow::applyParameterChanges() {
+    qApp->processEvents();
     applyElementSkips();
 
     _params->pp.population = static_cast<size_t>(ui->totalParticles_sb->value());
@@ -688,6 +689,7 @@ void MainWindow::applyElementSkips() {
     _params->ep.loa = ui->enLocLOA_cb->isChecked();
     _params->ep.latitude = ui->enLocLat_cb->isChecked();
     _params->ep.longitude = ui->enLocLong_cb->isChecked();
+    _params->ep.population = ui->enPopulation_cb->isChecked();
 
     OutageDataWrapper dataWrapper = (*_inputCache)[0];
     _params->np.inputs = static_cast<int>( dataWrapper.inputSize() );
@@ -724,6 +726,7 @@ void MainWindow::updateElementSkips() {
     ui->enLocLOA_cb->setChecked(_params->ep.loa);
     ui->enLocLat_cb->setChecked(_params->ep.latitude);
     ui->enLocLong_cb->setChecked(_params->ep.longitude);
+    ui->enPopulation_cb->setChecked(_params->ep.population);
 }
 
 int MainWindow::getNetTypeCBIndex() {
@@ -888,9 +891,11 @@ void MainWindow::testTrainedNetWithInput() {
 }
 
 void MainWindow::stopPso() {
-    _runPso = false;
-    qDebug() << "Ending process.  Please wait. ";
-    _neuralPsoTrainer->stopValidation();
+        _runPso = false;
+        qDebug() << "Ending process.  Please wait. ";
+    if (_neuralPsoTrainer) {
+        _neuralPsoTrainer->stopValidation();
+    }
 
     NeuralPso::interruptProcess();
 }
@@ -948,8 +953,8 @@ void MainWindow::runNeuralPso() {
 
   // Make sure that parameters are ready
   //!FIXME Not actually updating parameters.
-  applyParameterChanges();
-  tellParameters();
+  //applyParameterChanges();
+  //tellParameters();
 
   if (_neuralPsoTrainer == nullptr || !_runOnce) {
       _runOnce = true;
@@ -963,7 +968,7 @@ void MainWindow::runNeuralPso() {
   tryInjectGB();
   _neuralPsoTrainer->runTrainer();
 
-  _neuralPsoTrainer->testGb();
+  //_neuralPsoTrainer->testGb();
   //TestStatistics::ClassificationError ce;
   //_neuralPsoTrainer->classError(ce);
 
@@ -990,6 +995,33 @@ void MainWindow::runNeuralPso() {
   qApp->alert(this);
 }
 
+void MainWindow::on_testProcedure_btn_clicked() {
+    /// Man, we bout to do this!  Get out some Netflix and let this run!!
+
+    // At this point, we're going to test all three hidden layer settings
+    // for each activation function with topo-training.  We're going to run
+    // this 10 times for each expriment to gauge a good agregation of performance.
+    // (We'll get to adding which files to load later.
+    struct BestTopoData {
+        std::vector<size_t> proposedTopology;
+        NeuralNet::Activation activationFunction;
+        real accuracy = 0;
+    };
+    struct TrialData {
+        BestTopoData singleHiddenLayer;
+        BestTopoData doubleHiddenLayer;
+        BestTopoData tripleHiddenLayer;
+    };
+    struct ExperimentData {
+        // Should this be a vector of the different aggregate trials or a vector of activation function runs?
+    };
+
+    // Alright, you just ran 210 tests, right?  That might be a lie.  Depends
+    // on how many activation functions we're still using.  So, now you
+    // should have three good network topologies to run without topo-training.
+    // We want to run all three of these networks on the same data
+}
+
 void MainWindow::on_testBaseCase_btn_clicked() {
     _params->enableBaseCase = true;
     clearPSOState();
@@ -1006,7 +1038,6 @@ void MainWindow::on_resetAndRun_btn_clicked() {
 
     switch(choice) {
     case QMessageBox::Yes:
-        applyParameterChanges();
         clearPSOState();
         runNeuralPso();
         break;
@@ -1083,6 +1114,8 @@ void MainWindow::updatePlot() {
                     _neuralPsoTrainer->epochs() * static_cast<size_t>(_params->np.trainingIterations),
                     10));
                 completionMsg.append(" total iterations");
+                completionMsg.append("\tFold: " );
+                completionMsg.append(QString::number(_neuralPsoTrainer->currentFold()));
                 setOutputLabel(completionMsg);
             }
         }

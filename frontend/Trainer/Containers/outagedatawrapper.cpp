@@ -2,6 +2,7 @@
 
 std::vector<size_t> OutageDataWrapper::_inputSkips;
 bool OutageDataWrapper::_inputSkipsModified = true;
+std::vector<real> OutageDataWrapper::_outputRanges = { 1 };
 
 OutageDataWrapper::OutageDataWrapper() :
     OutageDataItem(),
@@ -289,36 +290,36 @@ std::vector<real> OutageDataWrapper::outputize() {
     std::vector<real> output;
 
     //std::vector<real> ranges = {10, 100, 1000};
-    std::vector<real> ranges = { 1 };
+    //std::vector<real> ranges = { 1 };
     //std::vector<real> ranges = { 3, 42 };
     // 10 100 1000
     // 1 9 72
     // 3 42
 
-    if (ranges.size() > 1) {
-        output.resize(ranges.size()+2, -1);
+    if (_outputRanges.size() > 1) {
+        output.resize(_outputRanges.size()+2, -1);
 
-        for (size_t i = 0; i < ranges.size()+2; i++) {
+        for (size_t i = 0; i < _outputRanges.size()+2; i++) {
             if (i == 0) {
                 if (_affectedCustomers == 0) {
                     output[0] = 1;
                     break;
                 }
-            } else if (i == ranges.size() + 1) {
-                if (_affectedCustomers >= ranges[i-2]) {
+            } else if (i == _outputRanges.size() + 1) {
+                if (_affectedCustomers >= _outputRanges[i-2]) {
                     output[i] = 1;
                     break;
                 }
             } else {
-                if (_affectedCustomers <= ranges[i-1]) {
+                if (_affectedCustomers <= _outputRanges[i-1]) {
                     output[i] = 1;
                     break;
                 }
             }
         }
-    } else if (ranges.size() == 1) {
+    } else if (_outputRanges.size() == 1) {
         output.resize(2, -1);
-        if (_affectedCustomers < ranges[0]) {
+        if (_affectedCustomers < _outputRanges[0]) {
             output[0] = 1.0;
         } else {
             output[1] = 1.0;
@@ -486,4 +487,12 @@ void OutageDataWrapper::setInputSkips(const std::vector<size_t> & skips) {
         CustomSort::quickSort(_inputSkips);
     }
     _inputSkipsModified = true;
+}
+
+void OutageDataWrapper::setOutputRanges(const std::vector<real> & ranges) {
+    if (ranges.size() > 0) {
+        _outputRanges = ranges;
+    } else {
+        std::cerr << "Error: cannot set empty ranges for OutputRanges. OutageDataWrapper::setOutputRanges" << std::endl;
+    }
 }

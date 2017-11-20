@@ -119,6 +119,8 @@ public:
     void stopValidation() { _stopValidation = true; }
     void resetFitnessScores();
 
+    const size_t & currentFold() { return _dataSets.foldIndex(); }
+
 private:
 
     DataPartioner _dataSets;

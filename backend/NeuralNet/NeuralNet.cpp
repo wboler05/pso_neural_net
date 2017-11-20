@@ -230,10 +230,12 @@ size_t NeuralNet::totalInnerNodeLayersFromState(const State & state) {
     return static_cast<size_t>(innerNodes);
 }
 
+/*
 size_t NeuralNet::totalInputsFromState(const State & state) {
     ///TODO
     return 0;
 }
+*/
 
 void NeuralNet::buildTopology() {
     InnerNodes & topology = _state[0];
@@ -682,7 +684,7 @@ void NeuralNet::processRecurrentNodes(const size_t &layer) {
         // Feedback the recurrent node to the assigned hidden node
         for (size_t node = 0; node < _recurrentNodes[layer].size(); node++) {
             size_t recNodeEdge = (*recEdges)[node].size()-1;
-            real k_constant_recnode = kConstants[node];
+            //real k_constant_recnode = kConstants[node];
             _innerNodes[layer][node] +=
                     (*recEdges)[node][recNodeEdge] *
                     //activation(_recurrentNodes[layer][node], k_constant_recnode);
@@ -889,4 +891,28 @@ bool NeuralNet::validatePath(const size_t & inputNode, const size_t & outputNode
     }
     return false;
 
+}
+
+/**
+ * @brief NeuralNet::proposedTopology
+ * @details Call this after topo training to find hidden layers
+ * @return - topology std::vector<std::vector<real>>
+ */
+std::vector<std::vector<real>> NeuralNet::proposedTopology() {
+    std::vector<std::vector<real>> m_proposedTopology;
+    if (_state.size() == 0) {
+        std::cout << "Failed to find topology: _state empty." << std::endl;
+        return m_proposedTopology;
+    }
+    std::vector<std::vector<real>> & topo = _state[0];
+    for (size_t i = 0; i < topo.size(); i++) {
+        std::vector<real> layerBuffer;
+        for (size_t j = 0; j < topo[i].size(); j++) {
+            if (topo[i][j] > 0) {
+                layerBuffer.push_back(j);
+            }
+        }
+        m_proposedTopology.push_back(layerBuffer);
+    }
+    return m_proposedTopology;
 }

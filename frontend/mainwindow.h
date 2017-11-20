@@ -92,6 +92,7 @@ protected slots:
     void on_testBaseCase_btn_clicked();
     void on_actionSaveSelected_ANN_triggered();
     void on_testFullSet_btn_clicked();
+    void on_testProcedure_btn_clicked();
 
 private:
     Ui::MainWindow *ui;
