@@ -190,7 +190,12 @@ void MainWindow::on_actionEnable_Output_toggled(bool b) {
 
 void MainWindow::on_actionLoad_Input_File_triggered() {
     /**TEST**/
-    QDir curDir(qApp->applicationDirPath());
+    qDebug() << "Don't forget to debug the new input_file function in MainWindow.";
+    QDir curDir(_params->cp.inputFileName);
+    if (!curDir.exists()) {
+        curDir = QDir(qApp->applicationDirPath());
+    }
+    //QDir curDir(qApp->applicationDirPath());
     QString filename = QFileDialog::getOpenFileName(this, "Open input file:", curDir.absolutePath(), "CSV (*.csv)");
     if (filename != "") {
         if (!_inputCache->reloadCache(filename)) {
@@ -199,6 +204,12 @@ void MainWindow::on_actionLoad_Input_File_triggered() {
             fileLoadFailed.exec();
         }
     }
+}
+
+void MainWindow::updateFileLabel() {
+    QString fileLabelString;
+    fileLabelString.append("File: " );
+    fileLabelString.append(_params->cp.inputFileName);
 }
 
 void MainWindow::on_actionMax_Memory_triggered() {
