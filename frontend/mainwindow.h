@@ -24,6 +24,7 @@
 #include "maxmemorydialog.h"
 #include "slicenumberdialog.h"
 #include "particleplotwindow.h"
+#include "frontend/Trainer/experimentfileparser.h"
 
 #include "aboutconfusionmatrixdialog.h"
 

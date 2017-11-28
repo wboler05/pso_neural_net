@@ -370,6 +370,18 @@ bool findCloseToken(const string &fullstring, const string token, int &it) {
 
 }
 
+std::string subStringByToken(const string &fullString , const string token) {
+    std::string subString;
+    int it = 0;
+    do {
+        if (!findNextToken(fullString, it)) {
+            return subString;
+        }
+        subString = subStringByToken(fullString, token, it);
+    } while (subString.empty() && it < fullString.size());
+    return subString;
+}
+
 /**
  * @brief subStringByToken
  * @details Returns the substring found between the open/closed tokens
@@ -436,11 +448,7 @@ std::string subStringByToken(const string &fullstring, const string token, int &
     return subString;
 }
 
-void cleanInputString(std::string & dirtyString) {
-
-    std::string badChars;
-    badChars.append(" \t\n");
-
+void cleanInputString(std::string & dirtyString, const std::string & badChars) {
     int it = 0;
     while (it < (int) dirtyString.size()) {
         bool modified = false;
@@ -455,6 +463,14 @@ void cleanInputString(std::string & dirtyString) {
             it++;
         }
     }
+}
+
+void cleanInputString(std::string & dirtyString) {
+
+    std::string badChars;
+    badChars.append(" \t\n\r");
+
+    cleanInputString(dirtyString, badChars);
 }
 
 std::vector<Particle<NeuralNet::State>> readParticlesFromString(const std::string & partSubString) {
