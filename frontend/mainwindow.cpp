@@ -1046,35 +1046,54 @@ void MainWindow::on_testProcedure_btn_clicked() {
     for (size_t i = 0; i < expParser.getParamsList().size(); i++) {
         *_params = expParser.getParamsList()[i];
         updateParameterGui();
-        clearPSOState();
-        runNeuralPso();
+        std::vector<BestTopoData> lowerBestList;
+        for (size_t k = 0; k < expParser.experimentParams().trials_per_experiment; k++) {
+            qDebug() << "Trial: " << k;
 
-        BestTopoData d;
-        std::vector<std::vector<real>> propNet = _neuralPsoTrainer->neuralNet()->proposedTopology();
-        for (size_t j = 0; j < propNet.size(); j++) {
-            d.proposedTopology.push_back(propNet[j].size());
+            clearPSOState();
+            runNeuralPso();
+
+            BestTopoData d;
+            std::vector<std::vector<real>> propNet = _neuralPsoTrainer->neuralNet()->proposedTopology();
+            for (size_t j = 0; j < propNet.size(); j++) {
+                d.proposedTopology.push_back(propNet[j].size());
+            }
+            d.activationFunction = _params->np.act;
+            d.result = _neuralPsoTrainer->getOverallBest();
+            lowerBestList.push_back(d);
         }
-        d.activationFunction = _params->np.act;
-        d.result = _neuralPsoTrainer->getOverallBest();
-        bestList.push_back(d);
+
+        real acc = 0;
+        BestTopoData * d = nullptr;
+        for (size_t k = 0; k < lowerBestList.size(); k++) {
+            if (lowerBestList[k].result.cm.overallError().accuracy > acc) {
+                acc = lowerBestList[k].result.cm.overallError().accuracy;
+                d = &lowerBestList[k];
+            }
+        }
+        if (d) {
+            bestList.push_back(*d);
+        }
     }
     *_params = defaultParams;
 
     qDebug( )<< "Printing Results: ";
+    std::string resultString;
     for (size_t i = 0; i < bestList.size(); i++) {
-        QString resultString;
         resultString.append("(");
-        resultString.append(QString::number(i));
+        resultString.append(QString::number(i).toStdString());
         resultString.append("): Layers = ");
-        resultString.append(QString::number(bestList[i].proposedTopology.size()));
+        resultString.append(QString::number(bestList[i].proposedTopology.size()).toStdString());
         resultString.append(": ");
         for (size_t j = 0; j < bestList[i].proposedTopology.size(); j++) {
-            resultString.append(QString::number(bestList[i].proposedTopology[j]));
+            resultString.append(QString::number(bestList[i].proposedTopology[j]).toStdString());
             resultString.append(", ");
         }
         resultString.append("Accuracy: " );
-        resultString.append(QString::number(bestList[i].result.cm.overallError().accuracy));
+        resultString.append(QString::number(bestList[i].result.cm.overallError().accuracy).toStdString());
+        resultString.append("\n");
     }
+    qDebug() << resultString.c_str();
 }
 
 void MainWindow::on_testBaseCase_btn_clicked() {
