@@ -5,61 +5,11 @@
 #include "outagedataitem.h"
 #include "confusionmatrix.h"
 #include "datapartioner.h"
+#include "trainingparameters.h"
 
 #include "inputcache.h"
 #include "statobject.h"
 #include "util.h"
-
-struct EnableParameters {
-    bool year=false;
-    bool month=true;
-    bool day=false;
-    bool temp_high=false;
-    bool temp_avg=true;
-    bool temp_low=false;
-    bool dew_high=false;
-    bool dew_avg=true;
-    bool dew_low=false;
-    bool humidity_high=true;
-    bool humidity_avg=false;
-    bool humidity_low=false;
-    bool press_high=false;
-    bool press_avg=false;
-    bool press_low=false;
-    bool visibility_high=false;
-    bool visibility_avg=false;
-    bool visibility_low=true;
-    bool wind_high=true;
-    bool wind_avg=false;
-    bool wind_gust=true;
-    bool precipitation=true;
-    bool fog=false;
-    bool rain=true;
-    bool snow=false;
-    bool thunderstorm=true;
-    bool loa=false;
-    bool latitude=false;
-    bool longitude=false;
-    bool population = true;
-
-    std::vector<size_t> inputSkips();
-};
-
-struct TrainingParameters {
-    enum ShowBestSelected { Recent_Global_Best, Selected_Global_Best, Sanity_Check_Best };
-
-    PsoParams pp;
-    NeuralNet::NeuralNetParameters np;
-    FitnessParameters fp;
-    CacheParameters cp;
-    EnableParameters ep;
-    real alpha = 1.0L;
-    real beta = 1.0L;
-    real gamma = 1.0L;
-    ShowBestSelected showBestSelected = Recent_Global_Best;
-    bool enableBaseCase = false;
-    size_t kFolds = 10;
-};
 
 class OutageTrainer : public NeuralPso
 {
@@ -73,11 +23,6 @@ public:
     void partitionData(int kFolds, size_t numClasses);
     size_t getNextValidationSet();
 
-    void calcImplicitBiasWeights();
-
-    void biasAgainstProbability();
-    void randomlyGenerateTrainingInputs(std::vector<size_t> & tr, const size_t & iterations);
-
     void trainingRun();
     real trainingStep(const vector<size_t> & trainingVector);
     real trainingStepBaseCase();
@@ -87,8 +32,6 @@ public:
     TestStatistics::ClassificationError && validateCurrentNet();
 
     void runTrainer();
-    OutageDataWrapper && loadTestInput(const size_t & I);
-    OutageDataWrapper && loadValidationInput(const size_t &I);
 
     void classError(const std::vector<size_t> &testInputs,
                     ConfusionMatrix & cm,
@@ -137,12 +80,6 @@ private:
     bool _stopValidation=false;
 
     std::string _functionMsg;
-    std::vector<real> _minInputData;
-    std::vector<real> _maxInputData;
-
-    void updateMinMax();
-    std::vector<real> normalizeInput(const size_t & id);
-    std::vector<real> normalizeInput(std::vector<real> & input);
 
     bool validateOutput(
             const std::vector<real> & outputs,

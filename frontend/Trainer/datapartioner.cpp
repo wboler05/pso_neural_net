@@ -1,10 +1,11 @@
 #include "datapartioner.h"
 
-DataPartioner::DataPartioner(size_t kFolds, size_t totalNumInputs, size_t numClasses, const std::shared_ptr<InputCache> & inputCache) :
+DataPartioner::DataPartioner(size_t kFolds, const std::shared_ptr<TrainingParameters> & params, size_t numClasses, const std::shared_ptr<InputCache> & inputCache) :
     _inputCache(inputCache),
-    _totalNumInputs(totalNumInputs),
+    _totalNumInputs(static_cast<size_t>(inputCache->length())),
     _kFolds(kFolds),
-    _numClasses(numClasses)
+    _numClasses(numClasses),
+    _params(params)
 
 {
 
@@ -69,7 +70,11 @@ DataPartioner & DataPartioner::operator=(DataPartioner && d) {
     _foldIdx = std::move(d._foldIdx);
     _numElePerValidationRound = std::move(d._numElePerValidationRound);
     _numClasses = std::move(d._numClasses);
-
+    _minInputData = std::move(d._minInputData);
+    _maxInputData = std::move(d._maxInputData);
+    _params = std::move(d._params);
+    _historySize = std::move(d._historySize);
+    _historyLookup = std::move(d._historyLookup);
     return *this;
 }
 
@@ -118,18 +123,6 @@ size_t DataPartioner::nextFold(){
         return 1;
     }
     return 0;
-}
-
-size_t DataPartioner::trainingSet(size_t i){
-    return _trainingSet[i];
-}
-
-size_t DataPartioner::testSet(size_t i){
-    return _testSet[i];
-}
-
-size_t DataPartioner::validationSet(size_t i){
-    return _validationSet[i];
 }
 
 size_t DataPartioner::trainingSetSize(){
@@ -275,4 +268,158 @@ void DataPartioner::calcImplicitBiasWeights() {
         _equalizationFactors[i] = 1.0 / (1.0-(1.0/_numClasses)*(_numClasses - 1.0 + a));
         _fitnessNormalizationFactor += (1.0/_numClasses) * _equalizationFactors[i];
     }
+}
+
+void DataPartioner::updateMinMax() {
+    std::vector<real> tempVector = (*_inputCache)[0].inputize();
+    _minInputData.resize(tempVector.size(),  std::numeric_limits<real>::max());
+    _maxInputData.resize(tempVector.size(), -std::numeric_limits<real>::max());
+
+    for (size_t i = 0; i < _totalNumInputs; i++) {
+        std::vector<real> input = (*_inputCache)[i].inputize();
+        for (size_t j = 0; j < input.size(); j++) {
+            _minInputData[j] = min(_minInputData[j], input[j]);
+            _maxInputData[j] = max(_maxInputData[j], input[j]);
+        }
+    }
+}
+
+std::vector<real> DataPartioner::normalizeInput(const size_t & id){
+    std::vector<real> tempVector;
+    if (_params->enableBaseCase) {
+        tempVector = (*_inputCache)[id].outputize();
+    } else {
+        std::vector<real> tempBuff = (*_inputCache)[id].inputize();
+        tempVector = normalizeInput(tempBuff);
+    }
+    return tempVector;
+}
+
+std::vector<real> DataPartioner::normalizeInput(std::vector<real> & input){
+    for (size_t i = 0; i < input.size(); i++) {
+        if (_maxInputData[i] - _minInputData[i] != 0) {
+            input[i] = (2.0*input[i] - (_minInputData[i] + _maxInputData[i])) /
+                    (_maxInputData[i] - _minInputData[i]);
+        }
+    }
+    return input;
+}
+
+OutageDataWrapper DataPartioner::getDataWraper(size_t idxInCache){
+    return (*_inputCache)[idxInCache];
+}
+
+void DataPartioner::initHistoryLookup(){
+
+    std::vector<size_t> LOAtoIDX; // Used internally to dynamically associate each LOA with an Index
+    std::vector<std::vector<OutageDataWrapper>> sortedDataSet; // First Dim is LOA, second Dim is sorted by time
+    LOAtoIDX.clear();
+    _historyLookup.resize(_totalNumInputs);
+
+    // Bin each input by LOA
+    for(size_t i = 0; i < _totalNumInputs ;i++){
+        OutageDataWrapper dataItem = (*_inputCache)[i];
+        dataItem.setSourceLine(i);
+        int idx = findIdx(LOAtoIDX, dataItem._loa);
+        if (idx < 0){
+            LOAtoIDX.push_back(dataItem._loa);
+            idx = LOAtoIDX.size() - 1;
+        }
+        sortedDataSet[idx].push_back(dataItem);
+    }
+    // Sort each LOA bin
+    for(size_t loa = 0; loa < sortedDataSet.size(); loa++){
+        radixSort(sortedDataSet[loa]);
+        // Populate the lookup table
+        size_t sourceLine;
+        for (size_t j = 0; j < sortedDataSet[loa].size(); j++){
+            sourceLine = sortedDataSet[loa][j].getSourceLine();
+            for(size_t k = 0; (k < _historySize) && ((j - k) >= 0); k++){
+                _historyLookup[sourceLine].push_back(sortedDataSet[loa][j - k].getSourceLine());
+            }
+        }
+    }
+}
+
+int DataPartioner::findIdx(const std::vector<size_t> & toSearch, size_t value){
+    for(int i = 0; i < toSearch.size(); i++){
+        if (toSearch[i] == value){return i;}
+    }
+    return -1;
+}
+
+void DataPartioner::radixSort(std::vector<OutageDataWrapper> & toSort){
+    for (size_t i = 0; i < _numTimeScales; i++){
+        toSort = radixMergeSort(toSort,i);
+    }
+}
+
+std::vector<OutageDataWrapper> DataPartioner::radixMerge(std::vector<OutageDataWrapper> left, std::vector<OutageDataWrapper> right, int radix)
+{
+    std::vector<OutageDataWrapper> result;
+    real leftComp, rightComp;
+
+    while (left.size() > 0 || right.size() > 0) {
+        if (left.size() > 0 && right.size() > 0) {
+            switch (radix){
+            case 0:
+                leftComp = left.front()._date.day();
+                rightComp = right.front()._date.day();
+                break;
+            case 1:
+                leftComp = left.front()._date.month();
+                rightComp = right.front()._date.month();
+                break;
+            case 2:
+                leftComp = left.front()._date.year();
+                rightComp = right.front()._date.year();
+                break;
+            default:
+                break;
+            }
+            if (leftComp <= rightComp) {
+                result.push_back(left.front());
+                left.erase(left.begin());
+            }
+            else {
+                result.push_back(right.front());
+                right.erase(right.begin());
+            }
+        }
+        else if (left.size() > 0) {
+            for (size_t i = 0; i < left.size(); i++){
+               result.push_back(left[i]);
+            }
+            break;
+        }
+        else if (right.size() > 0) {
+            for (size_t i = 0; i < right.size(); i++){
+               result.push_back(right[i]);
+            }
+            break;
+        }
+    }
+    return result;
+}
+
+std::vector<OutageDataWrapper> DataPartioner::radixMergeSort(std::vector<OutageDataWrapper> & toSort, int radix)
+{
+    if (toSort.size() <= 1){return toSort;}
+
+    std::vector<OutageDataWrapper> left, right, result;
+    size_t middle = (toSort.size() + 1) / 2;
+
+    for (size_t i = 0; i < middle; i++) {
+        left.push_back(toSort[i]);
+    }
+
+    for (size_t i = middle; i < toSort.size(); i++) {
+        right.push_back(toSort[i]);
+    }
+
+    left = radixMergeSort(left, radix);
+    right = radixMergeSort(right, radix);
+    result = radixMerge(left, right, radix);
+
+    return result;
 }

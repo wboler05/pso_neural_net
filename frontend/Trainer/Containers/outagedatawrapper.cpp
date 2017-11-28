@@ -21,6 +21,11 @@ OutageDataWrapper::OutageDataWrapper(const OutageDataItem &r) :
 {
 }
 
+OutageDataWrapper::OutageDataWrapper(const OutageDataWrapper &r) :
+    OutageDataItem(dynamic_cast<const OutageDataItem &>(r))
+{
+}
+
 OutageDataWrapper::OutageDataWrapper(OutageDataWrapper && r) {
     _loa = std::move(r._loa);
     _latlong = std::move(r._latlong);
@@ -41,6 +46,7 @@ OutageDataWrapper::OutageDataWrapper(OutageDataWrapper && r) {
     _population = std::move(r._population);
     _outage = std::move(r._outage);
     _affectedCustomers = std::move(r._affectedCustomers);
+    _sourceLine = std::move(r._sourceLine);
 }
 
 OutageDataWrapper & OutageDataWrapper::operator = (OutageDataItem && r) {
@@ -63,6 +69,7 @@ OutageDataWrapper & OutageDataWrapper::operator = (OutageDataItem && r) {
     _population = std::move(r._population);
     _outage = std::move(r._outage);
     _affectedCustomers = std::move(r._affectedCustomers);
+    _sourceLine = std::move(r._sourceLine);
 
     return *this;
 }
@@ -87,6 +94,7 @@ OutageDataWrapper & OutageDataWrapper::operator = (OutageDataWrapper && r) {
     _population = std::move(r._population);
     _outage = std::move(r._outage);
     _affectedCustomers = std::move(r._affectedCustomers);
+    _sourceLine = std::move(r._sourceLine);
 
     return *this;
 }
@@ -460,6 +468,7 @@ OutageDataItem OutageDataWrapper::copy(const OutageDataItem & l) {
     r._snow = l._snow;
     r._thunderstorm = l._thunderstorm;
     r._population = l._population;
+    r._sourceLine = l._sourceLine;
 
     r._outage = l._outage;
     r._affectedCustomers = l._affectedCustomers;

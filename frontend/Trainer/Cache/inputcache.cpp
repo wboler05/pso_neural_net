@@ -292,3 +292,4 @@ bool InputCache::reloadCacheSlice(const size_t &itemIndex) {
 void InputCache::clearCache() {
     _cacheSlices.clear();
 }
+

@@ -13,6 +13,7 @@ public:
     OutageDataWrapper(OutageDataItem && r);
     OutageDataWrapper(const OutageDataItem & l);
     OutageDataWrapper(OutageDataWrapper && r);
+    OutageDataWrapper(const OutageDataWrapper & l);
     OutageDataWrapper & operator = (OutageDataItem && r);
     OutageDataWrapper & operator = (OutageDataWrapper && r);
 

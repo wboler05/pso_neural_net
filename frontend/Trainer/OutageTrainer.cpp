@@ -30,7 +30,7 @@ void OutageTrainer::build() {
 
     buildPso();
 
-    updateMinMax();
+    _dataSets.updateMinMax();
 }
 
 size_t OutageTrainer::getNextValidationSet(){
@@ -38,7 +38,7 @@ size_t OutageTrainer::getNextValidationSet(){
 }
 
 void OutageTrainer::partitionData(int kFolds, size_t numClasses){
-    _dataSets = DataPartioner(kFolds,static_cast<size_t>(_inputCache->totalInputItemsInFile()), numClasses, _inputCache);
+    _dataSets = DataPartioner(kFolds, _params, numClasses, _inputCache);
 }
 
 
@@ -146,8 +146,7 @@ real OutageTrainer::trainingStep(const vector<size_t> & trainingVector) {
 
         // Get the appropiate training input index
         size_t I = trainingVector[someSets];
-        OutageDataWrapper dataItem = (*_inputCache)[I];
-        std::vector<real> inputs = normalizeInput(I);
+        std::vector<real> inputs = _dataSets.normalizeInput(I);
         _neuralNet->loadInputs(inputs);
 
         // Get the result from random input
@@ -160,7 +159,7 @@ real OutageTrainer::trainingStep(const vector<size_t> & trainingVector) {
         }
 
         //expectedOutput = _output->at(I);
-        expectedOutput = dataItem.outputize();
+        expectedOutput = _dataSets.getDataWraper(I).outputize();
 
         std::vector<real> mse_outputs = ConfusionMatrix::splitMSE(output, expectedOutput);
         for (size_t output_nodes = 0; output_nodes < mse_outputs.size(); output_nodes++) {
@@ -250,44 +249,6 @@ TestStatistics::ClassificationError && OutageTrainer::validateCurrentNet() {
     TestStatistics::ClassificationError ce;
     classError(_dataSets.getValidationSet(), _validationConfusionMatrix, _neuralNet->nParams()->validationIterations);
     return std::move(ce);
-}
-
-OutageDataWrapper && OutageTrainer::loadTestInput(const size_t & I) {
-    OutageDataWrapper wrapper;
-    if (I >= _dataSets.testSetSize()) {
-        return std::move(wrapper);
-    }
-    size_t it = _dataSets.testSet(I);
-
-    _neuralNet->resetAllNodes();
-
-    OutageDataWrapper item = (*_inputCache)[it];
-//    std::vector<real> inputItems = item.inputize(_inputSkips);
-    std::vector<real> inputItems = normalizeInput(it);
-
-    for (size_t i = 0; i < inputItems.size(); i++) {
-        _neuralNet->loadInput(inputItems[i], i);
-    }
-    return std::move(item);
-}
-
-OutageDataWrapper && OutageTrainer::loadValidationInput(const size_t & I) {
-    if (I >= _dataSets.validationSetSize()) {
-        OutageDataWrapper empty;
-        return std::move(empty);
-    }
-    size_t it = _dataSets.validationSet(I);
-
-    _neuralNet->resetAllNodes();
-
-    OutageDataWrapper item = (*_inputCache)[it];
-//    std::vector<real> inputItems = item.inputize(_inputSkips);
-    std::vector<real> inputItems = normalizeInput(it);
-
-    for (size_t i = 0; i < inputItems.size(); i++) {
-      _neuralNet->loadInput(inputItems[i], i);
-    }
-    return std::move(item);
 }
 
 void OutageTrainer::validateGb() {
@@ -382,17 +343,15 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
     std::vector<std::vector<real>> predictions, actuals;
 
     for (size_t i = 0; i < iterations; i++) {
+
         size_t it = testInputs[i];
         _neuralNet->resetAllNodes();
-
-        OutageDataWrapper outageData = (*_inputCache)[it];
-
-        std::vector<real> inputItems = normalizeInput(it);
+        std::vector<real> inputItems = _dataSets.normalizeInput(it);
         for (size_t i = 0; i < inputItems.size(); i++) {
             _neuralNet->loadInput(inputItems[i], i);
         }
 
-        std::vector<real> expectedOutput = outageData.outputize();
+        std::vector<real> expectedOutput = _dataSets.getDataWraper(it).outputize();
         std::vector<real> output = _neuralNet->process();
 
         actuals.push_back(expectedOutput);
@@ -433,76 +392,6 @@ void OutageTrainer::updateEnableParameters() {
     OutageDataWrapper::setInputSkips(_inputSkips);
 }
 
-std::vector<size_t> EnableParameters::inputSkips() {
-    std::vector<size_t> _inputSkips;
-    if (!loa) { _inputSkips.push_back(0); }
-    if (!latitude) { _inputSkips.push_back(1); }
-    if (!longitude) { _inputSkips.push_back(2); }
-    if (!year) { _inputSkips.push_back(3); }
-    if (!month) { _inputSkips.push_back(4); }
-    if (!day) { _inputSkips.push_back(5); }
-    if (!temp_low) { _inputSkips.push_back(6); }
-    if (!temp_avg) { _inputSkips.push_back(7); }
-    if (!temp_high) { _inputSkips.push_back(8); }
-    if (!dew_low) { _inputSkips.push_back(9); }
-    if (!dew_avg) { _inputSkips.push_back(10); }
-    if (!dew_high) { _inputSkips.push_back(11); }
-    if (!humidity_low) { _inputSkips.push_back(12); }
-    if (!humidity_avg) { _inputSkips.push_back(13); }
-    if (!humidity_high) { _inputSkips.push_back(14); }
-    if (!press_low) { _inputSkips.push_back(15); }
-    if (!press_avg) { _inputSkips.push_back(16); }
-    if (!press_high) { _inputSkips.push_back(17); }
-    if (!visibility_low) { _inputSkips.push_back(18); }
-    if (!visibility_avg) { _inputSkips.push_back(19); }
-    if (!visibility_high) { _inputSkips.push_back(20); }
-    if (!wind_gust) { _inputSkips.push_back(21); }
-    if (!wind_avg) { _inputSkips.push_back(22); }
-    if (!wind_high) { _inputSkips.push_back(23); }
-    if (!precipitation) { _inputSkips.push_back(24); }
-    if (!fog) { _inputSkips.push_back(25); }
-    if (!rain) { _inputSkips.push_back(26); }
-    if (!snow) { _inputSkips.push_back(27); }
-    if (!thunderstorm) { _inputSkips.push_back(28); }
-    if (!population) { _inputSkips.push_back(29); }
-    return _inputSkips;
-}
-
-void OutageTrainer::updateMinMax() {
-    std::vector<real> testVector = (*_inputCache)[0].inputize();
-    _minInputData.resize(testVector.size(),  std::numeric_limits<real>::max());
-    _maxInputData.resize(testVector.size(), -std::numeric_limits<real>::max());
-
-    for (size_t i = 0; i < _inputCache->totalInputItemsInFile(); i++) {
-        std::vector<real> input = (*_inputCache)[i].inputize();
-        for (size_t j = 0; j < input.size(); j++) {
-            _minInputData[j] = min(_minInputData[j], input[j]);
-            _maxInputData[j] = max(_maxInputData[j], input[j]);
-        }
-    }
-}
-
-std::vector<real> OutageTrainer::normalizeInput(const size_t & id) {
-    std::vector<real> inputVector;
-    if (_params->enableBaseCase) {
-        inputVector = (*_inputCache)[id].outputize();
-    } else {
-        std::vector<real> tempBuff = (*_inputCache)[id].inputize();
-        inputVector = normalizeInput(tempBuff);
-    }
-    return inputVector;
-}
-
-std::vector<real> OutageTrainer::normalizeInput(std::vector<real> & input) {
-    for (size_t i = 0; i < input.size(); i++) {
-        if (_maxInputData[i] - _minInputData[i] != 0) {
-            input[i] = (2.0*input[i] - (_minInputData[i] + _maxInputData[i])) /
-                    (_maxInputData[i] - _minInputData[i]);
-        }
-    }
-    return input;
-}
-
 void OutageTrainer::fullTestState(/*pass the gb or selected best option*/) {
     NeuralNet::State state;
 
@@ -524,7 +413,7 @@ void OutageTrainer::fullTestState(/*pass the gb or selected best option*/) {
             if (_params->enableBaseCase) {
                 _neuralNet->loadInputs(data.outputize());
             } else {
-                _neuralNet->loadInputs(normalizeInput(j));
+                _neuralNet->loadInputs(_dataSets.normalizeInput(j));
             }
             std::vector<real> prediction = _neuralNet->process();
             std::vector<real> actual = data.outputize();

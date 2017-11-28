@@ -12,6 +12,8 @@
 #include "latlongobject.h"
 #include "windsnip.h"
 
+class OutageDataWrapper;
+
 class OutageDataItem
 {
 public:
@@ -51,6 +53,14 @@ public:
 
     const size_t & id() { return _id; }
     static const size_t & totalObjects() { _total_objects; }
+
+    // Only used in DataPartioner::initHistoryLookup()
+    void setSourceLine(size_t idx){_sourceLine = idx;}
+    size_t getSourceLine(){return _sourceLine;}
+
+protected:
+    friend class OutageDataWrapper;
+    size_t _sourceLine; // Only used in DataPartioner::initHistoryLookup() and the value is only valid durring lifetime of that function.
 
 private:
     size_t _id;

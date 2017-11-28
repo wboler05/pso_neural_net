@@ -37,6 +37,7 @@ OutageDataItem::OutageDataItem(const OutageDataItem &l) {
     _population = l._population;
     _outage = l._outage;
     _affectedCustomers = l._affectedCustomers;
+    _sourceLine = l._sourceLine;
 
     _id = _total_objects++;
 }
@@ -63,6 +64,7 @@ OutageDataItem::OutageDataItem(OutageDataItem &&r) {
     _population = std::move(r._population);
     _outage = std::move(r._outage);
     _affectedCustomers = std::move(r._affectedCustomers);
+    _sourceLine = std::move(r._sourceLine);
 
     _id = _total_objects++;
 }
@@ -89,6 +91,8 @@ OutageDataItem & OutageDataItem::operator= (OutageDataItem && r) {
     _population = std::move(r._population);
     _outage = std::move(r._outage);
     _affectedCustomers = std::move(r._affectedCustomers);
+    _sourceLine = std::move(r._sourceLine);
+
     _id = _total_objects++;
 
     return *this;
@@ -116,6 +120,7 @@ OutageDataItem & OutageDataItem::operator=(const OutageDataItem &l) {
     _population = l._population;
     _outage = l._outage;
     _affectedCustomers = l._affectedCustomers;
+    _sourceLine = l._sourceLine;
 
     return *this;
 }

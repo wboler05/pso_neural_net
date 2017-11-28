@@ -204,7 +204,8 @@ SOURCES += \
     frontend/Plots/confusionmatrixdiagram.cpp \
     backend/confusionmatrix.cpp \
     frontend/Trainer/datapartioner.cpp \
-    backend/NeuralNet/activationfunctions.cpp
+    backend/NeuralNet/activationfunctions.cpp \
+    frontend/Trainer/trainingparameters.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -240,7 +241,8 @@ HEADERS += \
     backend/confusionmatrix.h \
     frontend/Trainer/datapartioner.h \
     utils/sort.hpp \
-    backend/NeuralNet/activationfunctions.h
+    backend/NeuralNet/activationfunctions.h \
+    frontend/Trainer/trainingparameters.h
 
 FORMS += \
     frontend/mainwindow.ui \
