@@ -31,6 +31,9 @@ void OutageTrainer::build() {
     buildPso();
 
     updateMinMax();
+
+    _sampleCounts = 0;
+    _sampleIterator = 0;
 }
 
 size_t OutageTrainer::getNextValidationSet(){
@@ -94,6 +97,7 @@ void OutageTrainer::resetFitnessScores() {
 void OutageTrainer::trainingRun() {
 
     std::vector<size_t> trainingVector;
+    _dataSets.getTrainingVector(trainingVector,_params->np.trainingIterations);
 
     // Get the cost for each particle's current position
     for (size_t i = 0; i < _particles->size(); i++) {
@@ -108,10 +112,38 @@ void OutageTrainer::trainingRun() {
         }
 
         // Get fitness
-        _dataSets.getTrainingVector(trainingVector,_params->np.trainingIterations);
-        real fit = trainingStep(trainingVector);
+        //_dataSets.getTrainingVector(trainingVector,_params->np.trainingIterations);
+        //real fit = trainingStep(trainingVector);
+        real fit = trainingStepInversion(_sampleIterator);
         p->_fit = fit;
     }
+
+    _sampleCounts++;
+    if (_sampleCounts > _params->np.trainingIterations) {
+        _sampleCounts = 0;
+        _sampleIterator = (_sampleIterator + 1) % _inputCache->length() * 0.9;
+    }
+}
+
+real OutageTrainer::trainingStepInversion(const size_t & trainingSample) {
+    qApp->processEvents();
+    if (!networkPathValidation()) {
+        return -std::numeric_limits<real>::max();
+    }
+
+    OutageDataWrapper dataItem = (*_inputCache)[trainingSample];
+    std::vector<real> inputs = normalizeInput(trainingSample);
+    std::vector<real> actualOutputs = dataItem.outputize();
+    std::vector<real> predictedOutputs = _neuralNet->process();
+
+    real finalMse = 0;
+    std::vector<real> mseSplits = ConfusionMatrix::splitMSE(predictedOutputs, actualOutputs);
+    for (size_t i = 0; i < mseSplits.size(); i++) {
+        finalMse += mseSplits[i] / _dataSets.getImplicitBiasWeight(i);
+    }
+    finalMse /= (real) mseSplits.size();
+
+    return -finalMse;
 }
 
 

@@ -80,6 +80,7 @@ public:
 
     void trainingRun();
     real trainingStep(const vector<size_t> & trainingVector);
+    real trainingStepInversion(const size_t & trainingVector);
     real trainingStepBaseCase();
     void testGb();
     void testSelectedGB();
@@ -151,6 +152,10 @@ private:
             TestStatistics & testStats,
             bool & correctOutput);
     bool networkPathValidation();
+
+    // Inverse training
+    size_t _sampleCounts=0;
+    size_t _sampleIterator=0;
 
 };
 
