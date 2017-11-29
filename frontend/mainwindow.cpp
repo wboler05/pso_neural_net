@@ -198,12 +198,24 @@ void MainWindow::on_actionLoad_Input_File_triggered() {
     //QDir curDir(qApp->applicationDirPath());
     QString filename = QFileDialog::getOpenFileName(this, "Open input file:", curDir.absolutePath(), "CSV (*.csv)");
     if (filename != "") {
+
+        _params->cp.inputFileName = filename;
+        initializeCache();
+
+        /*
         if (!_inputCache->reloadCache(filename)) {
             QMessageBox fileLoadFailed;
             fileLoadFailed.setText("Error: could not load cache from file!");
             fileLoadFailed.exec();
+        } else {
+            if (_neuralPsoTrainer) {
+                _neuralPsoTrainer->setInputCache(_inputCache);
+            }
+            _params->cp = _inputCache->cacheParams();
         }
+        */
     }
+    updateFileLabel();
 }
 
 void MainWindow::updateFileLabel() {
@@ -519,10 +531,10 @@ void MainWindow::setParameterDefaults() {
     OutageDataWrapper::setInputSkips(_params->ep.inputSkips());
 
     OutageDataWrapper dataWrapper = (*_inputCache)[0];
-
+qDebug() << "Made it here.";
     _params->np.inputs = static_cast<int>( dataWrapper.inputSize() );
-    _params->np.innerNetNodes.clear();
-    _params->np.innerNetNodes.push_back(8);
+    _params->np.innerNetNodes.resize(1, 8);
+    //_params->np.innerNetNodes.push_back(8);
     _params->np.outputs = static_cast<int>(dataWrapper.outputSize());
     _params->np.trainingIterations = 200; // 20
     _params->np.validationIterations = 200;
@@ -555,6 +567,7 @@ void MainWindow::setParameterDefaults() {
 
 void MainWindow::applyParameterChanges() {
     qApp->processEvents();
+
     applyElementSkips();
 
     _params->pp.population = static_cast<size_t>(ui->totalParticles_sb->value());
@@ -1079,6 +1092,9 @@ void MainWindow::clearPSOState() {
     _neuralPsoTrainer = std::make_unique<OutageTrainer>(_params, _inputCache);
     //_neuralPsoTrainer->build(_inputData, _labelsData);
     _neuralPsoTrainer->setFunctionMsg("Outage Data");
+    qDebug() << "New File: " << _neuralPsoTrainer->inputCache()->cacheParams().inputFileName;
+    qDebug() << "Items in file: " << _neuralPsoTrainer->inputCache()->length();
+    qDebug() << "Total Inputs: " << _neuralPsoTrainer->neuralNet()->inputs().size();
 }
 
 void MainWindow::tryInjectGB() {
