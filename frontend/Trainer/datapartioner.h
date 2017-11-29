@@ -19,7 +19,7 @@ public:
     size_t validationSetSize();
     const std::vector<size_t> & getTestSet() const;
     const std::vector<size_t> & getValidationSet() const;
-    void getTrainingVector(std::vector<size_t> & tr, const size_t & iterations);
+    void getTrainingVector(std::vector<std::vector<size_t>> & tr, const size_t & iterations);
     const real & getImplicitBiasWeight(int classNum) const;
     const real & getFittnessNormFactor() const;
     void reset();

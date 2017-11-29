@@ -49,6 +49,9 @@ DataPartioner::DataPartioner(size_t kFolds, const std::shared_ptr<TrainingParame
 
     // Calculate the implicit bias weights of each class
     calcImplicitBiasWeights();
+
+    // Initalize the historic lookup table
+    initHistoryLookup();
 }
 
 DataPartioner & DataPartioner::operator=(DataPartioner && d) {
@@ -153,7 +156,7 @@ const real & DataPartioner::getFittnessNormFactor() const {
     return _fitnessNormalizationFactor;
 }
 
-void DataPartioner::getTrainingVector(std::vector<size_t> & tr, const size_t & iterations){
+void DataPartioner::getTrainingVector(std::vector<std::vector<size_t>> & tr, const size_t & iterations){
     tr.clear();
     tr.resize(iterations);
     for (size_t i = 0; i < iterations; i++) {
@@ -168,7 +171,7 @@ void DataPartioner::getTrainingVector(std::vector<size_t> & tr, const size_t & i
                     _trainingBinCounters[randClass]++ % _trainingBinIndicies[randClass].size()
                 ]
         ];
-        tr[i] = realIterator;
+        tr[i] = _historyLookup[realIterator];
     }
 }
 
@@ -325,6 +328,9 @@ void DataPartioner::initHistoryLookup(){
             LOAtoIDX.push_back(dataItem._loa);
             idx = LOAtoIDX.size() - 1;
         }
+        if (idx > (static_cast<int>(sortedDataSet.size())-1)){
+            sortedDataSet.resize(idx+1);
+        }
         sortedDataSet[idx].push_back(dataItem);
     }
     // Sort each LOA bin
@@ -333,8 +339,10 @@ void DataPartioner::initHistoryLookup(){
         // Populate the lookup table
         size_t sourceLine;
         for (size_t j = 0; j < sortedDataSet[loa].size(); j++){
-            sourceLine = sortedDataSet[loa][j].getSourceLine();
-            for(size_t k = 0; (k < _historySize) && ((j - k) >= 0); k++){
+            std::vector<OutageDataWrapper> test = sortedDataSet[loa];
+            OutageDataWrapper test2 = test[j];
+            sourceLine = test2.getSourceLine();
+            for(size_t k = 0; (k < _historySize) && ((static_cast<int>(j) - static_cast<int>(k)) >= 0); k++){
                 _historyLookup[sourceLine].push_back(sortedDataSet[loa][j - k].getSourceLine());
             }
         }

@@ -93,7 +93,7 @@ void OutageTrainer::resetFitnessScores() {
 
 void OutageTrainer::trainingRun() {
 
-    std::vector<size_t> trainingVector;
+    std::vector<std::vector<size_t>> trainingVector;
     _dataSets.getTrainingVector(trainingVector,_params->np.trainingIterations);
 
     // Get the cost for each particle's current position
@@ -121,7 +121,7 @@ void OutageTrainer::trainingRun() {
 * @param trainingInputs
 * @return
 */
-real OutageTrainer::trainingStep(const vector<size_t> & trainingVector) {
+real OutageTrainer::trainingStep(const std::vector<std::vector<size_t>> & trainingVector) {
     // Validate that a path is good first
     if (!networkPathValidation()) {
         return -std::numeric_limits<real>::max();
@@ -142,33 +142,34 @@ real OutageTrainer::trainingStep(const vector<size_t> & trainingVector) {
 
     // First, test each output and store to the vector of results;
     for (size_t someSets = 0; someSets < trainingVector.size(); someSets++) {
-        qApp->processEvents();
+        for(size_t historyIdx = 0; historyIdx < trainingVector[someSets].size(); historyIdx++){
+            qApp->processEvents();
 
-        // Get the appropiate training input index
-        size_t I = trainingVector[someSets];
-        std::vector<real> inputs = _dataSets.normalizeInput(I);
-        _neuralNet->loadInputs(inputs);
+            // Get the appropiate training input index
+            size_t I = trainingVector[someSets][historyIdx];
+            std::vector<real> inputs = _dataSets.normalizeInput(I);
+            _neuralNet->loadInputs(inputs);
 
-        // Get the result from random input
-        vector<real> output = _neuralNet->process();
+            // Get the result from random input
+            vector<real> output = _neuralNet->process();
 
-        if (output.size() != outputNodes) {
-            cout << "Size mismatch on nodes. " << endl;
-            cout << " - Output: " << output.size() << ", Expected: " << outputNodes << endl;
-            exit(1);
+            if (output.size() != outputNodes) {
+                cout << "Size mismatch on nodes. " << endl;
+                cout << " - Output: " << output.size() << ", Expected: " << outputNodes << endl;
+                exit(1);
+            }
+
+            //expectedOutput = _output->at(I);
+            expectedOutput = _dataSets.getDataWrapper(I).outputize();
+
+            std::vector<real> mse_outputs = ConfusionMatrix::splitMSE(output, expectedOutput);
+            for (size_t output_nodes = 0; output_nodes < mse_outputs.size(); output_nodes++) {
+                mse[output_nodes] += mse_outputs[output_nodes];
+            }
+
+            predicted.push_back(output);
+            actual.push_back(expectedOutput);
         }
-
-        //expectedOutput = _output->at(I);
-        expectedOutput = _dataSets.getDataWraper(I).outputize();
-
-        std::vector<real> mse_outputs = ConfusionMatrix::splitMSE(output, expectedOutput);
-        for (size_t output_nodes = 0; output_nodes < mse_outputs.size(); output_nodes++) {
-            mse[output_nodes] += mse_outputs[output_nodes];
-        }
-
-        predicted.push_back(output);
-        actual.push_back(expectedOutput);
-
     }
 
     ConfusionMatrix::ClassifierMatrix classifierResults = ConfusionMatrix::evaluateResults(predicted, actual);
@@ -351,7 +352,7 @@ void OutageTrainer::classError(const std::vector<size_t> & testInputs,
             _neuralNet->loadInput(inputItems[i], i);
         }
 
-        std::vector<real> expectedOutput = _dataSets.getDataWraper(it).outputize();
+        std::vector<real> expectedOutput = _dataSets.getDataWrapper(it).outputize();
         std::vector<real> output = _neuralNet->process();
 
         actuals.push_back(expectedOutput);
