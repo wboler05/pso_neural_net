@@ -29,7 +29,7 @@ public:
     void updateMinMax();
     std::vector<real> normalizeInput(const size_t & id);
     std::vector<real> normalizeInput(std::vector<real> & input);
-    OutageDataWrapper getDataWraper(size_t idxInCache);
+    OutageDataWrapper getDataWrapper(size_t idxInCache);
 private:
     RandomNumberEngine _randomEngine;
     void shuffleVector(std::vector<size_t> & toShuffle);

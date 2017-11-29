@@ -305,7 +305,7 @@ std::vector<real> DataPartioner::normalizeInput(std::vector<real> & input){
     return input;
 }
 
-OutageDataWrapper DataPartioner::getDataWraper(size_t idxInCache){
+OutageDataWrapper DataPartioner::getDataWrapper(size_t idxInCache){
     return (*_inputCache)[idxInCache];
 }
 
