@@ -27,6 +27,7 @@ bool InputCache::reloadCache(const QString & fileName) {
         qWarning() << "Error: could not open input file.";
         return false;
     }
+    updateCache();
     return true;
 }
 
@@ -104,7 +105,6 @@ bool InputCache::verifyInputFile() {
         qWarning() << "InputCache: Error, empty columns in input file.";
         return false;
     } else {
-        calculateHistogramSize();
         _validFile = true;
         return true;
     }
@@ -140,6 +140,8 @@ void InputCache::updateCache() {
     _sliceSize = _itemsPerSlice * sizeof(OutageDataItem);
     _totalSlicesInFile = ceilDiv(_totalInputItemsInFile, _itemsPerSlice);
     _totalGroups = ceilDiv(_totalSlicesInFile, _totalSlicesPerCache);
+
+    calculateHistogramSize();
 
     //TEST
 //    qDebug() << "Test cacheId";
@@ -231,7 +233,8 @@ OutageDataWrapper InputCache::operator[](size_t index) {
 }
 
 void InputCache::incHisto(const size_t & index) {
-    size_t bin = (index / (_totalInputItemsInFile / _histogramSize));
+    double b = (double) _totalInputItemsInFile / (double) _histogramSize;
+    size_t bin = (index / ceil(b));
     _histogram[bin]++;
 
 }
