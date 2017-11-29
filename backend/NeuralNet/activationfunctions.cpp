@@ -11,7 +11,7 @@ real ReLU(const real & in) {
 }
 
 real Sin(const real & in) {
-    return sin(in * 2.0 * 3.1459);
+    return sin(in * 2.0 * M_PI);
 }
 
 real Sigmoid(const real & in, const real & k) {
@@ -65,6 +65,47 @@ real Step(const real & in, const real & k) {
         return 1.0 * k;
     }
 
+}
+
+real deriveReLU(const real & in) {
+    if (in < 0) {
+        return 0.0;
+    } else {
+        return 1.0;
+    }
+}
+
+real deriveSin(const real & in) {
+    return 2.0 * M_PI * cos(2.0 * M_PI * in);
+}
+
+real deriveSigmoid(const real & in, const real & k) {
+    real sig = Sigmoid(in, k);
+    return sig * (1.0 - sig);
+}
+
+real deriveHypTan(const real & in) {
+    return 1.0 - CustomMath::pow(HypTan(in), 2);
+}
+
+real deriveGaussian(const real & in, const real & k) {
+    return -2.0 * in * Gaussian(in, k);
+}
+
+real deriveSinc(const real & in) {
+    if (in == 0.0) {
+        return 0;
+    } else {
+        return (cos(2*M_PI*in) / (2*M_PI*in)) - (sin(2*M_PI*in)/(CustomMath::pow(2*M_PI*in, 2)));
+    }
+}
+
+real deriveStep(const real & in) {
+    if (in == 0.0) {
+        return 1.0;
+    } else {
+        return 0.0;
+    }
 }
 
 }

@@ -476,6 +476,27 @@ real NeuralNet::activation(const real & in, const real & k, const NeuralNet::Act
     }
 }
 
+real NeuralNet::deriveActivation(const real & in, const real & k, const NeuralNet::Activation & act) {
+    switch(act) {
+    case NeuralNet::ReLU:
+        return ActivationFunctions::deriveReLU(in);
+    case Sin:
+        return ActivationFunctions::deriveSin(in);
+    case Sigmoid:
+        return ActivationFunctions::deriveSigmoid(in, k);
+    case HypTan:
+        return ActivationFunctions::deriveHypTan(in);
+    case Gaussian:
+        return ActivationFunctions::deriveGaussian(in, k);
+    case Sinc:
+        return ActivationFunctions::deriveSinc(in);
+    case Step:
+        return ActivationFunctions::deriveStep(in);
+    default:
+        return 1.0;
+    }
+}
+
 real NeuralNet::getSign(const real &in) {
     if (in < 0) {
         return -1;
@@ -915,4 +936,102 @@ std::vector<std::vector<real>> NeuralNet::proposedTopology() {
         m_proposedTopology.push_back(layerBuffer);
     }
     return m_proposedTopology;
+}
+
+bool NeuralNet::backpropagate(const std::vector<real> &ideal) {
+    if (outputs().size() != ideal.size()) {
+        std::cout << "Error, actual and predicted vector mismatch: NeuralNet::backpropagate()" << std::endl;
+        return false;
+    }
+
+    std::vector<real> idealVector = ideal;
+
+    for (int layer = _nParams.innerNetNodes.size(); layer >= 0; layer++) {
+        std::vector<real> * rightVector = nullptr;
+        std::vector<real> * leftVector = nullptr;
+        bool rightOutputFlag = false;
+        bool leftInputFlag = false;
+
+        if (layer == _nParams.innerNetNodes.size()) {
+            rightOutputFlag = true;
+            rightVector = &_outputNodes;
+        } else {
+            rightOutputFlag = false;
+            rightVector = &_innerNodes[layer];
+        }
+
+        if (layer == 0) {
+            leftInputFlag = true;
+            leftVector = &_inputNodes;
+        } else {
+            leftInputFlag = false;
+            leftVector = &_innerNodes[layer-1];
+        }
+
+        if (leftVector == nullptr || rightVector == nullptr) {
+            std::cout << "Unable to read left or right vector: Left: " << leftVector << " Right: " << rightVector << std::endl;
+        }
+
+        std::vector<real> derivErrorToOutput(rightVector->size(), 0.0);
+        for (size_t i = 0; i < rightVector->size(); i++) {
+            derivErrorToOutput[i] = (*rightVector)[i]-idealVector[i];
+        }
+
+        std::vector<real> derivActVector(rightVector->size(), 1.0);
+        std::vector<std::vector<real>> edgeWeightErrors;
+        std::vector<std::vector<real>> * edgeWeights = forwardEdgeLayer(layer);
+        if (!edgeWeights) {
+            std::cout << "Edge weights do not exist: Layer: " << layer << std::endl;
+            return false;
+        }
+        edgeWeightErrors.resize(edgeWeights->size());
+        for (size_t leftNode = 0; leftNode < edgeWeightErrors.size(); leftNode++) {
+            edgeWeightErrors[leftNode].resize(rightVector->size(), 0);
+            for (size_t rightNode = 0; rightNode < edgeWeightErrors[leftNode].size(); rightNode++) {
+                real finalError = derivErrorToOutput[rightNode] * _innerNodes[layer][leftNode];
+                edgeWeightErrors[leftNode][rightNode] = finalError;
+            }
+        }
+
+        if (!rightOutputFlag) {
+            std::vector<real> derivActVector(rightVector->size(), 0.0);
+            for (size_t leftNode = 0; leftNode < edgeWeights->size(); leftNode++) {
+                for (size_t rightNode = 0; rightNode < (*edgeWeights)[leftNode].size(); rightNode++) {
+                    derivActVector[rightNode] += (*edgeWeights)[leftNode][rightNode] * (*leftVector)[leftNode];
+                }
+            }
+
+            InnerNodes & kConstants = getConstantsFromState();
+            for (size_t i = 0; i < derivActVector.size(); i++) {
+                derivActVector[i] = deriveActivation(derivActVector[i], kConstants[layer][i], _nParams.act);
+            }
+        }
+
+        idealVector = *leftVector;
+        for (size_t leftNode = 0; leftNode < edgeWeights->size(); leftNode++) {
+            for (size_t rightNode = 0; rightNode < edgeWeights->at(leftNode)[rightNode]; rightNode++) {
+                edgeWeightErrors[leftNode][rightNode] *= derivActVector[rightNode];
+                (*edgeWeights)[leftNode][rightNode] -= _nParams.learningRate * edgeWeightErrors[leftNode][rightNode];
+            }
+        }
+    }
+
+    return true;
+}
+
+real * NeuralNet::edgeWeight(const size_t & edgeLayer, const size_t & leftNode, const size_t & rightNode) {
+    if (edgeLayer > totalEdgeLayersFromState(_state)) {
+        std::cout << "Can't access that layer: edgeLayer: " << edgeLayer << " totalLayers: " << totalEdgeLayersFromState(_state) << std::endl;
+        return nullptr;
+    }
+    std::vector<std::vector<real>> * edgeLayerVector = forwardEdgeLayer(edgeLayer);
+    if (leftNode >= edgeLayerVector->size()) {
+        std::cout << "Can't access left node: edgeLayer: " << edgeLayer << " leftNode: " << leftNode << " totalNodes: " << edgeLayerVector->size() << std::endl;
+        return nullptr;
+    }
+    if (rightNode >= edgeLayerVector->at(leftNode).size()) {
+        std::cout << "Can't access right node: edgeLayer: " << edgeLayer << " leftNode: " << leftNode << " rightNode: " << rightNode << " totalNodes: " << edgeLayerVector->at(leftNode).size() << std::endl;
+        return nullptr;
+    }
+    return &(edgeLayerVector->at(leftNode)[rightNode]);
 }

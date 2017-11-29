@@ -55,6 +55,7 @@ public:
         int testIterations=20;      // Total iterations of testing
         NeuralNet::Type type = Feedforward;
         NeuralNet::Activation act = Sin;
+        real learningRate = 0.5;
     };
 
     NeuralNet();
@@ -113,6 +114,7 @@ public:
     EdgeLayer * recurrentEdgeLayer(const size_t & i);
 
     static real activation(const real & in, const real & k, const NeuralNet::Activation & act);
+    static real deriveActivation(const real & in, const real & k, const NeuralNet::Activation & act);
     static real getSign(const real & in);
 
     NeuralNetParameters * nParams() { return &_nParams; }
@@ -137,6 +139,8 @@ public:
     bool buildANN();
 
     std::vector<std::vector<real>> proposedTopology();
+
+    bool backpropagate(const std::vector<real> &actualResults);
 
 private:
     // Weights and Data
