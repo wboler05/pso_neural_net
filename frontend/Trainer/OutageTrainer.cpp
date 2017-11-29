@@ -94,6 +94,7 @@ void OutageTrainer::resetFitnessScores() {
 void OutageTrainer::trainingRun() {
 
     std::vector<size_t> trainingVector;
+    _dataSets.getTrainingVector(trainingVector,_params->np.trainingIterations);
 
     // Get the cost for each particle's current position
     for (size_t i = 0; i < _particles->size(); i++) {
@@ -108,7 +109,6 @@ void OutageTrainer::trainingRun() {
         }
 
         // Get fitness
-        _dataSets.getTrainingVector(trainingVector,_params->np.trainingIterations);
         real fit = trainingStep(trainingVector);
         p->_fit = fit;
     }
