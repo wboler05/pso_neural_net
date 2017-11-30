@@ -59,6 +59,7 @@ struct TrainingParameters {
     ShowBestSelected showBestSelected = Recent_Global_Best;
     bool enableBaseCase = false;
     size_t kFolds = 10;
+    size_t inputHistorySize = 1;
 };
 
 class OutageTrainer : public NeuralPso
