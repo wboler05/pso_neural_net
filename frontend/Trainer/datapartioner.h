@@ -19,7 +19,7 @@ public:
     size_t validationSetSize();
     const std::vector<size_t> & getTestSet() const;
     const std::vector<size_t> & getValidationSet() const;
-    void getTrainingVector(std::vector<std::vector<size_t>> & tr, const size_t & iterations);
+    void getTrainingVector(std::vector<size_t> & tr, const size_t & iterations);
     const real & getImplicitBiasWeight(int classNum) const;
     const real & getFittnessNormFactor() const;
     void reset();
@@ -51,7 +51,7 @@ private:
     std::vector<size_t> _trainingSet;
     std::vector<size_t> _testSet;
     std::vector<size_t> _validationSet;
-    std::vector<std::vector<size_t>> _historyLookup; // First Dim is index in file, second Dim is historic neighbors
+    std::vector<int> _historyLookup; // First Dim is index in file, second Dim is historic neighbors
     size_t _historySize = 1; // How may historic samples to associate with each current sample (includes the current sample in the count)
     const size_t _numTimeScales = 3; // Number of time radix's to sort by. 3 => Year, Month, Day | 4 => Year, Month, Day, Hour | ect...
 

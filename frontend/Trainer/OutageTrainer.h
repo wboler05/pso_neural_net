@@ -24,7 +24,7 @@ public:
     size_t getNextValidationSet();
 
     void trainingRun();
-    real trainingStep(const std::vector<vector<size_t>> & trainingVector);
+    real trainingStep(const vector<size_t> & trainingVector);
     real trainingStepBaseCase();
     void testGb();
     void testSelectedGB();

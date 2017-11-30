@@ -156,7 +156,7 @@ const real & DataPartioner::getFittnessNormFactor() const {
     return _fitnessNormalizationFactor;
 }
 
-void DataPartioner::getTrainingVector(std::vector<std::vector<size_t>> & tr, const size_t & iterations){
+void DataPartioner::getTrainingVector(std::vector<size_t> & tr, const size_t & iterations){
     tr.clear();
     tr.resize(iterations);
     for (size_t i = 0; i < iterations; i++) {
@@ -171,7 +171,7 @@ void DataPartioner::getTrainingVector(std::vector<std::vector<size_t>> & tr, con
                     _trainingBinCounters[randClass]++ % _trainingBinIndicies[randClass].size()
                 ]
         ];
-        tr[i] = _historyLookup[realIterator];
+        tr[i] = realIterator;
     }
 }
 
@@ -339,11 +339,12 @@ void DataPartioner::initHistoryLookup(){
         // Populate the lookup table
         size_t sourceLine;
         for (size_t j = 0; j < sortedDataSet[loa].size(); j++){
-            std::vector<OutageDataWrapper> test = sortedDataSet[loa];
-            OutageDataWrapper test2 = test[j];
-            sourceLine = test2.getSourceLine();
-            for(size_t k = 0; (k < _historySize) && ((static_cast<int>(j) - static_cast<int>(k)) >= 0); k++){
-                _historyLookup[sourceLine].push_back(sortedDataSet[loa][j - k].getSourceLine());
+            sourceLine = sortedDataSet[loa][j].getSourceLine();
+            if ((static_cast<int>(j) - 1) >= 0){
+                _historyLookup[sourceLine] = sortedDataSet[loa][j - 1].getSourceLine();
+            }
+            else {
+                _historyLookup[sourceLine] = -1;
             }
         }
     }
