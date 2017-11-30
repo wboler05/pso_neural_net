@@ -460,15 +460,15 @@ real NeuralNet::activation(const real & in, const real & k, const NeuralNet::Act
     case NeuralNet::ReLU:
         return ActivationFunctions::ReLU(in);
     case Sin:
-        return ActivationFunctions::Sin(in);
+        return ActivationFunctions::Sin(in, k);
     case Sigmoid:
         return ActivationFunctions::Sigmoid(in, k);
     case HypTan:
-        return ActivationFunctions::HypTan(in);
+        return ActivationFunctions::HypTan(in, k);
     case Gaussian:
         return ActivationFunctions::Gaussian(in, k);
     case Sinc:
-        return ActivationFunctions::Sinc(in);
+        return ActivationFunctions::Sinc(in, k);
     case Step:
         return ActivationFunctions::Step(in, k);
     default:

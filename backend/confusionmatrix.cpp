@@ -512,11 +512,13 @@ real ConfusionMatrix::MSE(
 
     // Verify that their sizes match
     if (results.size() != expecteds.size()) {
+        qDebug( )<< "Results and Expecteds mismatch! ConfusionMatrix::MSE()";
         return std::numeric_limits<real>::infinity();
     }
 
     // Verify that they are both not empty
     if (results.size() == 0) {
+        qDebug( )<< "Results size is zero! ConfusionMatrix::MSE()";
         return std::numeric_limits<real>::infinity();
     }
 
@@ -532,6 +534,7 @@ real ConfusionMatrix::MSE(
 
         // If inifinity, return infinit (we broke it)
         if (tError == std::numeric_limits<real>::infinity()) {
+            qDebug( )<< "MSE is infinite! ConfusionMatrix::MSE()";
             return std::numeric_limits<real>::infinity();
         }
 

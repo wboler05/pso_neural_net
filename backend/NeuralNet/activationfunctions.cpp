@@ -10,15 +10,15 @@ real ReLU(const real & in) {
     }
 }
 
-real Sin(const real & in) {
-    return sin(in * 2.0 * 3.1459);
+real Sin(const real & in, const real & k) {
+    return sin(in * 2.0 * M_PI * k);
 }
 
 real Sigmoid(const real & in, const real & k) {
     return 1.0 / (1.0 + exp(- k * in));
 }
 
-real HypTan(const real & in) {
+real HypTan(const real & in, const real & k) {
     using namespace std;
     // 9th order approximation to tanh
     static real coeffs[10] = {
@@ -36,7 +36,7 @@ real HypTan(const real & in) {
 
     //real act = tanh(in * M_PI);
     // Faster than tanh function
-    real act = CustomMath::poly(in * M_PI, coeffs, 9);
+    real act = CustomMath::poly(in * M_PI * k, coeffs, 9);
     act = max(min(act, static_cast<real>(1.0)), static_cast<real>(-1.0));
     return act;
 }
@@ -50,11 +50,11 @@ real Gaussian(const real & in, const real & k) {
     }
 }
 
-real Sinc(const real & in) {
-    if (in == 0.0) {
+real Sinc(const real & in, const real & k) {
+    if (in*k == 0.0) {
         return 1.0;
     } else {
-        return sin(2.0 * M_PI * in) / (2.0 * M_PI * in);
+        return sin(2.0 * M_PI * in * k) / (2.0 * M_PI * in * k);
     }
 }
 

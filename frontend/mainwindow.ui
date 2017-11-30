@@ -389,6 +389,13 @@
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
           <layout class="QGridLayout" name="gridLayout">
+           <item row="13" column="0">
+            <widget class="QLabel" name="label_22">
+             <property name="text">
+              <string>Validation Folds</string>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="1">
             <widget class="QSpinBox" name="totalParticles_sb">
              <property name="minimum">
@@ -396,6 +403,20 @@
              </property>
              <property name="maximum">
               <number>10000</number>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>Pso Term Delta</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <widget class="QCheckBox" name="enableMaxEpochs_cb">
+             <property name="text">
+              <string>Enable</string>
              </property>
             </widget>
            </item>
@@ -413,31 +434,10 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="2">
-            <widget class="QCheckBox" name="enableMaxEpochs_cb">
-             <property name="text">
-              <string>Enable</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="label_5">
-             <property name="text">
-              <string>Pso Term Delta</string>
-             </property>
-            </widget>
-           </item>
            <item row="8" column="0">
             <widget class="QLabel" name="label_6">
              <property name="text">
               <string>Window Size</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="label_3">
-             <property name="text">
-              <string>Max Epochs</string>
              </property>
             </widget>
            </item>
@@ -455,6 +455,30 @@
              </property>
              <property name="maximum">
               <number>1000000</number>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>Max Epochs</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="1">
+            <widget class="QSpinBox" name="window_sb">
+             <property name="maximum">
+              <number>10000</number>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="1">
+            <widget class="QSpinBox" name="testIt_sb">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>10000</number>
              </property>
             </widget>
            </item>
@@ -482,20 +506,10 @@
              </property>
             </widget>
            </item>
-           <item row="7" column="1">
-            <widget class="QSpinBox" name="testIt_sb">
-             <property name="minimum">
-              <number>1</number>
-             </property>
-             <property name="maximum">
-              <number>10000</number>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="1">
-            <widget class="QSpinBox" name="window_sb">
-             <property name="maximum">
-              <number>10000</number>
+           <item row="10" column="0">
+            <widget class="QPushButton" name="innerNet_btn">
+             <property name="text">
+              <string>Inner Nets</string>
              </property>
             </widget>
            </item>
@@ -519,13 +533,6 @@
              </item>
             </widget>
            </item>
-           <item row="10" column="0">
-            <widget class="QPushButton" name="innerNet_btn">
-             <property name="text">
-              <string>Inner Nets</string>
-             </property>
-            </widget>
-           </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_28">
              <property name="text">
@@ -537,6 +544,13 @@
             <widget class="QSpinBox" name="trainingIterations_sb">
              <property name="maximum">
               <number>10000</number>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="0">
+            <widget class="QLabel" name="label_41">
+             <property name="text">
+              <string>Topo. Training</string>
              </property>
             </widget>
            </item>
@@ -557,24 +571,10 @@
              </property>
             </widget>
            </item>
-           <item row="11" column="0">
-            <widget class="QLabel" name="label_41">
-             <property name="text">
-              <string>Topo. Training</string>
-             </property>
-            </widget>
-           </item>
            <item row="6" column="1">
             <widget class="QSpinBox" name="validationIterations_sb">
              <property name="maximum">
               <number>10000</number>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="label_29">
-             <property name="text">
-              <string>Valid Iterations</string>
              </property>
             </widget>
            </item>
@@ -631,6 +631,20 @@
              </item>
             </widget>
            </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_29">
+             <property name="text">
+              <string>Valid Iterations</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QCheckBox" name="enableMinEpochs_cb">
+             <property name="text">
+              <string>Enable</string>
+             </property>
+            </widget>
+           </item>
            <item row="9" column="0">
             <widget class="QLabel" name="label_21">
              <property name="text">
@@ -651,10 +665,30 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="2">
-            <widget class="QCheckBox" name="enableMinEpochs_cb">
+           <item row="14" column="0">
+            <widget class="QLabel" name="label_23">
              <property name="text">
-              <string>Enable</string>
+              <string>Input History Size</string>
+             </property>
+            </widget>
+           </item>
+           <item row="13" column="1">
+            <widget class="QSpinBox" name="validationFolds_sb">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>999</number>
+             </property>
+            </widget>
+           </item>
+           <item row="14" column="1">
+            <widget class="QSpinBox" name="inputHistorySize_sb">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>999</number>
              </property>
             </widget>
            </item>

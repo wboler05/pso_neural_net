@@ -57,6 +57,8 @@ public:
 
     void printHistogram();
 
+    const CacheParameters & cacheParams() const { return _cacheParams; }
+
 private:
     InputCache(const InputCache & l)=delete;
     InputCache & operator=(const InputCache & l)=delete;

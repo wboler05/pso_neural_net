@@ -180,65 +180,62 @@ void OutageDataWrapper::parseStormEvents(
  * @param skips
  * @return
  */
+#pragma optimize( "", off )
 std::vector<real> OutageDataWrapper::inputize() {
     //std::vector<real> input;
     std::list<real> inputs_l;
 
-    inputs_l.push_back(_loa);
+    inputs_l.push_back(_loa);                               // 0
 
     // Lat and Long
-    inputs_l.push_back(_latlong.latitude());
-    inputs_l.push_back(_latlong.longitude());
+    inputs_l.push_back(_latlong.latitude());                //1
+    inputs_l.push_back(_latlong.longitude());               //2
 
     // Date
-    inputs_l.push_back(static_cast<real>(_date.year()));
-    inputs_l.push_back(static_cast<real>(_date.month()));
-    inputs_l.push_back(static_cast<real>(_date.day()));
+    inputs_l.push_back(static_cast<real>(_date.year()));    //3
+    inputs_l.push_back(static_cast<real>(_date.month()));   //4
+    inputs_l.push_back(static_cast<real>(_date.day()));     //5
 
     // Temperature
-    inputs_l.push_back(_temp.lo());
-    inputs_l.push_back(_temp.avg());
-    inputs_l.push_back(_temp.hi());
+    inputs_l.push_back(_temp.lo());                         //6
+    inputs_l.push_back(_temp.avg());                        //7
+    inputs_l.push_back(_temp.hi());                         //8
 
     // Dew Point
-    inputs_l.push_back(_dew.lo());
-    inputs_l.push_back(_dew.avg());
-    inputs_l.push_back(_dew.hi());
+    inputs_l.push_back(_dew.lo());                          //9
+    inputs_l.push_back(_dew.avg());                         //10
+    inputs_l.push_back(_dew.hi());                          //11
 
     // Humidity
-    inputs_l.push_back(_humidity.lo());
-    inputs_l.push_back(_humidity.avg());
-    inputs_l.push_back(_humidity.hi());
+    inputs_l.push_back(_humidity.lo());                     //12
+    inputs_l.push_back(_humidity.avg());                    //13
+    inputs_l.push_back(_humidity.hi());                     //14
 
     // Sea Level Pressure
-    inputs_l.push_back(_pressure.lo());
-    inputs_l.push_back(_pressure.avg());
-    inputs_l.push_back(_pressure.hi());
+    inputs_l.push_back(_pressure.lo());                     //15
+    inputs_l.push_back(_pressure.avg());                    //16
+    inputs_l.push_back(_pressure.hi());                     //17
 
     // Visibility
-    inputs_l.push_back(_visibility.lo());
-    inputs_l.push_back(_visibility.avg());
-    inputs_l.push_back(_visibility.hi());
+    inputs_l.push_back(_visibility.lo());                   //18
+    inputs_l.push_back(_visibility.avg());                  //19
+    inputs_l.push_back(_visibility.hi());                   //20
 
     // Wind
-    inputs_l.push_back(_wind.gust());
-    inputs_l.push_back(_wind.avg());
-    inputs_l.push_back(_wind.hi());
+    inputs_l.push_back(_wind.gust());                       //21
+    inputs_l.push_back(_wind.avg());                        //22
+    inputs_l.push_back(_wind.hi());                         //23
 
     // Precipitation
-    inputs_l.push_back(_precipitation);
+    inputs_l.push_back(_precipitation);                     //24
 
     // Strings
-    //input.push_back(cityToNumber(_city));
-    //input.push_back(countyToNumber(_county));
-    //input.push_back(reportedEventToNumber(_reported_event));
-    //input.push_back(stormTypeToNumber(_storm_event));
-    inputs_l.push_back(bool2Double(_fog));
-    inputs_l.push_back(bool2Double(_rain));
-    inputs_l.push_back(bool2Double(_snow));
-    inputs_l.push_back(bool2Double(_thunderstorm));
+    inputs_l.push_back(bool2Double(_fog));                  //25
+    inputs_l.push_back(bool2Double(_rain));                 //26
+    inputs_l.push_back(bool2Double(_snow));                 //27
+    inputs_l.push_back(bool2Double(_thunderstorm));         //28
 
-    inputs_l.push_back(static_cast<real>(_population));
+    inputs_l.push_back(static_cast<real>(_population));     //29
 
     std::vector<real> inputs_v;
     size_t skipOffset = 0;
@@ -280,6 +277,7 @@ std::vector<real> OutageDataWrapper::inputize() {
 
     return inputs_v;
 }
+#pragma optimize( "", on )
 
 /**
  * @brief OutageDataWrapper::outputize
