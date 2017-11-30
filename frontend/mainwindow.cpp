@@ -561,6 +561,9 @@ qDebug() << "Made it here.";
     _params->beta = 1.0;
     _params->gamma = 1.0;
 
+    _params->kFolds = 10;
+    _params->inputHistorySize = 1;
+
     updateParameterGui();
     setGlobalBestSelectionBox();
 }
@@ -605,6 +608,9 @@ void MainWindow::applyParameterChanges() {
     _params->beta = static_cast<real>(ui->beta_dsb->value());
     _params->gamma = static_cast<real>(ui->gamma_dsb->value());
 
+    _params->kFolds = static_cast<size_t> (ui->validationFolds_sb->value());
+    _params->inputHistorySize = static_cast<size_t> (ui->inputHistorySize_sb->value());
+
     setNetTypeByIndex(ui->netType_cb->currentIndex());
     setActivationByCB();
 }
@@ -646,6 +652,9 @@ void MainWindow::updateParameterGui() {
     ui->gamma_dsb->setValue(static_cast<double>(_params->gamma));
 
     ui->netType_cb->setCurrentIndex(getNetTypeCBIndex());
+
+    ui->validationFolds_sb->setValue(_params->kFolds);
+    ui->inputHistorySize_sb->setValue(_params->inputHistorySize);
 
     updateElementSkips();
     getGlobalBestSelectionFromBox();
