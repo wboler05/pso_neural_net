@@ -52,7 +52,7 @@ private:
     std::vector<size_t> _testSet;
     std::vector<size_t> _validationSet;
     std::vector<std::vector<size_t>> _historyLookup; // First Dim is index in file, second Dim is historic neighbors
-    size_t _historySize = 10; // How may historic samples to associate with each current sample (includes the current sample in the count)
+    size_t _historySize = 1; // How may historic samples to associate with each current sample (includes the current sample in the count)
     const size_t _numTimeScales = 3; // Number of time radix's to sort by. 3 => Year, Month, Day | 4 => Year, Month, Day, Hour | ect...
 
     std::vector<real> _implicitBiasWeights;

@@ -1145,7 +1145,7 @@ void MainWindow::updatePlot() {
                     10));
                 completionMsg.append(" total iterations");
                 completionMsg.append("\tFold: " );
-                completionMsg.append(QString::number(_neuralPsoTrainer->currentFold()));
+                completionMsg.append(QString::number(_neuralPsoTrainer->currentFold() + 1));
                 setOutputLabel(completionMsg);
             }
         }
