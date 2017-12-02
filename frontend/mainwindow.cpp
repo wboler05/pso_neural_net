@@ -1076,10 +1076,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
             runNeuralPso();
 
             BestTopoData d;
-            std::vector<std::vector<real>> propNet = _neuralPsoTrainer->neuralNet()->proposedTopology();
-            for (size_t j = 0; j < propNet.size(); j++) {
-                d.proposedTopology.push_back(propNet[j].size());
-            }
+            d.proposedTopology = _neuralPsoTrainer->neuralNet()->proposedTopology();
             d.activationFunction = _params->np.act;
             d.result = _neuralPsoTrainer->getOverallBest();
             lowerBestList.push_back(d);
