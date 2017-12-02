@@ -21,7 +21,7 @@ public:
     static void parseStormEvents(const QStringList & events,
                                  const size_t & bIt, OutageDataItem & item);
 
-    std::vector<real> inputize();
+    std::vector<real> inputize(const size_t historySize);
     std::vector<real> outputize();
 
     static real bool2Double(const bool & b);
@@ -40,7 +40,7 @@ public:
 
     bool empty() { return _empty; }
 
-    const size_t & inputSize();
+    const size_t & inputSize(const size_t historySize);
     const size_t & outputSize();
 
     static const std::vector<size_t> & inputSkips() { return _inputSkips; }
@@ -58,6 +58,7 @@ private:
     static std::vector<size_t> _inputSkips;
     static bool _inputSkipsModified;
     static std::vector<real> _outputRanges;
+    static size_t _historySize;
 
 };
 

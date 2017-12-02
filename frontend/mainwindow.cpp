@@ -532,7 +532,7 @@ void MainWindow::setParameterDefaults() {
 
     OutageDataWrapper dataWrapper = (*_inputCache)[0];
 qDebug() << "Made it here.";
-    _params->np.inputs = static_cast<int>( dataWrapper.inputSize() );
+    _params->np.inputs = static_cast<int>( dataWrapper.inputSize(ui->inputHistorySize_sb->value()) );
     _params->np.innerNetNodes.resize(1, 8);
     //_params->np.innerNetNodes.push_back(8);
     _params->np.outputs = static_cast<int>(dataWrapper.outputSize());
@@ -726,7 +726,7 @@ void MainWindow::applyElementSkips() {
     _params->ep.population = ui->enPopulation_cb->isChecked();
 
     OutageDataWrapper dataWrapper = (*_inputCache)[0];
-    _params->np.inputs = static_cast<int>( dataWrapper.inputSize() );
+    _params->np.inputs = static_cast<int>( dataWrapper.inputSize(ui->inputHistorySize_sb->value()) );
     _params->np.outputs = static_cast<int>(dataWrapper.outputSize());
 }
 

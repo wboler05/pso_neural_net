@@ -4,6 +4,8 @@ std::vector<size_t> OutageDataWrapper::_inputSkips;
 bool OutageDataWrapper::_inputSkipsModified = true;
 std::vector<real> OutageDataWrapper::_outputRanges = { 1 };
 
+size_t OutageDataWrapper::_historySize = 1;
+
 OutageDataWrapper::OutageDataWrapper() :
     OutageDataItem(),
     _empty(true)
@@ -189,7 +191,7 @@ void OutageDataWrapper::parseStormEvents(
  * @return
  */
 #pragma optimize( "", off )
-std::vector<real> OutageDataWrapper::inputize() {
+std::vector<real> OutageDataWrapper::inputize(const size_t historySize) {
     //std::vector<real> input;
     std::list<real> inputs_l;
 
@@ -281,7 +283,8 @@ std::vector<real> OutageDataWrapper::inputize() {
 
     _inputSizeSet = true;
     _inputSkipsModified = false;
-    _inputSize = inputs_v.size();
+    _historySize = historySize;
+    _inputSize = inputs_v.size() * historySize;
 
     return inputs_v;
 }
@@ -474,9 +477,9 @@ OutageDataItem OutageDataWrapper::copy(const OutageDataItem & l) {
     return r;
 }
 
-const size_t & OutageDataWrapper::inputSize() {
-    if (!_inputSizeSet || _inputSkipsModified) {
-        inputize();
+const size_t & OutageDataWrapper::inputSize(const size_t historySize) {
+    if (!_inputSizeSet || _inputSkipsModified || (historySize != _historySize)) {
+        inputize(historySize);
     }
     return _inputSize;
 }

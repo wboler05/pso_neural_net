@@ -76,7 +76,6 @@ DataPartioner & DataPartioner::operator=(DataPartioner && d) {
     _minInputData = std::move(d._minInputData);
     _maxInputData = std::move(d._maxInputData);
     _params = std::move(d._params);
-    _historySize = std::move(d._historySize);
     _historyLookup = std::move(d._historyLookup);
     return *this;
 }
@@ -274,12 +273,12 @@ void DataPartioner::calcImplicitBiasWeights() {
 }
 
 void DataPartioner::updateMinMax() {
-    std::vector<real> tempVector = (*_inputCache)[0].inputize();
+    std::vector<real> tempVector = (*_inputCache)[0].inputize(_params->inputHistorySize);
     _minInputData.resize(tempVector.size(),  std::numeric_limits<real>::max());
     _maxInputData.resize(tempVector.size(), -std::numeric_limits<real>::max());
 
     for (size_t i = 0; i < _totalNumInputs; i++) {
-        std::vector<real> input = (*_inputCache)[i].inputize();
+        std::vector<real> input = (*_inputCache)[i].inputize(_params->inputHistorySize);
         for (size_t j = 0; j < input.size(); j++) {
             _minInputData[j] = min(_minInputData[j], input[j]);
             _maxInputData[j] = max(_maxInputData[j], input[j]);
@@ -288,12 +287,30 @@ void DataPartioner::updateMinMax() {
 }
 
 std::vector<real> DataPartioner::normalizeInput(const size_t & id){
+
     std::vector<real> tempVector;
+    int ID = static_cast<int>(id);
+    OutageDataWrapper dataItem = (*_inputCache)[ID];
+    size_t numInputs = dataItem.inputSize(_params->inputHistorySize);
+
     if (_params->enableBaseCase) {
-        tempVector = (*_inputCache)[id].outputize();
-    } else {
-        std::vector<real> tempBuff = (*_inputCache)[id].inputize();
-        tempVector = normalizeInput(tempBuff);
+        tempVector = dataItem.outputize();
+    }
+    else {
+        int count = 0;
+        std::vector<real> tempBuff;
+        do{
+            tempBuff = dataItem.inputize(_params->inputHistorySize);
+            tempBuff = normalizeInput(tempBuff);
+            tempVector.insert(std::end(tempVector), std::begin(tempBuff), std::end(tempBuff));
+            ID = _historyLookup[ID];
+            count++;
+        }while(ID != -1 && count < static_cast<int>(_params->inputHistorySize));
+        if (ID == -1){
+            for(size_t i = (tempVector.size() - 1); i < (numInputs - 1); i++){
+                tempVector.push_back(0.0);
+            }
+        }
     }
     return tempVector;
 }
