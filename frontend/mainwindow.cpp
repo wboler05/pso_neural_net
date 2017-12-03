@@ -898,7 +898,7 @@ void MainWindow::testTrainedNetWithInput() {
         }
 
         if (_trainedNeuralNet->totalInputs() != newInput.size()) {
-            qDebug() << "Something broke";
+            qDebug() << "Something broke: MainWindow::testTrainedNetWithInputs()";
             ui->testInput_output->setText("Failed to process.");
             return;
         }
@@ -1030,16 +1030,14 @@ void MainWindow::runNeuralPso() {
 }
 
 void MainWindow::on_testProcedure_btn_clicked() {
-    /// Man, we bout to do this!  Get out some Netflix and let this run!!
-
     // At this point, we're going to test all three hidden layer settings
     // for each activation function with topo-training.  We're going to run
     // this 10 times for each expriment to gauge a good agregation of performance.
-    // (We'll get to adding which files to load later.
+    // (We'll get to adding which files to load later.)
     struct BestTopoData {
         std::vector<size_t> proposedTopology;
         NeuralNet::Activation activationFunction;
-        real accuracy = 0;
+        GlobalBestObject result;
     };
     struct TrialData {
         BestTopoData singleHiddenLayer;
@@ -1054,6 +1052,67 @@ void MainWindow::on_testProcedure_btn_clicked() {
     // on how many activation functions we're still using.  So, now you
     // should have three good network topologies to run without topo-training.
     // We want to run all three of these networks on the same data
+
+
+    TrainingParameters defaultParams = *_params;
+    ExperimentFileParser expParser(this);
+    if (!expParser.readFile(_params)) {
+        qWarning( )<< "Unable to read experiment file. on_testProcedure_btn_clicked()";
+        return;
+    }
+
+    /** Auto test section **/
+
+    /** Manual Test Section **/
+    std::vector<BestTopoData> bestList;
+    for (size_t i = 0; i < expParser.getParamsList().size(); i++) {
+        *_params = expParser.getParamsList()[i];
+        updateParameterGui();
+        std::vector<BestTopoData> lowerBestList;
+        for (size_t k = 0; k < expParser.experimentParams().trials_per_experiment; k++) {
+            qDebug() << "Trial: " << k;
+
+            clearPSOState();
+            runNeuralPso();
+
+            BestTopoData d;
+            d.proposedTopology = _neuralPsoTrainer->neuralNet()->proposedTopology();
+            d.activationFunction = _params->np.act;
+            d.result = _neuralPsoTrainer->getOverallBest();
+            lowerBestList.push_back(d);
+        }
+
+        real acc = 0;
+        BestTopoData * d = nullptr;
+        for (size_t k = 0; k < lowerBestList.size(); k++) {
+            if (lowerBestList[k].result.cm.overallError().accuracy > acc) {
+                acc = lowerBestList[k].result.cm.overallError().accuracy;
+                d = &lowerBestList[k];
+            }
+        }
+        if (d) {
+            bestList.push_back(*d);
+        }
+    }
+    *_params = defaultParams;
+
+    qDebug( )<< "Printing Results: ";
+    std::string resultString;
+    for (size_t i = 0; i < bestList.size(); i++) {
+        resultString.append("(");
+        resultString.append(QString::number(i).toStdString());
+        resultString.append("): Layers = ");
+        resultString.append(QString::number(bestList[i].proposedTopology.size()).toStdString());
+        resultString.append(": ");
+        for (size_t j = 0; j < bestList[i].proposedTopology.size(); j++) {
+            resultString.append(QString::number(bestList[i].proposedTopology[j]).toStdString());
+            resultString.append(", ");
+        }
+        resultString.append("Accuracy: " );
+        resultString.append(QString::number(bestList[i].result.cm.overallError().accuracy).toStdString());
+        resultString.append("\n");
+    }
+    qDebug() << resultString.c_str();
 }
 
 void MainWindow::on_testBaseCase_btn_clicked() {

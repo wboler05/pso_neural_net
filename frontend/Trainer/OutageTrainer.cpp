@@ -12,11 +12,13 @@ OutageTrainer::OutageTrainer(const std::shared_ptr<TrainingParameters> & pe, con
         neuralNet()->setTotalInputs(_params->np.outputs);
         neuralNet()->buildANN();
     }
-    _outputNodeStats.resize(5);
+
     // Querry and get the number of classes
     OutageDataWrapper dataItem = (*_inputCache)[0];
     vector<real> outputClassVector = dataItem.outputize();
     _numClasses = outputClassVector.size();
+    _outputNodeStats.resize(_numClasses);
+
     // Build
     build();
 }
@@ -197,8 +199,12 @@ real OutageTrainer::trainingStep(const std::vector<size_t> & trainingVector) {
             fitC += 1.0;
         }
     }
-return -finalMse;
-return fitC-finalMse;
+
+if (outputNodes == 2) {
+    return -finalMse;
+} else {
+    return fitC-finalMse;
+}
 
     cm.costlyComputeClassStats();
     std::vector<real> zeroVec(cm.numberOfClassifiers(), 0);

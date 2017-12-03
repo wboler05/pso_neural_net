@@ -2,7 +2,10 @@
 
 std::vector<size_t> OutageDataWrapper::_inputSkips;
 bool OutageDataWrapper::_inputSkipsModified = true;
-std::vector<real> OutageDataWrapper::_outputRanges = { 1 };
+//std::vector<real> OutageDataWrapper::_outputRanges = { 1 };
+//std::vector<real> OutageDataWrapper::_outputRanges = {1, 10, 100, 1000};
+//std::vector<real> OutageDataWrapper::_outputRanges = {10, 100, 1000};
+std::vector<real> OutageDataWrapper::_outputRanges = {1, 47};
 
 size_t OutageDataWrapper::_historySize = 1;
 

@@ -57,9 +57,11 @@ namespace NeuralPsoStream {
     bool findCloseToken(const std::string & fullstring, const std::string token, int & it);
     // Gets substring between open and close tokens
     std::string subStringByToken(const std::string & fullstring, const std::string token, int & it);
+    std::string subStringByToken(const string &fullString , const string token);
 
     // Clears spaces, tabs, and new lines from strings
     void cleanInputString(std::string & dirtyString);
+    void cleanInputString(std::string & dirtyString, const std::string & badChars);
 
     template <class T>
     std::string stringifyParamsNugget(const std::string & token, const T & val);

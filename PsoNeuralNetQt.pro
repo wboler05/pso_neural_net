@@ -205,7 +205,8 @@ SOURCES += \
     backend/confusionmatrix.cpp \
     frontend/Trainer/datapartioner.cpp \
     backend/NeuralNet/activationfunctions.cpp \
-    frontend/Trainer/trainingparameters.cpp
+    frontend/Trainer/trainingparameters.cpp \
+    frontend/Trainer/experimentfileparser.cpp
 
 HEADERS += \
     backend/NeuralNet/NeuralNet.h \
@@ -242,7 +243,8 @@ HEADERS += \
     frontend/Trainer/datapartioner.h \
     utils/sort.hpp \
     backend/NeuralNet/activationfunctions.h \
-    frontend/Trainer/trainingparameters.h
+    frontend/Trainer/trainingparameters.h \
+    frontend/Trainer/experimentfileparser.h
 
 FORMS += \
     frontend/mainwindow.ui \

@@ -898,21 +898,23 @@ bool NeuralNet::validatePath(const size_t & inputNode, const size_t & outputNode
  * @details Call this after topo training to find hidden layers
  * @return - topology std::vector<std::vector<real>>
  */
-std::vector<std::vector<real>> NeuralNet::proposedTopology() {
-    std::vector<std::vector<real>> m_proposedTopology;
+std::vector<size_t> NeuralNet::proposedTopology() {
+    std::vector<size_t> m_proposedTopology;
     if (_state.size() == 0) {
         std::cout << "Failed to find topology: _state empty." << std::endl;
         return m_proposedTopology;
     }
     std::vector<std::vector<real>> & topo = _state[0];
     for (size_t i = 0; i < topo.size(); i++) {
-        std::vector<real> layerBuffer;
+        //std::vector<real> layerBuffer;
+        size_t layerCount = 0;
         for (size_t j = 0; j < topo[i].size(); j++) {
             if (topo[i][j] > 0) {
-                layerBuffer.push_back(j);
+                layerCount++;
+                //layerBuffer.push_back(j);
             }
         }
-        m_proposedTopology.push_back(layerBuffer);
+        m_proposedTopology.push_back(layerCount);
     }
     return m_proposedTopology;
 }
