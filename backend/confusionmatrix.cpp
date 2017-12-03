@@ -219,13 +219,55 @@ void ConfusionMatrix::constructTestResults() {
 
 void ConfusionMatrix::calcOverallAccuracy() {
     _overallStats.clear();
+
+    std::vector<TestStatistics> testStats(_numberOfClassifiers);
+    std::vector<TestStatistics::ClassificationError> classError(_numberOfClassifiers);
+    for (size_t i = 0; i < _numberOfClassifiers; i++) {
+        real tp = _truePositiveValues[i];
+        real fp = _falsePositiveValues[i];
+        real fn = _falseNegativeValues[i];
+        real tn = _totalPopulation - (tp + fp + fn);
+        testStats[i].addTp(tp);
+        testStats[i].addFp(fp);
+        testStats[i].addFn(fn);
+        testStats[i].addTn(tn);
+        testStats[i].getClassError(classError[i]);
+    }
+
+    _overallError.accuracy = 0;
+    _overallError.precision = 0;
+    _overallError.sensitivity = 0;
+    _overallError.specificity = 0;
+    _overallError.f_score = 0;
+    for (size_t i = 0; i < _numberOfClassifiers; i++) {
+        _overallError.accuracy += classError[i].accuracy;
+        _overallError.precision += classError[i].precision;
+        _overallError.sensitivity += classError[i].sensitivity;
+        _overallError.specificity += classError[i].specificity;
+        _overallError.f_score += classError[i].f_score;
+    }
+    _overallError.accuracy /= static_cast<real>(_numberOfClassifiers);
+    _overallError.precision /= static_cast<real>(_numberOfClassifiers);
+    _overallError.sensitivity /= static_cast<real>(_numberOfClassifiers);
+    _overallError.specificity /= static_cast<real>(_numberOfClassifiers);
+    _overallError.f_score /= static_cast<real>(_numberOfClassifiers);
+
+
+
+
+    /*
+
     real tp = CustomMath::total(_truePositiveValues);
-    real fp = static_cast<real>(_totalPopulation) - tp;
+    real fp = CustomMath::mean(_falsePositiveValues);
+    real fn = CustomMath::mean(_falseNegativeValues);
+    real tn = tp; //static_cast<real>(_totalPopulation) - (tp + fp + fn);
+    //real fp = static_cast<real>(_totalPopulation) - tp;
     _overallStats.addTp(tp);
-    _overallStats.addTn(tp);
+    _overallStats.addTn(tn);
     _overallStats.addFp(fp);
-    _overallStats.addFn(fp);
+    _overallStats.addFn(fn);
     _overallStats.getClassError(_overallError);
+    */
 }
 
 void ConfusionMatrix::costlyComputeClassStats() {
