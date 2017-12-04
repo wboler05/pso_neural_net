@@ -95,6 +95,7 @@ protected slots:
     void on_testFullSet_btn_clicked();
     void on_testProcedure_btn_clicked();
     void updateFileLabel();
+    void cleanOutputRangeLineEdit();
 
 private:
     Ui::MainWindow *ui;
@@ -137,6 +138,7 @@ private:
     void updateElementSkips();
     void setGlobalBestSelectionBox();
     void getGlobalBestSelectionFromBox();
+    void updateOutputRanges();
 };
 
 #endif // MAINWINDOW_H

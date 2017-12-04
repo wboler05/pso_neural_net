@@ -132,6 +132,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionConfusion_Matrix, SIGNAL(triggered(bool)), this, SLOT(showConfusionMatrixHelpBox()));
     connect(ui->fitnessPlotWindow_sb, SIGNAL(valueChanged(int)), this, SLOT(updateFitnessPlotWindowSize()));
 
+    connect(ui->outputRange_le, SIGNAL(editingFinished()), this, SLOT(cleanOutputRangeLineEdit()));
+
     QTimer * updateTimer = new QTimer(this);
     connect(updateTimer, SIGNAL(timeout()), this, SLOT(updatePlot()));
     updateTimer->start(500);
@@ -142,11 +144,14 @@ MainWindow::MainWindow(QWidget *parent) :
     // Init before running things
     initializeData();
 
+    on_actionEnable_Output_toggled(false);
+    updateOutputRanges();
+
     QSize windowSize(1500, 850);
-    QPoint dockOffset(100, 75);
-    QPoint dockPos = pos() + dockOffset;
-    dockPos.rx() += size().rwidth();
-    ui->dockWidget->move(dockPos);
+//    QPoint dockOffset(100, 75);
+//    QPoint dockPos = pos() + dockOffset;
+//    dockPos.rx() += size().rwidth();
+//    ui->dockWidget->move(dockPos);
 
     this->resize(windowSize);
 }
@@ -328,6 +333,32 @@ void MainWindow::on_actionLoad_PSO_State_triggered() {
 
     msgBox->setText(msgTxt);
     msgBox->exec();
+}
+
+void MainWindow::cleanOutputRangeLineEdit() {
+    QString lineEdit = ui->outputRange_le->text();
+    QStringList commaSeparated = lineEdit.split(',');
+    for (int i = 0; i < commaSeparated.length(); i++) {
+        QString stripped = commaSeparated[i];
+        stripped.remove(QRegExp("[^\\d]"));
+        commaSeparated[i] = stripped;
+    }
+
+    for (int i = 0; i < commaSeparated.length(); i++) {
+        if (commaSeparated[i].length() == 0) {
+            commaSeparated.removeAt(i);
+            i--;
+        }
+    }
+
+    lineEdit.clear();
+    for(int i = 0; i < commaSeparated.length(); i++) {
+        lineEdit.append(commaSeparated[i]);
+        if (i != commaSeparated.length()-1) {
+            lineEdit.append(',');
+        }
+    }
+    ui->outputRange_le->setText(lineEdit);
 }
 
 void MainWindow::setCurrentNet() {
@@ -568,10 +599,58 @@ qDebug() << "Made it here.";
     setGlobalBestSelectionBox();
 }
 
+void MainWindow::updateOutputRanges() {
+    QStringList outputRanges = ui->outputRange_le->text().split(',');
+    bool failFlag = false;
+
+    if (outputRanges.length() > 0) {
+        for (size_t i = 0; i < outputRanges.size(); i++) {
+            if (outputRanges[i].length() == 0) {
+                failFlag = true;
+                break;
+            }
+        }
+        if (!failFlag) {
+            std::vector<real> ranges;
+            for (int i = 0; i < outputRanges.size(); i++) {
+                bool ok = false;
+                real rangeVal = outputRanges[i].toDouble(&ok);
+                if (ok) {
+                    ranges.push_back(rangeVal);
+                }
+            }
+            if (ranges.size() > 0) {
+                OutageDataWrapper::setOutputRanges(ranges);
+
+                OutageDataWrapper dataWrapper = (*_inputCache)[0];
+                _params->np.outputs = static_cast<int>(dataWrapper.outputSize());
+            } else {
+                failFlag = true;
+            }
+        }
+    } else {
+        failFlag = true;
+    }
+
+    if (failFlag) {
+        std::vector<real> ranges = OutageDataWrapper::outputRanges();
+        QString newOutputDueToFailure;
+        for (int i = 0; i < outputRanges.size(); i++) {
+            newOutputDueToFailure.append(QString::number(static_cast<size_t>(ranges[i]), 10));
+            if (i != outputRanges.size() -1) {
+                newOutputDueToFailure.append(',');
+            }
+        }
+        ui->outputRange_le->setText(newOutputDueToFailure);
+    }
+}
+
 void MainWindow::applyParameterChanges() {
     qApp->processEvents();
 
     applyElementSkips();
+    updateOutputRanges();
+
 
     _params->pp.population = static_cast<size_t>(ui->totalParticles_sb->value());
     _params->pp.neighbors = static_cast<size_t>(ui->totalNeighbors_sb->value());
