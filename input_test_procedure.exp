@@ -19,3 +19,16 @@
 8,,,true,,100,,0,1,0,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0
 8,,,false,,100,,0,1,0,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0
 </experiments>
+
+<input_files>
+	Outage Data/Final Sets/10_Hammond.csv
+	Outage Data/Final Sets/100_Monticello.csv
+	Outage Data/Final Sets/110_Goshen.csv
+	Outage Data/Final Sets/150_Gary.csv
+	Outage Data/Final Sets/160_Laporte.csv
+	Outage Data/Final Sets/30_Crown Point.csv
+	Outage Data/Final Sets/50_Valparaiso.csv
+	Outage Data/Final Sets/70_Plymouth.csv
+	Outage Data/Final Sets/90_Angola.csv
+	Outage Data/Final Sets/ECE570_Final_Dataset.csv
+</input_files>
