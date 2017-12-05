@@ -19,9 +19,10 @@
 # <2;3>,<2;3>,<2;3>,true,Gaussian,1,1,,,
 <experiments>
 16,16,16,true,<all>,1,100,,,
+</experiments>
 16,16,,true,<all>,1,100,,,
 16,,,true,<all>,1,100,,,
-</experiments>
+
 
 <input_files>
 	Outage Data/Final Sets/10_Hammond.csv
