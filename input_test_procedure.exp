@@ -1,6 +1,12 @@
+# H1, H2, H3, TopoTraining, Activation, History, Max Epoc, Delta, Delta Window, Year, Month, Day, H Temp, A Temp, L Temp, H Humidity, A Humidity, L Humidity, H DP, A DP, L DP, Prec, H Press, A Press, L Press, H Vis, A Vis, L Vis, Fog, Rain, Snow, TS, H Wind, A Wind, G Wind, Pop, LOA, Lat, Long
+
+# Can only define ranges for H1, H2, H3, TopoTraining, Activation, and History
+# H1, H2, H3, and History take the formats: #, or <start;end>
+# TopoTraining, and Activation take the formats: #, or <all>
+
 <options>
 	<auto_train> true </auto_train>
-	<trials_per_experiment> 3 </trials_per_experiment>
+	<trials_per_experiment> 2 </trials_per_experiment>
 </options>
 
 <autotest> 
@@ -9,15 +15,8 @@
 	<test_activation_functions> true </test_activation_functions>
 </autotest>
 
-# H1, H2, H3, TopoTraining, Activation, Max Epoc, Delta, Delta Window, Year, Month, Day, H Temp, A Temp, L Temp, H Humidity, A Humidity, L Humidity, H DP, A DP, L DP, Prec, H Press, A Press, L Press, H Vis, A Vis, L Vis, Fog, Rain, Snow, TS, H Wind, A Wind, G Wind, Pop, LOA, Lat, Long
 <experiments>
-,,,,,100,,0,1,0,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0
-8,8,8,true,,100,,0,1,0,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0
-8,8,8,false,,100,,0,1,0,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0
-8,8,,true,,100,,0,1,0,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0
-8,8,,false,,100,,0,1,0,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0
-8,,,true,,100,,0,1,0,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0
-8,,,false,,100,,0,1,0,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0
+<2;3>,<2;3>,<2;3>,true,Gaussian,1,1,,,0,1,1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,1,0,0,1,1,0,0,0
 </experiments>
 
 <input_files>

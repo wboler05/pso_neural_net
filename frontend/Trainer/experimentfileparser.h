@@ -43,7 +43,7 @@ private:
     bool readOptions(const std::string & fullFile);
     bool readAutoTest(const std::string & fullFile);
     bool readExperiments(const std::string & fullFile);
-    TrainingParameters parseExperimentLine(const QString & line, bool & valid);
+    std::vector<TrainingParameters> parseExperimentLine(const QString & line, bool & valid);
 
     NeuralNet::Activation parseActivationFunction(const QString & s);
 };

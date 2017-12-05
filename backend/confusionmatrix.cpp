@@ -637,3 +637,20 @@ std::vector<real> ConfusionMatrix::splitMSE(const std::vector<real> & result, co
     }
     return mse;
 }
+
+ConfusionMatrix ConfusionMatrix::average(std::vector<ConfusionMatrix> & matricies){
+    ConfusionMatrix avg = ConfusionMatrix();
+    for(size_t i = 0; i < matricies.size(); i++){
+        avg.overallError().accuracy += matricies[i].overallError().accuracy;
+        avg.overallError().f_score += matricies[i].overallError().f_score;
+        avg.overallError().precision += matricies[i].overallError().precision;
+        avg.overallError().specificity += matricies[i].overallError().specificity;
+        avg.overallError().sensitivity += matricies[i].overallError().sensitivity;
+    }
+    avg.overallError().accuracy /= matricies.size();
+    avg.overallError().f_score /= matricies.size();
+    avg.overallError().precision /= matricies.size();
+    avg.overallError().specificity /= matricies.size();
+    avg.overallError().sensitivity /= matricies.size();
+    return avg;
+}
