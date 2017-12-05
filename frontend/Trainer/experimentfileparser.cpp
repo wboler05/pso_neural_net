@@ -186,7 +186,6 @@ std::vector<TrainingParameters> ExperimentFileParser::parseExperimentLine(const 
 
     // Split The Input String
     QStringList parameterStrings = line.split(',');
-//    if (parameterStrings.length() < 39) {
     if (parameterStrings.length() < 9) {
         valid = false;
         return runParams;
@@ -286,8 +285,11 @@ std::vector<TrainingParameters> ExperimentFileParser::parseExperimentLine(const 
                 if(ok == false){
                     valid = false;
                 }
+
                 topology.resize(topoIdx + 1);
-                runParams[idx].np.innerNetNodes = topology;
+                for (int n = idx; n < runParams.size(); n++){
+                    runParams[n].np.innerNetNodes = topology;
+                }
 
                 // Topo Training On/Off
                 size_t topoLim = (counts[topoTraining] > 1) ? counts[topoTraining]:1;
