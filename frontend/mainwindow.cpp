@@ -1324,7 +1324,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
             if (writeToFile){
                 outString.append(QString::number(i).toStdString());
                 outString.append(",");
-                outString.append(QString::number(k).toStdString());
+                outString.append(QString::number(k+1).toStdString());
                 outString.append(",");
                 outString.append(QString::number(d.proposedTopology.size()).toStdString());
                 outString.append(",");
@@ -1488,7 +1488,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
             if (writeToFile){
                 outString.append(QString::number(i).toStdString());
                 outString.append(",");
-                outString.append(QString::number(k).toStdString());
+                outString.append(QString::number(k+1).toStdString());
                 outString.append(",");
                 outString.append(QString::number(d.proposedTopology.size()).toStdString());
                 outString.append(",");
