@@ -1374,8 +1374,12 @@ void MainWindow::on_testProcedure_btn_clicked() {
 
     *_params = defaultParams;
 
-    qDebug( )<< "Printing Results: (" << avgResults.size() << "/" << proposedNewTests.size() << ") ";
     std::string resultString;
+    resultString.append("Printing Results: (");
+    resultString.append(stringPut(avgResults.size()));
+    resultString.append("/");
+    resultString.append(stringPut(proposedNewTests.size()));
+    resultString.append(") ");
     for (size_t i = 0; i < avgResults.size(); i++) {
         resultString.append("(");
         resultString.append(QString::number(i).toStdString());
@@ -1398,7 +1402,8 @@ void MainWindow::on_testProcedure_btn_clicked() {
         resultString.append(QString::number(avgResults[i].stats.overallError().specificity).toStdString());
         resultString.append("\n");
     }
-    qDebug() << resultString.c_str();
+
+    Logger::write(resultString);
 }
 
 void MainWindow::on_testBaseCase_btn_clicked() {
