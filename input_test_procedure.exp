@@ -15,11 +15,8 @@
 	<test_activation_functions> true </test_activation_functions>
 </autotest>
 
-# <2;3>,<2;3>,<2;3>,true,Gaussian,1,1,,,
 <experiments>
-16,16,16,<all>,<all>,5,100,,,
-16,16,,<all>,<all>,5,100,,,
-16,,,<all>,<all>,5,100,,,
+<2;3>,<2;3>,<2;3>,true,Gaussian,1,1,,,
 </experiments>
 
 <input_files>

@@ -1251,6 +1251,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
     }
 
     std::vector<std::vector<BestTopoData>> resultingNets; // Final Nets after training
+    std::vector<std::vector<BestTopoData>> resultingTopos;
     size_t trialsPerExp = expParser.experimentParams().trials_per_experiment;
     std::vector<AvgExperimentData> avgResults;
 
@@ -1269,10 +1270,11 @@ void MainWindow::on_testProcedure_btn_clicked() {
         AvgExperimentData thisExp;
         *_params = expParser.getParamsList()[i];
         updateParameterGui();
-        std::vector<BestTopoData> topoTrainTrials;
         std::vector<BestTopoData> resultsPerExp;
+        std::vector<BestTopoData> topoTrainTrials;
 
         for (size_t k = 0; k < trialsPerExp; k++) {
+
             if (!_runningAutomatedTestProcedure) {
                 break;
             }
@@ -1305,42 +1307,46 @@ void MainWindow::on_testProcedure_btn_clicked() {
         thisExp.topoTrainingEnabled = _params->fp.enableTopologyTraining;
         thisExp.topo = _params->np.innerNetNodes;
         avgResults.push_back(thisExp);
+        // Copy into topo vector
+        resultingTopos.push_back(topoTrainTrials);
+    }
 
-        // Make any new proposed tests
-        if (_params->fp.enableTopologyTraining){
+    // Make new runs from proposed topologies
+    for (size_t i = 0; i < resultingTopos.size(); i++){
 
-            vector<int> proposedTopo;
-            proposedTopo.resize(_params->np.innerNetNodes.size(),0);
+        std::vector<int> proposedTopo;
 
-            for(size_t i = 0; i < proposedTopo.size(); i++){
-                std::vector<int> numNodes;
-                for(size_t j = 0; j < trialsPerExp; j++){
-                    numNodes.push_back(topoTrainTrials[j].proposedTopology[i]);
-                }
-                proposedTopo[i] = mode(numNodes);
+        for (size_t k = 0; k < resultingTopos[i][0].proposedTopology.size(); k++){
+            // Collect all layer counts
+            std::vector<int> numNodes;
+            for(size_t j = 0; j < resultingTopos[i].size(); i++){
+                numNodes.push_back(resultingTopos[i][j].proposedTopology[k]);
             }
+            // Get mode of each layer
+            proposedTopo.push_back(mode(numNodes));
+        }
 
-            TrainingParameters newRun = *_params;
-            newRun.np.innerNetNodes = proposedTopo;
-            newRun.fp.enableTopologyTraining = false;
+        TrainingParameters newRun = *_params;
+        newRun.np.innerNetNodes = proposedTopo;
+        newRun.fp.enableTopologyTraining = false;
 
-            // Check that proposed topo is not already in the list.
-            bool notDuplicate = true;
-            for (size_t l = 0; l < proposedNewTests.size(); l++){
-                bool sameVect = true;
-                for (size_t m = 0; m < proposedNewTests[l].np.innerNetNodes.size(); m++){
-                    if (proposedNewTests[l].np.innerNetNodes[m] != proposedTopo[m]){
-                        sameVect = false;
-                    }
-                }
-                if (sameVect == true){
-                    notDuplicate = false;
+        // Check that proposed topo is not already in the list.
+        bool notDuplicate = true;
+        for (size_t l = 0; l < proposedNewTests.size(); l++){
+            bool sameVect = true;
+            for (size_t m = 0; m < proposedNewTests[l].np.innerNetNodes.size(); m++){
+                if (proposedNewTests[l].np.innerNetNodes[m] != proposedTopo[m]){
+                    sameVect = false;
                 }
             }
-            if(notDuplicate){
-                proposedNewTests.push_back(newRun);
+            if (sameVect == true){
+                notDuplicate = false;
             }
         }
+        if(notDuplicate){
+            proposedNewTests.push_back(newRun);
+        }
+
     }
 
     /** Proposed New Tests Section **/
@@ -1407,26 +1413,25 @@ void MainWindow::on_testProcedure_btn_clicked() {
     resultString.append(stringPut(avgResults.size()));
     resultString.append("/");
     resultString.append(stringPut(proposedNewTests.size()));
-    resultString.append(") ");
+    resultString.append(")\n");
+    resultString.append("Test Index, Hidden Layers, H1, H2, H3, Accuracy, F-Score, Percision, Sensivity, Specificity\n");
     for (size_t i = 0; i < avgResults.size(); i++) {
-        resultString.append("(");
         resultString.append(QString::number(i).toStdString());
-        resultString.append("): Layers = ");
+        resultString.append(",");
         resultString.append(QString::number(avgResults[i].topo.size()).toStdString());
-        resultString.append(": ");
+        resultString.append(",");
         for (size_t j = 0; j < avgResults[i].topo.size(); j++) {
             resultString.append(QString::number(avgResults[i].topo[j]).toStdString());
-            resultString.append(", ");
+            resultString.append(",");
         }
-        resultString.append("Accuracy: " );
         resultString.append(QString::number(avgResults[i].stats.overallError().accuracy).toStdString());
-        resultString.append(", F-Score: ");
+        resultString.append(",");
         resultString.append(QString::number(avgResults[i].stats.overallError().f_score).toStdString());
-        resultString.append(", Precision: ");
+        resultString.append(",");
         resultString.append(QString::number(avgResults[i].stats.overallError().precision).toStdString());
-        resultString.append(", Sensitivity: ");
+        resultString.append(",");
         resultString.append(QString::number(avgResults[i].stats.overallError().sensitivity).toStdString());
-        resultString.append(", Specificity: ");
+        resultString.append(",");
         resultString.append(QString::number(avgResults[i].stats.overallError().specificity).toStdString());
         resultString.append("\n");
     }
