@@ -1293,14 +1293,17 @@ void MainWindow::on_testProcedure_btn_clicked() {
             proposedTopo.resize(_params->np.innerNetNodes.size(),0);
 
             for(size_t i = 0; i < proposedTopo.size(); i++){
+                std::vector<int> numNodes;
                 for(size_t j = 0; j < trialsPerExp; j++){
-                    proposedTopo[i] += topoTrainTrials[j].proposedTopology[i];
+                    numNodes.push_back(topoTrainTrials[j].proposedTopology[i]);
                 }
-                proposedTopo[i] = std::round(proposedTopo[i] / trialsPerExp);
+                proposedTopo[i] = mode(numNodes);
             }
+
             TrainingParameters newRun = *_params;
             newRun.np.innerNetNodes = proposedTopo;
             newRun.fp.enableTopologyTraining = false;
+
             // Check that proposed topo is not already in the list.
             bool notDuplicate = true;
             for (size_t l = 0; l < proposedNewTests.size(); l++){

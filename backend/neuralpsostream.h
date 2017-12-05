@@ -63,6 +63,22 @@ namespace NeuralPsoStream {
     void cleanInputString(std::string & dirtyString);
     void cleanInputString(std::string & dirtyString, const std::string & badChars);
 
+    std::string openToken(const std::string & token) {
+        std::string ps;
+        ps.append("<");
+        ps.append(token);
+        ps.append(">");
+        return ps;
+    }
+
+    std::string closeToken(const std::string & token) {
+        std::string ps;
+        ps.append("</");
+        ps.append(token);
+        ps.append(">");
+        return ps;
+    }
+
     template <class T>
     std::string stringifyParamsNugget(const std::string & token, const T & val) {
 

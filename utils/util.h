@@ -36,4 +36,9 @@ T numberFromString(const std::string & s) {
 
 std::vector<real> cdfUniform(const std::vector<real> & nonNormalPdf);
 
+int median(std::vector<int> vect);
+// assumes all the ints in the input vector are supposed to be > 0
+int mode(std::vector<int> vect);
+
+
 #endif // UTIL_H
