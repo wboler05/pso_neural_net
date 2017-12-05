@@ -1254,14 +1254,37 @@ void MainWindow::on_testProcedure_btn_clicked() {
     std::vector<std::vector<BestTopoData>> resultingTopos;
     size_t trialsPerExp = expParser.experimentParams().trials_per_experiment;
     std::vector<AvgExperimentData> avgResults;
+    QFile outFile("testProcedureResults.txt");
+    bool writeToFile = true;
+    if (!outFile.open(QFile::WriteOnly | QFile::Truncate)) {
+        qWarning() << "Unable to write test procedure results to file.";
+        writeToFile = false;
+    }
+    else {
+        std::string headerString;
+        QTextStream oStream(&outFile);
+        headerString.append("Test Index, Hidden Layers, H1, H2, H3, Accuracy, F-Score, Percision, Sensivity, Specificity\n");
+        oStream << headerString.c_str();
+        Logger::write(headerString);
+    }
 
     /** Auto test section **/
     qDebug() << "Auto Section: ";
 
     /** Manual Test Section **/
     qDebug() << "Manual Section: ";
+    if (writeToFile){
+        std::string outString;
+        outString.append("Manual Tests: ");
+        outString.append(stringPut(expParser.getParamsList().size()));
+        outString.append("\n");
+        oStream << outString.c_str();
+        Logger::write(outString);
+        outString.clear();
+    }
     std::vector<TrainingParameters> proposedNewTests;
     for (size_t i = 0; i < expParser.getParamsList().size(); i++) {
+
         if (!_runningAutomatedTestProcedure) {
             break;
         }
@@ -1309,6 +1332,34 @@ void MainWindow::on_testProcedure_btn_clicked() {
         avgResults.push_back(thisExp);
         // Copy into topo vector
         resultingTopos.push_back(topoTrainTrials);
+        // Average results and print
+        std::vector<ConfusionMatrix> trialStats;
+        for (size_t j = 0; j < trialsPerExp; j++){
+            trialStats.push_back(resultingNets[i][j].result.cm);
+        }
+        avgResults[i].stats = ConfusionMatrix::average(trialStats);
+        if (writeToFile){
+            outString.append(QString::number(avgResults[i].topo.size()).toStdString());
+            outString.append(",");
+            for (size_t j = 0; j < avgResults[i].topo.size(); j++) {
+                outString.append(QString::number(avgResults[i].topo[j]).toStdString());
+                outString.append(",");
+            }
+            outString.append(QString::number(avgResults[i].stats.overallError().accuracy).toStdString());
+            outString.append(",");
+            outString.append(QString::number(avgResults[i].stats.overallError().f_score).toStdString());
+            outString.append(",");
+            outString.append(QString::number(avgResults[i].stats.overallError().precision).toStdString());
+            outString.append(",");
+            outString.append(QString::number(avgResults[i].stats.overallError().sensitivity).toStdString());
+            outString.append(",");
+            outString.append(QString::number(avgResults[i].stats.overallError().specificity).toStdString());
+            outString.append("\n");
+            oStream << outString.c_str();
+            Logger::write(outString);
+            outString.clear();
+        }
+
     }
 
     // Make new runs from proposed topologies
@@ -1354,6 +1405,16 @@ void MainWindow::on_testProcedure_btn_clicked() {
 
     /** Proposed New Tests Section **/
     qDebug() << "Proposed Topos Section: ";
+    if (writeToFile){
+        std::string outString;
+        outString.append("Proposed Tests: ");
+        outString.append(stringPut(proposedNewTests.size()));
+        outString.append("\n");
+        oStream << outString.c_str();
+        Logger::write(outString);
+        outString.clear();
+    }
+    const size_t startIdx = resultingTopos.size();
     for (size_t i = 0; i < proposedNewTests.size(); i++) {
         if (!_runningAutomatedTestProcedure) {
             break;
@@ -1395,60 +1456,38 @@ void MainWindow::on_testProcedure_btn_clicked() {
 
         // Copy into the final result vector
         resultingNets.push_back(resultsPerTopoExp);
-    }
 
-    // Average Everything
-    for (size_t i = 0; i < avgResults.size(); i++){
-
+        // Average results and print
         std::vector<ConfusionMatrix> trialStats;
         for (size_t j = 0; j < trialsPerExp; j++){
-            trialStats.push_back(resultingNets[i][j].result.cm);
+            trialStats.push_back(resultingNets[startIdx+i][j].result.cm);
         }
-
-        avgResults[i].stats = ConfusionMatrix::average(trialStats);
-
+        avgResults[startIdx+i].stats = ConfusionMatrix::average(trialStats);
+        if (writeToFile){
+            outString.append(QString::number(avgResults[startIdx+i].topo.size()).toStdString());
+            outString.append(",");
+            for (size_t j = 0; j < avgResults[startIdx+i].topo.size(); j++) {
+                outString.append(QString::number(avgResults[startIdx+i].topo[j]).toStdString());
+                outString.append(",");
+            }
+            outString.append(QString::number(avgResults[startIdx+i].stats.overallError().accuracy).toStdString());
+            outString.append(",");
+            outString.append(QString::number(avgResults[startIdx+i].stats.overallError().f_score).toStdString());
+            outString.append(",");
+            outString.append(QString::number(avgResults[startIdx+i].stats.overallError().precision).toStdString());
+            outString.append(",");
+            outString.append(QString::number(avgResults[startIdx+i].stats.overallError().sensitivity).toStdString());
+            outString.append(",");
+            outString.append(QString::number(avgResults[startIdx+i].stats.overallError().specificity).toStdString());
+            outString.append("\n");
+            oStream << outString.c_str();
+            Logger::write(outString);
+            outString.clear();
+        }
     }
 
-    *_params = defaultParams;
-
-    std::string resultString;
-    resultString.append("Printing Results: (");
-    resultString.append(stringPut(avgResults.size()));
-    resultString.append("/");
-    resultString.append(stringPut(proposedNewTests.size()));
-    resultString.append(")\n");
-    resultString.append("Test Index, Hidden Layers, H1, H2, H3, Accuracy, F-Score, Percision, Sensivity, Specificity\n");
-    for (size_t i = 0; i < avgResults.size(); i++) {
-        resultString.append(QString::number(i).toStdString());
-        resultString.append(",");
-        resultString.append(QString::number(avgResults[i].topo.size()).toStdString());
-        resultString.append(",");
-        for (size_t j = 0; j < avgResults[i].topo.size(); j++) {
-            resultString.append(QString::number(avgResults[i].topo[j]).toStdString());
-            resultString.append(",");
-        }
-        resultString.append(QString::number(avgResults[i].stats.overallError().accuracy).toStdString());
-        resultString.append(",");
-        resultString.append(QString::number(avgResults[i].stats.overallError().f_score).toStdString());
-        resultString.append(",");
-        resultString.append(QString::number(avgResults[i].stats.overallError().precision).toStdString());
-        resultString.append(",");
-        resultString.append(QString::number(avgResults[i].stats.overallError().sensitivity).toStdString());
-        resultString.append(",");
-        resultString.append(QString::number(avgResults[i].stats.overallError().specificity).toStdString());
-        resultString.append("\n");
-    }
-
-    Logger::write(resultString);
-
-    QFile outFile("testProcedureResults.txt");
-
-    if (!outFile.open(QFile::WriteOnly | QFile::Truncate)) {
-        qWarning() << "Unable to write test procedure results to file.";
-    } else {
-        QTextStream oStream(&outFile);
-        oStream << resultString.c_str();
-
+    // Close the file
+    if (writeToFile){
         outFile.close();
     }
 }
