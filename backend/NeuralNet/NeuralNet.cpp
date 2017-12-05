@@ -230,12 +230,52 @@ size_t NeuralNet::totalInnerNodeLayersFromState(const State & state) {
     return static_cast<size_t>(innerNodes);
 }
 
-/*
-size_t NeuralNet::totalInputsFromState(const State & state) {
-    ///TODO
-    return 0;
+int NeuralNet::totalInputsFromState(const State & state) {
+    size_t totalEdgeLayers = totalEdgeLayersFromState(state);
+    if (state.size() > 1) {
+        if (state[1].size() > 0) {
+            return static_cast<int>(state[1][0].size());
+        } else {
+            return 0;
+        }
+    } else {
+        return 0;
+    }
 }
-*/
+
+std::vector<int> NeuralNet::innerLayersFromState(const State & state) {
+    State stateCopy = state;
+    std::vector<int> innerNets;
+    std::vector<std::vector<real>> constants = getConstantsFromState(stateCopy);
+    innerNets.resize(constants.size(), 0);
+    for (size_t i = 0; i < constants.size(); i++) {
+        innerNets[i] = static_cast<int>(constants[i].size());
+    }
+    return innerNets;
+}
+
+int NeuralNet::totalOutputsFromState(const State & state) {
+    size_t totalEdgeLayers = totalEdgeLayersFromState(state);
+    if (totalEdgeLayers > 0) {
+        const std::vector<std::vector<real>> & lastInnerLayer = state[totalEdgeLayers];
+        if (lastInnerLayer.size() > 0) {
+            return static_cast<int>(lastInnerLayer[0].size());
+        } else {
+            return 0;
+        }
+    } else {
+        return 0;
+    }
+
+}
+
+NeuralNet::NeuralNetParameters NeuralNet::paramsFromState(const State & state) {
+    NeuralNet::NeuralNetParameters p;
+    p.inputs = static_cast<int>(totalInputsFromState(state));
+    p.innerNetNodes = innerLayersFromState(state);
+    p.outputs = static_cast<int>(totalOutputsFromState(state));
+    return p;
+}
 
 void NeuralNet::buildTopology() {
     InnerNodes & topology = _state[0];

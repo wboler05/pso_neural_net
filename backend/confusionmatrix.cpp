@@ -234,25 +234,25 @@ void ConfusionMatrix::calcOverallAccuracy() {
         testStats[i].getClassError(classError[i]);
     }
 
-    _overallError.accuracy = 0;
+    //_overallError.accuracy = 0;
     _overallError.precision = 0;
     _overallError.sensitivity = 0;
     _overallError.specificity = 0;
     _overallError.f_score = 0;
     for (size_t i = 0; i < _numberOfClassifiers; i++) {
-        _overallError.accuracy += classError[i].accuracy;
+        //_overallError.accuracy += classError[i].accuracy;
         _overallError.precision += classError[i].precision;
         _overallError.sensitivity += classError[i].sensitivity;
         _overallError.specificity += classError[i].specificity;
         _overallError.f_score += classError[i].f_score;
     }
-    _overallError.accuracy /= static_cast<real>(_numberOfClassifiers);
+    //_overallError.accuracy /= static_cast<real>(_numberOfClassifiers);
     _overallError.precision /= static_cast<real>(_numberOfClassifiers);
     _overallError.sensitivity /= static_cast<real>(_numberOfClassifiers);
     _overallError.specificity /= static_cast<real>(_numberOfClassifiers);
     _overallError.f_score /= static_cast<real>(_numberOfClassifiers);
 
-
+    _overallError.accuracy = CustomMath::total(_truePositiveValues) / static_cast<real>(_totalPopulation);
 
 
     /*

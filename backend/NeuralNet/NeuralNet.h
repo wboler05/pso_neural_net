@@ -123,8 +123,10 @@ public:
     static size_t totalStateElementsFromInnerNodes(const size_t & innerNodes);
     static size_t totalEdgeLayersFromState(const State & state);
     static size_t totalInnerNodeLayersFromState(const State & state);
-    static size_t totalInputsFromState(const State & state);
-    static size_t totalOutputsFromState(const State & state);
+    static int totalInputsFromState(const State & state);
+    static std::vector<int> innerLayersFromState(const State & state);
+    static int totalOutputsFromState(const State & state);
+    static NeuralNet::NeuralNetParameters paramsFromState(const State & state);;
 
     bool isSkipNode(const size_t & layer, const size_t & node);
     bool isSkipEdge(const size_t & leftLayer, const size_t & leftNode, const size_t & rightNode);

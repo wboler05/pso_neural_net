@@ -132,6 +132,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionConfusion_Matrix, SIGNAL(triggered(bool)), this, SLOT(showConfusionMatrixHelpBox()));
     connect(ui->fitnessPlotWindow_sb, SIGNAL(valueChanged(int)), this, SLOT(updateFitnessPlotWindowSize()));
 
+    connect(ui->outputRange_le, SIGNAL(editingFinished()), this, SLOT(cleanOutputRangeLineEdit()));
+    connect(ui->globalBestSelection_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(updateFromGlobalBestComboBox()));
+
     QTimer * updateTimer = new QTimer(this);
     connect(updateTimer, SIGNAL(timeout()), this, SLOT(updatePlot()));
     updateTimer->start(500);
@@ -142,11 +145,14 @@ MainWindow::MainWindow(QWidget *parent) :
     // Init before running things
     initializeData();
 
+    on_actionEnable_Output_toggled(false);
+    updateOutputRanges();
+
     QSize windowSize(1500, 850);
-    QPoint dockOffset(100, 75);
-    QPoint dockPos = pos() + dockOffset;
-    dockPos.rx() += size().rwidth();
-    ui->dockWidget->move(dockPos);
+//    QPoint dockOffset(100, 75);
+//    QPoint dockPos = pos() + dockOffset;
+//    dockPos.rx() += size().rwidth();
+//    ui->dockWidget->move(dockPos);
 
     this->resize(windowSize);
 }
@@ -201,6 +207,7 @@ void MainWindow::on_actionLoad_Input_File_triggered() {
 
         _params->cp.inputFileName = filename;
         initializeCache();
+        clearPSOState();
 
         /*
         if (!_inputCache->reloadCache(filename)) {
@@ -330,6 +337,32 @@ void MainWindow::on_actionLoad_PSO_State_triggered() {
     msgBox->exec();
 }
 
+void MainWindow::cleanOutputRangeLineEdit() {
+    QString lineEdit = ui->outputRange_le->text();
+    QStringList commaSeparated = lineEdit.split(',');
+    for (int i = 0; i < commaSeparated.length(); i++) {
+        QString stripped = commaSeparated[i];
+        stripped.remove(QRegExp("[^\\d]"));
+        commaSeparated[i] = stripped;
+    }
+
+    for (int i = 0; i < commaSeparated.length(); i++) {
+        if (commaSeparated[i].length() == 0) {
+            commaSeparated.removeAt(i);
+            i--;
+        }
+    }
+
+    lineEdit.clear();
+    for(int i = 0; i < commaSeparated.length(); i++) {
+        lineEdit.append(commaSeparated[i]);
+        if (i != commaSeparated.length()-1) {
+            lineEdit.append(',');
+        }
+    }
+    ui->outputRange_le->setText(lineEdit);
+}
+
 void MainWindow::setCurrentNet() {
     if (_neuralPsoTrainer != nullptr) {
         _trainedNeuralNet = _neuralPsoTrainer->buildNeuralNetFromGb();
@@ -349,10 +382,13 @@ void MainWindow::on_actionSaveSelected_ANN_triggered() {
     }
 
     QDir curDir(qApp->applicationDirPath());
-    QString fileName = QFileDialog::getSaveFileName(this, "Save the Selected Best", curDir.absolutePath(), "PSO (*.state)");
+    QString fileName = QFileDialog::getSaveFileName(this, "Save the Selected Best", curDir.absolutePath(), "ANN State (*.state)");
 
     //QString psoState(_neuralPsoTrainer->stringifyState().c_str());
     std::string psoState;
+    psoState.append(stringifyParamsVector<size_t>("inputSkips", OutageDataWrapper::inputSkips()));
+    psoState.append(stringifyParamsNugget("history", _params->inputHistorySize));
+    psoState.append(stringifyParamsNugget("activation_function", static_cast<size_t>(_params->np.act)));
     psoState.append(openToken("_best_overall_gb"));
     psoState.append("\n");
     psoState.append(stringifyState(_neuralPsoTrainer->getOverallBest().state));
@@ -380,6 +416,64 @@ void MainWindow::on_actionSaveSelected_ANN_triggered() {
         msgBox->setText(msgBoxTxt);
         msgBox->exec();
         return;
+    }
+}
+
+void MainWindow::on_actionLoad_GB_Neural_Net_triggered() {
+    using namespace NeuralPsoStream;
+
+    QDir curDir(qApp->applicationDirPath());
+    QString fileName = QFileDialog::getOpenFileName(this, "Load the ANN", curDir.absolutePath(), "ANN State (*.state)");
+
+    QFile inputFile(fileName);
+    QString rawANNState;
+    if (inputFile.open(QFile::ReadOnly)) {
+        QTextStream inputStream(&inputFile);
+        rawANNState = inputStream.readAll();
+
+        std::string cleanANNState = rawANNState.toStdString();
+        cleanInputString(cleanANNState);
+
+        std::vector<size_t> skips ;
+        if (!vectorFromString<size_t>(cleanANNState, "inputSkips", skips)) {
+            qDebug( )<< "Failed to read skips from ANN state. on_actionLoad_GB_Neural_Net_triggered()";
+            return;
+        }
+
+        std::string historyString = subStringByToken(cleanANNState, "history");
+        size_t historyVal = numberFromString<size_t>(historyString);
+        qDebug() << "Loaded History Size String: " << historyString.c_str();
+        qDebug() << "\tParsed Value: " << historyVal;
+
+        std::string activationString = subStringByToken(cleanANNState, "activation_function");
+        NeuralNet::Activation act = static_cast<NeuralNet::Activation>(numberFromString<size_t>(activationString));
+        qDebug() << "Loaded Activation String: " << activationString.c_str();
+        qDebug() << "\tParsed value: " << act;
+
+        std::string stateString = subStringByToken(cleanANNState, "_best_overall_gb");
+        NeuralNet::State newState = stateFromString(stateString);
+
+        OutageDataWrapper::setInputSkips(skips);
+        for (size_t i = 0;i < skips.size(); i++) {
+            qDebug() << "Skip " << skips[i];
+        }
+
+        NeuralNet::NeuralNetParameters newParams = NeuralNet::paramsFromState(newState);
+
+        _params->inputHistorySize = historyVal;
+        _params->np.act = act;
+        _params->np.inputs = newParams.inputs;
+        _params->np.innerNetNodes = newParams.innerNetNodes;
+        _params->np.outputs = newParams.outputs;
+        _params->ep.setSkipsFromVector(skips);
+
+        updateElementSkips();
+
+        clearPSOState();
+
+        _trainedNeuralNet = std::make_unique<NeuralNet>(_params->np, newState);
+
+        updateParameterGui();
     }
 }
 
@@ -568,10 +662,58 @@ qDebug() << "Made it here.";
     setGlobalBestSelectionBox();
 }
 
+void MainWindow::updateOutputRanges() {
+    QStringList outputRanges = ui->outputRange_le->text().split(',');
+    bool failFlag = false;
+
+    if (outputRanges.length() > 0) {
+        for (size_t i = 0; i < outputRanges.size(); i++) {
+            if (outputRanges[i].length() == 0) {
+                failFlag = true;
+                break;
+            }
+        }
+        if (!failFlag) {
+            std::vector<real> ranges;
+            for (int i = 0; i < outputRanges.size(); i++) {
+                bool ok = false;
+                real rangeVal = outputRanges[i].toDouble(&ok);
+                if (ok) {
+                    ranges.push_back(rangeVal);
+                }
+            }
+            if (ranges.size() > 0) {
+                OutageDataWrapper::setOutputRanges(ranges);
+
+                OutageDataWrapper dataWrapper = (*_inputCache)[0];
+                _params->np.outputs = static_cast<int>(dataWrapper.outputSize());
+            } else {
+                failFlag = true;
+            }
+        }
+    } else {
+        failFlag = true;
+    }
+
+    if (failFlag) {
+        std::vector<real> ranges = OutageDataWrapper::outputRanges();
+        QString newOutputDueToFailure;
+        for (int i = 0; i < outputRanges.size(); i++) {
+            newOutputDueToFailure.append(QString::number(static_cast<size_t>(ranges[i]), 10));
+            if (i != outputRanges.size() -1) {
+                newOutputDueToFailure.append(',');
+            }
+        }
+        ui->outputRange_le->setText(newOutputDueToFailure);
+    }
+}
+
 void MainWindow::applyParameterChanges() {
     qApp->processEvents();
 
     applyElementSkips();
+    updateOutputRanges();
+
 
     _params->pp.population = static_cast<size_t>(ui->totalParticles_sb->value());
     _params->pp.neighbors = static_cast<size_t>(ui->totalNeighbors_sb->value());
@@ -672,6 +814,9 @@ void MainWindow::setGlobalBestSelectionBox() {
     case TrainingParameters::Sanity_Check_Best:
         ui->globalBestSelection_cb->setCurrentIndex(2);
         break;
+    case TrainingParameters::Current_Net:
+        ui->globalBestSelection_cb->setCurrentIndex(3);
+        break;
     }
 }
 
@@ -680,8 +825,18 @@ void MainWindow::getGlobalBestSelectionFromBox() {
         _params->showBestSelected = TrainingParameters::Recent_Global_Best;
     } else if (ui->globalBestSelection_cb->currentIndex() == 1){
         _params->showBestSelected = TrainingParameters::Selected_Global_Best;
-    } else {
+    } else if (ui->globalBestSelection_cb->currentIndex() == 2) {
         _params->showBestSelected = TrainingParameters::Sanity_Check_Best;
+    } else {
+        _params->showBestSelected = TrainingParameters::Current_Net;
+    }
+}
+
+void MainWindow::updateFromGlobalBestComboBox() {
+    getGlobalBestSelectionFromBox();
+    if (_neuralPsoTrainer) {
+        updateConfusionMatrix();
+        updatePlot();
     }
 }
 
@@ -690,6 +845,7 @@ void MainWindow::setActivationByCB() {
 }
 
 void MainWindow::updateActivationCB() {
+    qDebug( )<< "Update Activation << " << _params->np.act;
     ui->activation_cb->setCurrentIndex(_params->np.act);
 }
 
@@ -761,6 +917,7 @@ void MainWindow::updateElementSkips() {
     ui->enLocLat_cb->setChecked(_params->ep.latitude);
     ui->enLocLong_cb->setChecked(_params->ep.longitude);
     ui->enPopulation_cb->setChecked(_params->ep.population);
+    //ui->dockWidget->update();
 }
 
 int MainWindow::getNetTypeCBIndex() {
@@ -797,6 +954,7 @@ void MainWindow::setInputsForTrainedNetFromGui() {
 }
 
 void MainWindow::updateConfusionMatrix() {
+    if (!_neuralPsoTrainer) return;
 
     ConfusionMatrix cm;
 
@@ -810,6 +968,9 @@ void MainWindow::updateConfusionMatrix() {
         break;
     case TrainingParameters::Sanity_Check_Best:
         cm = _neuralPsoTrainer->sanityCheckGb().cm;
+        break;
+    case TrainingParameters::Current_Net:
+        cm = _currentNetCm;
         break;
     default:
         return;
@@ -935,7 +1096,7 @@ void MainWindow::stopPso() {
 }
 
 void MainWindow::on_testFullSet_btn_clicked() {
-    if (_neuralPsoTrainer) {
+    if (_neuralPsoTrainer && _trainedNeuralNet) {
 
         QTimer * fitnessPlotTimer = new QTimer(this);
         fitnessPlotTimer->setInterval(200);
@@ -945,13 +1106,21 @@ void MainWindow::on_testFullSet_btn_clicked() {
         QString weAreRunning("Please wait while we test everything.");
         setOutputLabel(weAreRunning);
 
-        _neuralPsoTrainer->fullTestState();
+        GlobalBestObject customNet;
+        customNet.state = _trainedNeuralNet->state();
+        _neuralPsoTrainer->setCustomNet(customNet);
+        _neuralPsoTrainer->runFullTestOnCustomNet(_params->np);
+        _currentNetCm = _neuralPsoTrainer->customNet().cm;
+        updateConfusionMatrix();
 
         QString completionMsg("Complete!");
         setOutputLabel(completionMsg);
 
         disconnect(fitnessPlotTimer, SIGNAL(timeout()), this, SLOT(updateFitnessPlot()));
         fitnessPlotTimer->deleteLater();
+    }
+    if (!_trainedNeuralNet) {
+        qDebug( )<< "Unable to run an empty net!  Load or set the current net.";
     }
 }
 
@@ -1246,6 +1415,7 @@ void MainWindow::on_resetAndRun_btn_clicked() {
 
     switch(choice) {
     case QMessageBox::Yes:
+        applyElementSkips();
         clearPSOState();
         runNeuralPso();
         break;
@@ -1263,6 +1433,7 @@ void MainWindow::on_clearState_btn_clicked() {
 
     switch(choice) {
     case QMessageBox::Yes:
+        applyElementSkips();
         clearPSOState();
         break;
     default:
@@ -1308,6 +1479,11 @@ void MainWindow::updatePlot() {
             break;
         case TrainingParameters::Sanity_Check_Best:
             state = &(_neuralPsoTrainer->sanityCheckGb().state);
+            break;
+        case TrainingParameters::Current_Net:
+            if (_trainedNeuralNet) {
+                state = &(_trainedNeuralNet->state());
+            }
             break;
         }
 
@@ -1399,10 +1575,10 @@ void MainWindow::keyPressEvent(QKeyEvent * e) {
 void MainWindow::resizeEvent(QResizeEvent * event) {
     qDebug() << "MainWindow Size: " << this->size();
     qDebug() << "MainWindow Pos: " << this->pos();
-    qDebug() << "Dock Position: " << ui->dockWidget->pos();
-    QPoint relativePosition = pos() - ui->dockWidget->pos();
-    relativePosition.rx() -= size().rwidth();
-    qDebug() << "Dock Relative Position: " << relativePosition;
+    //qDebug() << "Dock Position: " << ui->dockWidget->pos();
+    //QPoint relativePosition = pos() - ui->dockWidget->pos();
+    //relativePosition.rx() -= size().rwidth();
+    //qDebug() << "Dock Relative Position: " << relativePosition;
 }
 
 uint32_t MainWindow::readUnsignedInt(ifstream &input) {

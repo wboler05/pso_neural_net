@@ -229,25 +229,25 @@ bool stateFromNuggetString(const std::string & cleanString, const std::string & 
     return true;
 }
 
-template <class T>
-bool valFromNuggetString(const std::string & cleanString, const std::string & token, int & it, T & val) {
+//template <class T>
+//bool valFromNuggetString(const std::string & cleanString, const std::string & token, int & it, T & val) {
 
-    // Move the iterator to the next available token in the full string
-    if (!findNextToken(cleanString, it)) {
-        // If no token found, bounce
-        return false;
-    }
+//    // Move the iterator to the next available token in the full string
+//    if (!findNextToken(cleanString, it)) {
+//        // If no token found, bounce
+//        return false;
+//    }
 
-    // Get the value string matching the token
-    std::string valString = subStringByToken(cleanString, token, it);
-    // If we found the value
-    if (!valString.empty()) {
-        // Get the value from the string
-        T val_ = numberFromString<T>(valString);
-        val = val_;
-    }
-    return true;
-}
+//    // Get the value string matching the token
+//    std::string valString = subStringByToken(cleanString, token, it);
+//    // If we found the value
+//    if (!valString.empty()) {
+//        // Get the value from the string
+//        T val_ = numberFromString<T>(valString);
+//        val = val_;
+//    }
+//    return true;
+//}
 
 template <class T>
 bool vectorFromNuggetString(const std::string & cleanString, const std::string & token, int & it, std::vector<T> & val) {
@@ -370,7 +370,7 @@ bool findCloseToken(const string &fullstring, const string token, int &it) {
 
 }
 
-std::string subStringByToken(const string &fullString , const string token) {
+std::string subStringByToken(const string &fullString , const string &token) {
     std::string subString;
     int it = 0;
     do {
@@ -624,54 +624,71 @@ std::string stringifyFParams(const FitnessParameters & p) {
     return ps;
 }
 
-template <class T>
-std::string stringifyParamsNugget(const std::string & token, const T & val) {
+//template <class T>
+//std::string stringifyParamsNugget(const std::string & token, const T & val) {
 
-    // Write the nugget
-    std::string ps;
+//    // Write the nugget
+//    std::string ps;
 
-    // Write the open token
-    ps.append("\t");
-    ps.append(openToken(token));
-    ps.append("\n\t\t");
+//    // Write the open token
+//    ps.append("\t");
+//    ps.append(openToken(token));
+//    ps.append("\n\t\t");
 
-    // Write the value
-    ps.append(stringPut(val));
+//    // Write the value
+//    ps.append(stringPut(val));
 
-    // Write the close token
-    ps.append("\n\t");
-    ps.append(closeToken(token));
-    ps.append("\n");
+//    // Write the close token
+//    ps.append("\n\t");
+//    ps.append(closeToken(token));
+//    ps.append("\n");
 
-    // Return our string
-    return ps;
-}
+//    // Return our string
+//    return ps;
+//}
 
-template <class T>
-std::string stringifyParamsVector(const std::string & token, const std::vector<T> & val) {
+//template <class T>
+//std::string stringifyParamsVector(const std::string & token, const std::vector<T> & val) {
 
-    //!TEST!//
-    std::string ps;
+//    //!TEST!//
+//    std::string ps;
 
-    // Write the open token
-    ps.append("\t");
-    ps.append(openToken(token));
-    ps.append("\n\t\t");
+//    // Write the open token
+//    ps.append("\t");
+//    ps.append(openToken(token));
+//    ps.append("\n\t\t");
 
-    // Write the list of vector values
-    for (size_t i = 0; i < val.size(); i++) {
-        // Use the placement in the vector as a token
-        ps.append(stringifyParamsNugget<T>(stringPut(i), val[i]));
-    }
+//    // Write the list of vector values
+//    for (size_t i = 0; i < val.size(); i++) {
+//        // Use the placement in the vector as a token
+//        ps.append(stringifyParamsNugget<T>(stringPut(i), val[i]));
+//    }
 
-    // Write the close token
-    ps.append("\n\t");
-    ps.append(closeToken(token));
-    ps.append("\n");
+//    // Write the close token
+//    ps.append("\n\t");
+//    ps.append(closeToken(token));
+//    ps.append("\n");
 
-    // Return our string
-    return ps;
-}
+//    // Return our string
+//    return ps;
+//}
+
+//template <class T>
+//bool vectorFromString(const std::string & s, const std::string & token, std::vector<T> & val) {
+//    std::vector<T> buffer;
+//    std::string vectorString = subStringByToken(s, token);
+//    size_t it = 0;
+//    int i = 0;
+//    while (it < s.size()) {
+//        T newVal;
+//        if (!valFromNuggetString(vectorString, stringPut(i), it, val)) {
+//            return false;
+//        } else {
+//            buffer.push_back(newVal);
+//        }
+//    }
+//    val = buffer;
+//}
 
 //TrainingParameters parametersFromString(const std::string & pString) {
 //    //!TEST!//

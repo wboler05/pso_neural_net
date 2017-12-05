@@ -7,14 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>1282</width>
-    <height>1073</height>
+    <height>1241</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout_21" stretch="20,1,4,1">
+   <layout class="QVBoxLayout" name="verticalLayout_21" stretch="20,1,4,1,0">
     <item>
      <layout class="QHBoxLayout" name="plotLayout" stretch="10,10,10,0">
       <item>
@@ -283,6 +283,11 @@
              <string>Sanity Check</string>
             </property>
            </item>
+           <item>
+            <property name="text">
+             <string>Current Net</string>
+            </property>
+           </item>
           </widget>
          </item>
         </layout>
@@ -389,15 +394,11 @@
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
           <layout class="QGridLayout" name="gridLayout">
-           <item row="13" column="0">
-            <widget class="QLabel" name="label_22">
-             <property name="text">
-              <string>Validation Folds</string>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="1">
             <widget class="QSpinBox" name="totalParticles_sb">
+             <property name="toolTip">
+              <string>Number of PSO particles to train with.</string>
+             </property>
              <property name="minimum">
               <number>1</number>
              </property>
@@ -406,29 +407,58 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="label_5">
-             <property name="text">
-              <string>Pso Term Delta</string>
-             </property>
-            </widget>
-           </item>
            <item row="3" column="2">
             <widget class="QCheckBox" name="enableMaxEpochs_cb">
+             <property name="toolTip">
+              <string>Enables maximum number of epochs. </string>
+             </property>
              <property name="text">
               <string>Enable</string>
              </property>
             </widget>
            </item>
+           <item row="13" column="0">
+            <widget class="QLabel" name="label_22">
+             <property name="text">
+              <string>Validation Folds</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_5">
+             <property name="toolTip">
+              <string>Minimum fitness delta before terminating.  Delta is calculated by min and max values found within the &quot;window&quot; of global best results for each epoch.</string>
+             </property>
+             <property name="text">
+              <string>Pso Term Delta</string>
+             </property>
+            </widget>
+           </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label_2">
+             <property name="toolTip">
+              <string>Number of PSO neighbors for each particle to train with. Should be between 10-20% of # of particles.</string>
+             </property>
              <property name="text">
               <string>Neighbors</string>
              </property>
             </widget>
            </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label">
+             <property name="toolTip">
+              <string>Number of PSO particles to train with.</string>
+             </property>
+             <property name="text">
+              <string>Particles</string>
+             </property>
+            </widget>
+           </item>
            <item row="1" column="1">
             <widget class="QSpinBox" name="totalNeighbors_sb">
+             <property name="toolTip">
+              <string>Number of PSO neighbors for each particle to train with. Should be between 10-20% of # of particles.</string>
+             </property>
              <property name="maximum">
               <number>10000</number>
              </property>
@@ -436,20 +466,19 @@
            </item>
            <item row="8" column="0">
             <widget class="QLabel" name="label_6">
+             <property name="toolTip">
+              <string>Window size for determining the minimum and maximum values for calculating the delta to terminate. </string>
+             </property>
              <property name="text">
               <string>Window Size</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label">
-             <property name="text">
-              <string>Particles</string>
-             </property>
-            </widget>
-           </item>
            <item row="3" column="1">
             <widget class="QSpinBox" name="maxEpochs_sb">
+             <property name="toolTip">
+              <string>Maximun number of epochs that training will run for.</string>
+             </property>
              <property name="minimum">
               <number>1</number>
              </property>
@@ -458,17 +487,23 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="label_3">
+           <item row="4" column="2">
+            <widget class="QCheckBox" name="enableDelta_cb">
+             <property name="toolTip">
+              <string>Enables checking of the delta for termination.</string>
+             </property>
              <property name="text">
-              <string>Max Epochs</string>
+              <string>Enable</string>
              </property>
             </widget>
            </item>
-           <item row="8" column="1">
-            <widget class="QSpinBox" name="window_sb">
-             <property name="maximum">
-              <number>10000</number>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_3">
+             <property name="toolTip">
+              <string>Maximun number of epochs that training will run for.</string>
+             </property>
+             <property name="text">
+              <string>Max Epochs</string>
              </property>
             </widget>
            </item>
@@ -484,6 +519,9 @@
            </item>
            <item row="4" column="1">
             <widget class="QDoubleSpinBox" name="delta_dsb">
+             <property name="toolTip">
+              <string>Minimum fitness delta before terminating.  Delta is calculated by min and max values found within the &quot;window&quot; of global best results for each epoch.</string>
+             </property>
              <property name="decimals">
               <number>9</number>
              </property>
@@ -492,10 +530,13 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="2">
-            <widget class="QCheckBox" name="enableDelta_cb">
-             <property name="text">
-              <string>Enable</string>
+           <item row="8" column="1">
+            <widget class="QSpinBox" name="window_sb">
+             <property name="toolTip">
+              <string>Window size for determining the minimum and maximum values for calculating the delta to terminate. </string>
+             </property>
+             <property name="maximum">
+              <number>10000</number>
              </property>
             </widget>
            </item>
@@ -508,13 +549,29 @@
            </item>
            <item row="10" column="0">
             <widget class="QPushButton" name="innerNet_btn">
+             <property name="toolTip">
+              <string>Change the number of hidden layers and nodes.</string>
+             </property>
              <property name="text">
               <string>Inner Nets</string>
              </property>
             </widget>
            </item>
+           <item row="5" column="1">
+            <widget class="QSpinBox" name="trainingIterations_sb">
+             <property name="toolTip">
+              <string>Training iterations for each epoch.  This is the number of samples of training data to pull for each comparison. </string>
+             </property>
+             <property name="maximum">
+              <number>10000</number>
+             </property>
+            </widget>
+           </item>
            <item row="10" column="1">
             <widget class="QComboBox" name="netType_cb">
+             <property name="toolTip">
+              <string>Change the type of ANN to use.</string>
+             </property>
              <property name="currentIndex">
               <number>0</number>
              </property>
@@ -535,39 +592,44 @@
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_28">
+             <property name="toolTip">
+              <string>Minimum number of epochs before allowing automatic termination of training.</string>
+             </property>
              <property name="text">
               <string>Min Epochs</string>
              </property>
             </widget>
            </item>
-           <item row="5" column="1">
-            <widget class="QSpinBox" name="trainingIterations_sb">
-             <property name="maximum">
-              <number>10000</number>
-             </property>
-            </widget>
-           </item>
            <item row="11" column="0">
             <widget class="QLabel" name="label_41">
+             <property name="toolTip">
+              <string>Enable training of the topology.  By disabling, the ANN will train against 100% of the user-defined topology for edge weights and activation function constants.  Best used for finding a &quot;good&quot; topology, and then disabling to find more accurate weights.</string>
+             </property>
              <property name="text">
               <string>Topo. Training</string>
              </property>
             </widget>
            </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_30">
+             <property name="toolTip">
+              <string>Training iterations for each epoch.  This is the number of samples of training data to pull for each comparison. </string>
+             </property>
+             <property name="text">
+              <string>Train Iterations</string>
+             </property>
+            </widget>
+           </item>
            <item row="2" column="1">
             <widget class="QSpinBox" name="minEpochs_sb">
+             <property name="toolTip">
+              <string>Minimum number of epochs before allowing automatic termination of training.</string>
+             </property>
              <property name="minimum">
               <number>1</number>
              </property>
              <property name="maximum">
               <number>1000000</number>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <widget class="QLabel" name="label_30">
-             <property name="text">
-              <string>Train Iterations</string>
              </property>
             </widget>
            </item>
@@ -578,17 +640,30 @@
              </property>
             </widget>
            </item>
+           <item row="12" column="0">
+            <widget class="QLabel" name="label_19">
+             <property name="text">
+              <string>Activation Fn.</string>
+             </property>
+            </widget>
+           </item>
            <item row="11" column="2">
             <widget class="QCheckBox" name="topoTraining_cb">
+             <property name="toolTip">
+              <string>Enable training of the topology.  By disabling, the ANN will train against 100% of the user-defined topology for edge weights and activation function constants.  Best used for finding a &quot;good&quot; topology, and then disabling to find more accurate weights.</string>
+             </property>
              <property name="text">
               <string>Enable</string>
              </property>
             </widget>
            </item>
-           <item row="12" column="0">
-            <widget class="QLabel" name="label_19">
+           <item row="2" column="2">
+            <widget class="QCheckBox" name="enableMinEpochs_cb">
+             <property name="toolTip">
+              <string>Enables the minimum training.  Should be set for &quot;Pso Term Delta&quot;. </string>
+             </property>
              <property name="text">
-              <string>Activation Fn.</string>
+              <string>Enable</string>
              </property>
             </widget>
            </item>
@@ -638,22 +713,11 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="2">
-            <widget class="QCheckBox" name="enableMinEpochs_cb">
-             <property name="text">
-              <string>Enable</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="0">
-            <widget class="QLabel" name="label_21">
-             <property name="text">
-              <string>dt</string>
-             </property>
-            </widget>
-           </item>
            <item row="9" column="1">
             <widget class="QDoubleSpinBox" name="dt_dsb">
+             <property name="toolTip">
+              <string>Scaling value that is multiplied against the velocity of each particle.</string>
+             </property>
              <property name="decimals">
               <number>6</number>
              </property>
@@ -665,10 +729,13 @@
              </property>
             </widget>
            </item>
-           <item row="14" column="0">
-            <widget class="QLabel" name="label_23">
+           <item row="9" column="0">
+            <widget class="QLabel" name="label_21">
+             <property name="toolTip">
+              <string>Scaling value that is multiplied against the velocity of each particle.</string>
+             </property>
              <property name="text">
-              <string>Input History Size</string>
+              <string>dt</string>
              </property>
             </widget>
            </item>
@@ -692,6 +759,23 @@
              </property>
             </widget>
            </item>
+           <item row="14" column="0">
+            <widget class="QLabel" name="label_23">
+             <property name="text">
+              <string>Input History Size</string>
+             </property>
+            </widget>
+           </item>
+           <item row="15" column="0">
+            <widget class="QLabel" name="label_24">
+             <property name="text">
+              <string>Output Ranges</string>
+             </property>
+            </widget>
+           </item>
+           <item row="15" column="1">
+            <widget class="QLineEdit" name="outputRange_le"/>
+           </item>
           </layout>
          </item>
          <item>
@@ -714,139 +798,6 @@
             </property>
             <item>
              <layout class="QGridLayout" name="fitnessLimitsLayout">
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_10">
-                <property name="text">
-                 <string>Sensitivity</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="1">
-               <widget class="QDoubleSpinBox" name="sen_weight_dsb">
-                <property name="decimals">
-                 <number>4</number>
-                </property>
-                <property name="maximum">
-                 <double>100000.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.050000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_8">
-                <property name="text">
-                 <string>Accuracy</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="2">
-               <widget class="QDoubleSpinBox" name="mse_floor_dsb">
-                <property name="decimals">
-                 <number>6</number>
-                </property>
-                <property name="maximum">
-                 <double>1.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.050000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="2">
-               <widget class="QDoubleSpinBox" name="acc_floor_dsb">
-                <property name="decimals">
-                 <number>6</number>
-                </property>
-                <property name="maximum">
-                 <double>1.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.050000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_7">
-                <property name="text">
-                 <string>MSE</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QLabel" name="label_13">
-                <property name="text">
-                 <string>Weights</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <widget class="QLabel" name="label_14">
-                <property name="text">
-                 <string>Floors</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QDoubleSpinBox" name="mse_weight_dsb">
-                <property name="decimals">
-                 <number>4</number>
-                </property>
-                <property name="maximum">
-                 <double>100000.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.050000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QDoubleSpinBox" name="acc_weight_dsb">
-                <property name="decimals">
-                 <number>4</number>
-                </property>
-                <property name="maximum">
-                 <double>100000.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.050000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_9">
-                <property name="text">
-                 <string>Precision</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QDoubleSpinBox" name="pre_weight_dsb">
-                <property name="decimals">
-                 <number>4</number>
-                </property>
-                <property name="maximum">
-                 <double>100000.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.050000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="2">
-               <widget class="QDoubleSpinBox" name="pre_floor_dsb">
-                <property name="decimals">
-                 <number>6</number>
-                </property>
-                <property name="maximum">
-                 <double>1.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.050000000000000</double>
-                </property>
-               </widget>
-              </item>
               <item row="4" column="2">
                <widget class="QDoubleSpinBox" name="sen_floor_dsb">
                 <property name="decimals">
@@ -874,19 +825,6 @@
                 </property>
                </widget>
               </item>
-              <item row="6" column="1">
-               <widget class="QDoubleSpinBox" name="fscore_weight_dsb">
-                <property name="decimals">
-                 <number>4</number>
-                </property>
-                <property name="maximum">
-                 <double>10000.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.050000000000000</double>
-                </property>
-               </widget>
-              </item>
               <item row="5" column="2">
                <widget class="QDoubleSpinBox" name="spe_floor_dsb">
                 <property name="decimals">
@@ -894,6 +832,19 @@
                 </property>
                 <property name="maximum">
                  <double>1.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.050000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QDoubleSpinBox" name="spe_weight_dsb">
+                <property name="decimals">
+                 <number>4</number>
+                </property>
+                <property name="maximum">
+                 <double>100000.000000000000000</double>
                 </property>
                 <property name="singleStep">
                  <double>0.050000000000000</double>
@@ -913,8 +864,141 @@
                 </property>
                </widget>
               </item>
-              <item row="5" column="1">
-               <widget class="QDoubleSpinBox" name="spe_weight_dsb">
+              <item row="6" column="1">
+               <widget class="QDoubleSpinBox" name="fscore_weight_dsb">
+                <property name="decimals">
+                 <number>4</number>
+                </property>
+                <property name="maximum">
+                 <double>10000.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.050000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QDoubleSpinBox" name="sen_weight_dsb">
+                <property name="decimals">
+                 <number>4</number>
+                </property>
+                <property name="maximum">
+                 <double>100000.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.050000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_10">
+                <property name="text">
+                 <string>Sensitivity</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_8">
+                <property name="text">
+                 <string>Accuracy</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QDoubleSpinBox" name="mse_floor_dsb">
+                <property name="decimals">
+                 <number>6</number>
+                </property>
+                <property name="maximum">
+                 <double>1.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.050000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_7">
+                <property name="text">
+                 <string>MSE</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="label_14">
+                <property name="text">
+                 <string>Floors</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSpinBox" name="mse_weight_dsb">
+                <property name="decimals">
+                 <number>4</number>
+                </property>
+                <property name="maximum">
+                 <double>100000.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.050000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLabel" name="label_13">
+                <property name="text">
+                 <string>Weights</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QDoubleSpinBox" name="acc_floor_dsb">
+                <property name="decimals">
+                 <number>6</number>
+                </property>
+                <property name="maximum">
+                 <double>1.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.050000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QDoubleSpinBox" name="acc_weight_dsb">
+                <property name="decimals">
+                 <number>4</number>
+                </property>
+                <property name="maximum">
+                 <double>100000.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.050000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="2">
+               <widget class="QDoubleSpinBox" name="pre_floor_dsb">
+                <property name="decimals">
+                 <number>6</number>
+                </property>
+                <property name="maximum">
+                 <double>1.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.050000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_9">
+                <property name="text">
+                 <string>Precision</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QDoubleSpinBox" name="pre_weight_dsb">
                 <property name="decimals">
                  <number>4</number>
                 </property>
@@ -1056,7 +1140,7 @@
       <property name="title">
        <string>Outage Test Input</string>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="20,1,2">
+      <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,1,2">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_4">
          <item>
@@ -1614,33 +1698,17 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="testFullSet_btn">
-        <property name="text">
-         <string>Full Monty!</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="testBaseCase_btn">
         <property name="font">
          <font>
           <italic>true</italic>
          </font>
         </property>
+        <property name="toolTip">
+         <string>Run the net with it's output labels fed into the inputs.  Should result in 1:1 corresponding net. Good for testing modifications to code.  Resutling accuracy should always be 100%.</string>
+        </property>
         <property name="text">
          <string>Test Base Case</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="clearState_btn">
-        <property name="font">
-         <font>
-          <strikeout>true</strikeout>
-         </font>
-        </property>
-        <property name="text">
-         <string>Clear State</string>
         </property>
        </widget>
       </item>
@@ -1652,14 +1720,52 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="runTestingSet_btn">
+        <property name="toolTip">
+         <string>Run against the partitioned testing set.</string>
+        </property>
+        <property name="text">
+         <string>Run Testing Set</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="testFullSet_btn">
+        <property name="toolTip">
+         <string>Run current ANN against all data.</string>
+        </property>
+        <property name="text">
+         <string>Test 100% Data</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="setNet_btn">
         <property name="font">
          <font>
-          <strikeout>true</strikeout>
+          <strikeout>false</strikeout>
          </font>
+        </property>
+        <property name="toolTip">
+         <string>Sets the current network that has been recently trained. </string>
         </property>
         <property name="text">
          <string>Set Current Net</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="clearState_btn">
+        <property name="font">
+         <font>
+          <strikeout>false</strikeout>
+         </font>
+        </property>
+        <property name="toolTip">
+         <string>Deletes the results of the corrent net and reloads a fresh default net based on GUI settings.</string>
+        </property>
+        <property name="text">
+         <string>Clear State</string>
         </property>
        </widget>
       </item>
@@ -1678,6 +1784,9 @@
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>Runs the automated test procedure, read from file.  Takes a long time.</string>
+        </property>
         <property name="text">
          <string>Run Test Procedure</string>
         </property>
@@ -1690,6 +1799,9 @@
           <weight>75</weight>
           <bold>true</bold>
          </font>
+        </property>
+        <property name="toolTip">
+         <string>Same as &quot;Run&quot;, except re-initializes the net.</string>
         </property>
         <property name="text">
          <string>Reset and Run</string>
@@ -1705,6 +1817,9 @@
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>Runs the training process without re-initializing net.  Will initialize the net if first time ran. </string>
+        </property>
         <property name="text">
          <string>Run</string>
         </property>
@@ -1719,12 +1834,432 @@
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>Stops training.</string>
+        </property>
         <property name="text">
          <string>Stop</string>
         </property>
        </widget>
       </item>
      </layout>
+    </item>
+    <item>
+     <widget class="QWidget" name="widget" native="true">
+      <layout class="QHBoxLayout" name="horizontalLayout_9">
+       <item>
+        <widget class="QGroupBox" name="date_gb">
+         <property name="title">
+          <string>Date</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_24">
+          <item>
+           <widget class="QCheckBox" name="enDateYear_cb">
+            <property name="text">
+             <string>Year</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enDateMonth_cb">
+            <property name="text">
+             <string>Month</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enDateDay_cb">
+            <property name="text">
+             <string>Day</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="temp_gb">
+         <property name="title">
+          <string>Temperature</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_23">
+          <item>
+           <widget class="QCheckBox" name="enTempHigh_cb">
+            <property name="text">
+             <string>High</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enTempAvg_cb">
+            <property name="text">
+             <string>Avg</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enTempLow_cb">
+            <property name="text">
+             <string>Low</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="dewpoint_gb">
+         <property name="title">
+          <string>Dew Point</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_11">
+          <item>
+           <widget class="QCheckBox" name="enDewHigh_cb">
+            <property name="text">
+             <string>High</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enDewAvg_cb">
+            <property name="text">
+             <string>Avg</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enDewLow_cb">
+            <property name="text">
+             <string>Low</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enPrec_cb">
+            <property name="text">
+             <string>Prec.</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="humidity_gb">
+         <property name="title">
+          <string>Humidity</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_12">
+          <item>
+           <widget class="QCheckBox" name="enHumidityHigh_cb">
+            <property name="text">
+             <string>High</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enHumidityAvg_cb">
+            <property name="text">
+             <string>Avg</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enHumidityLow_cb">
+            <property name="text">
+             <string>Low</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="pressure_gb">
+         <property name="title">
+          <string>Pressure</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_10">
+          <item>
+           <widget class="QCheckBox" name="enPressHigh_cb">
+            <property name="text">
+             <string>High</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enPressAvg_cb">
+            <property name="text">
+             <string>Avg</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enPressLow_cb">
+            <property name="text">
+             <string>Low</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="visibility_gb">
+         <property name="title">
+          <string>Visibility</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_9">
+          <item>
+           <widget class="QCheckBox" name="enVisibilityHigh_cb">
+            <property name="text">
+             <string>High</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enVisibilityAvg_cb">
+            <property name="text">
+             <string>Avg</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enVisibilityLow_cb">
+            <property name="text">
+             <string>Low</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="wing_gb">
+         <property name="title">
+          <string>Wind</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <item>
+           <widget class="QCheckBox" name="enWindHigh_cb">
+            <property name="text">
+             <string>High</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enWindAvg_cb">
+            <property name="text">
+             <string>Avg</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enWindGust_cb">
+            <property name="text">
+             <string>Gust</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="storm_gb">
+         <property name="title">
+          <string>Storm</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="2">
+           <widget class="QCheckBox" name="enStormRain_cb">
+            <property name="text">
+             <string>Rain</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="enStormFog_cb">
+            <property name="text">
+             <string>Fog</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QCheckBox" name="enStormTS_cb">
+            <property name="text">
+             <string>ThunderStorm</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="enStormSnow_cb">
+            <property name="text">
+             <string>Snow</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="location_gb">
+         <property name="title">
+          <string>Location</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QCheckBox" name="enPopulation_cb">
+            <property name="text">
+             <string>Population</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+            <property name="tristate">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enLocLong_cb">
+            <property name="text">
+             <string>Longitude</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enLocLat_cb">
+            <property name="text">
+             <string>Latitude</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="enLocLOA_cb">
+            <property name="text">
+             <string>LOA</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -1804,439 +2339,6 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <widget class="QDockWidget" name="dockWidget">
-   <property name="floating">
-    <bool>true</bool>
-   </property>
-   <property name="features">
-    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout_23">
-     <item>
-      <widget class="QGroupBox" name="date_gb">
-       <property name="title">
-        <string>Date</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_10">
-        <item>
-         <widget class="QCheckBox" name="enDateYear_cb">
-          <property name="text">
-           <string>Year</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enDateMonth_cb">
-          <property name="text">
-           <string>Month</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enDateDay_cb">
-          <property name="text">
-           <string>Day</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="temp_gb">
-       <property name="title">
-        <string>Temperature</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_11">
-        <item>
-         <widget class="QCheckBox" name="enTempHigh_cb">
-          <property name="text">
-           <string>High</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enTempAvg_cb">
-          <property name="text">
-           <string>Avg</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enTempLow_cb">
-          <property name="text">
-           <string>Low</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="humidity_gb">
-       <property name="title">
-        <string>Humidity</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_12">
-        <item>
-         <widget class="QCheckBox" name="enHumidityHigh_cb">
-          <property name="text">
-           <string>High</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enHumidityAvg_cb">
-          <property name="text">
-           <string>Avg</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enHumidityLow_cb">
-          <property name="text">
-           <string>Low</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="dewpoint_gb">
-       <property name="title">
-        <string>Dew Point</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_6">
-        <item row="0" column="1">
-         <widget class="QCheckBox" name="enDewHigh_cb">
-          <property name="text">
-           <string>High</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QCheckBox" name="enDewAvg_cb">
-          <property name="text">
-           <string>Avg</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="3">
-         <widget class="QCheckBox" name="enDewLow_cb">
-          <property name="text">
-           <string>Low</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QCheckBox" name="enPrec_cb">
-          <property name="text">
-           <string>Prec.</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="pressure_gb">
-       <property name="title">
-        <string>Pressure</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_13">
-        <item>
-         <widget class="QCheckBox" name="enPressHigh_cb">
-          <property name="text">
-           <string>High</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enPressAvg_cb">
-          <property name="text">
-           <string>Avg</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enPressLow_cb">
-          <property name="text">
-           <string>Low</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="visibility_gb">
-       <property name="title">
-        <string>Visibility</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_14">
-        <item>
-         <widget class="QCheckBox" name="enVisibilityHigh_cb">
-          <property name="text">
-           <string>High</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enVisibilityAvg_cb">
-          <property name="text">
-           <string>Avg</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enVisibilityLow_cb">
-          <property name="text">
-           <string>Low</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="storm_gb">
-       <property name="title">
-        <string>Storm</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="1">
-         <widget class="QCheckBox" name="enStormFog_cb">
-          <property name="text">
-           <string>Fog</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QCheckBox" name="enStormRain_cb">
-          <property name="text">
-           <string>Rain</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QCheckBox" name="enStormSnow_cb">
-          <property name="text">
-           <string>Snow</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QCheckBox" name="enStormTS_cb">
-          <property name="text">
-           <string>ThunderStorm</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="wing_gb">
-       <property name="title">
-        <string>Wind</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_15">
-        <item>
-         <widget class="QCheckBox" name="enWindHigh_cb">
-          <property name="text">
-           <string>High</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enWindAvg_cb">
-          <property name="text">
-           <string>Avg</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="enWindGust_cb">
-          <property name="text">
-           <string>Gust</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="location_gb">
-       <property name="title">
-        <string>Location</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_2">
-        <item row="1" column="1">
-         <widget class="QCheckBox" name="enLocLOA_cb">
-          <property name="text">
-           <string>LOA</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="3">
-         <widget class="QCheckBox" name="enLocLat_cb">
-          <property name="text">
-           <string>Latitude</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="4">
-         <widget class="QCheckBox" name="enLocLong_cb">
-          <property name="text">
-           <string>Longitude</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="3">
-         <widget class="QCheckBox" name="enPopulation_cb">
-          <property name="text">
-           <string>Population</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-          <property name="tristate">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="Line" name="line_15">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
   <action name="actionClose">
    <property name="text">
     <string>Close</string>
@@ -2283,7 +2385,7 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>Enable Output</string>
