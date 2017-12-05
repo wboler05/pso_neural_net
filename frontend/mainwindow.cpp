@@ -1107,12 +1107,15 @@ void MainWindow::on_testProcedure_btn_clicked() {
 
         // Copy into the final result vector
         resultingNets.push_back(resultsPerExp);
+        // Save the average result object
         thisExp.delta = _params->pp.delta;
         thisExp.deltaWindow = _params->pp.windowSize;
         thisExp.activationFunction = _params->np.act;
         thisExp.history = _params->inputHistorySize;
         thisExp.maxEpochs = _params->pp.maxEpochs;
         thisExp.topoTrainingEnabled = _params->fp.enableTopologyTraining;
+        thisExp.topo = _params->np.innerNetNodes;
+        avgResults.push_back(thisExp);
 
         // Make any new proposed tests
         if (_params->fp.enableTopologyTraining){
@@ -1145,13 +1148,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
             if(notDuplicate){
                 proposedNewTests.push_back(newRun);
             }
-            thisExp.topo = proposedTopo;
         }
-        else {
-            thisExp.topo = _params->np.innerNetNodes;
-        }
-        // Save the average result object
-        avgResults.push_back(thisExp);
     }
 
     /** Proposed New Tests Section **/
@@ -1161,6 +1158,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
         qDebug() << "Test: " << i;
         AvgExperimentData thisExp;
         *_params = proposedNewTests[i];
+        updateParameterGui();
         std::vector<BestTopoData> resultsPerTopoExp;
 
         thisExp.delta = _params->pp.delta;
