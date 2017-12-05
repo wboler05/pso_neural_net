@@ -78,7 +78,7 @@ void Pso<T>::run() {
   } while (!checkTermProcess());  // Check for user interrupt
   interruptProcess();   // Reset the interrupt flag
 
-  Logger::write("Ending PSO Run.\n");
+  //Logger::write("Ending PSO Run.\n");
 }
 
 template <class T>

@@ -1255,6 +1255,8 @@ void MainWindow::on_testProcedure_btn_clicked() {
     size_t trialsPerExp = expParser.experimentParams().trials_per_experiment;
     std::vector<AvgExperimentData> avgResults;
     QFile outFile("testProcedureResults.txt");
+    QTextStream oStream(&outFile);
+    std::string outString;
     bool writeToFile = true;
     if (!outFile.open(QFile::WriteOnly | QFile::Truncate)) {
         qWarning() << "Unable to write test procedure results to file.";
@@ -1262,8 +1264,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
     }
     else {
         std::string headerString;
-        QTextStream oStream(&outFile);
-        headerString.append("Test Index, Hidden Layers, H1, H2, H3, Accuracy, F-Score, Percision, Sensivity, Specificity\n");
+        headerString.append("Test Index, Hidden Layers, H1, H2, H3, Accuracy, F-Score, Percision, Sensivity, Specificity");
         oStream << headerString.c_str();
         Logger::write(headerString);
     }
@@ -1274,10 +1275,8 @@ void MainWindow::on_testProcedure_btn_clicked() {
     /** Manual Test Section **/
     qDebug() << "Manual Section: ";
     if (writeToFile){
-        std::string outString;
         outString.append("Manual Tests: ");
         outString.append(stringPut(expParser.getParamsList().size()));
-        outString.append("\n");
         oStream << outString.c_str();
         Logger::write(outString);
         outString.clear();
@@ -1354,7 +1353,6 @@ void MainWindow::on_testProcedure_btn_clicked() {
             outString.append(QString::number(avgResults[i].stats.overallError().sensitivity).toStdString());
             outString.append(",");
             outString.append(QString::number(avgResults[i].stats.overallError().specificity).toStdString());
-            outString.append("\n");
             oStream << outString.c_str();
             Logger::write(outString);
             outString.clear();
@@ -1409,7 +1407,6 @@ void MainWindow::on_testProcedure_btn_clicked() {
         std::string outString;
         outString.append("Proposed Tests: ");
         outString.append(stringPut(proposedNewTests.size()));
-        outString.append("\n");
         oStream << outString.c_str();
         Logger::write(outString);
         outString.clear();
@@ -1479,7 +1476,6 @@ void MainWindow::on_testProcedure_btn_clicked() {
             outString.append(QString::number(avgResults[startIdx+i].stats.overallError().sensitivity).toStdString());
             outString.append(",");
             outString.append(QString::number(avgResults[startIdx+i].stats.overallError().specificity).toStdString());
-            outString.append("\n");
             oStream << outString.c_str();
             Logger::write(outString);
             outString.clear();

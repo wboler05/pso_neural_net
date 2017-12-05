@@ -16,9 +16,7 @@
 </autotest>
 
 <experiments>
-16,16,16,<all>,<all>,1,100,,,
-16,16,,<all>,<all>,1,100,,,
-16,,,<all>,<all>,1,100,,,
+16,,,true,<all>,1,100,,,
 </experiments>
 
 <input_files>
