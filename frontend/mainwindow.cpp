@@ -612,6 +612,7 @@ void MainWindow::setParameterDefaults() {
     _params->pp.termDeltaFlag = false;
     _params->pp.windowSize = 1500;
     _params->pp.dt = 0.5; // .025
+    _params->pp.tempDtFlag = true;
 
     /*
     NeuralNetParameters nParams;
@@ -725,6 +726,7 @@ void MainWindow::applyParameterChanges() {
     _params->pp.termMaxEpochsFlag = ui->enableMaxEpochs_cb->isChecked();
     _params->pp.termDeltaFlag = static_cast<size_t>(ui->enableDelta_cb->isChecked());
     _params->pp.dt = static_cast<double>(ui->dt_dsb->value());
+    _params->pp.tempDtFlag = ui->tempTrainingFlag_cb->isChecked();
 
     _params->np.trainingIterations = ui->trainingIterations_sb->value();
     _params->np.validationIterations = ui->validationIterations_sb->value();
@@ -768,6 +770,7 @@ void MainWindow::updateParameterGui() {
     ui->enableMaxEpochs_cb->setChecked(_params->pp.termMaxEpochsFlag);
     ui->enableDelta_cb->setChecked(_params->pp.termDeltaFlag);
     ui->dt_dsb->setValue(static_cast<double>(_params->pp.dt));
+    ui->tempTrainingFlag_cb->setChecked(_params->pp.tempDtFlag);
 
     ui->trainingIterations_sb->setValue(_params->np.trainingIterations);
     ui->validationIterations_sb->setValue(_params->np.validationIterations);
@@ -1286,6 +1289,9 @@ void MainWindow::on_testProcedure_btn_clicked() {
         outString.clear();
     }
     std::vector<TrainingParameters> proposedNewTests;
+    qDebug() << "Param list size: " << expParser.getParamsList().size();
+    qDebug() << "Trials per Exp: " << trialsPerExp;
+    qDebug( )<< "Total Tests: O(" << expParser.getParamsList().size() * 2.0 * trialsPerExp << ")";
     for (size_t i = 0; i < expParser.getParamsList().size(); i++) {
 
         if (!_runningAutomatedTestProcedure) {
@@ -1369,40 +1375,45 @@ void MainWindow::on_testProcedure_btn_clicked() {
         resultingTopos.push_back(topoTrainTrials);
 
         // Average results and print
-        std::vector<ConfusionMatrix> trialStats;
-        for (size_t j = 0; j < trialsPerExp; j++){
-            trialStats.push_back(resultingNets[i][j].result.cm);
-        }
-        avgResults[i].stats = ConfusionMatrix::average(trialStats);
-        if (writeToFile){
-            outString.append(QString::number(i+1).toStdString());
-            outString.append(",");
-            outString.append(QString::number(0).toStdString());
-            outString.append(",");
-            outString.append(QString::number(avgResults[i].topo.size()).toStdString());
-            outString.append(",");
-            for (size_t j = 0; j < avgResults[i].topo.size(); j++) {
-                outString.append(QString::number(avgResults[i].topo[j]).toStdString());
-                outString.append(",");
+
+        if (i < resultingNets.size()) {
+            std::vector<ConfusionMatrix> trialStats;
+            for (size_t j = 0; j < resultingNets[i].size(); j++){
+                trialStats.push_back(resultingNets[i][j].result.cm);
             }
-            if (avgResults[i].topo.size() < 3){
-                for (size_t k = avgResults[i].topo.size(); k < 3; k++){
-                    outString.append(QString::number(0).toStdString());
+            avgResults[i].stats = ConfusionMatrix::average(trialStats);
+            if (writeToFile){
+                outString.append(QString::number(i).toStdString());
+                outString.append(",");
+                outString.append(QString::number(0).toStdString());
+                outString.append(",");
+                outString.append(QString::number(avgResults[i].topo.size()).toStdString());
+                outString.append(",");
+                for (size_t j = 0; j < avgResults[i].topo.size(); j++) {
+                    outString.append(QString::number(avgResults[i].topo[j]).toStdString());
                     outString.append(",");
                 }
+                outString.append(QString::number(avgResults[i].stats.overallError().accuracy).toStdString());
+                outString.append(",");
+                outString.append(QString::number(avgResults[i].stats.overallError().f_score).toStdString());
+                outString.append(",");
+                outString.append(QString::number(avgResults[i].stats.overallError().precision).toStdString());
+
+                outString.append(",");
+                outString.append(QString::number(avgResults[i].stats.overallError().sensitivity).toStdString());
+                outString.append(",");
+                outString.append(QString::number(avgResults[i].stats.overallError().specificity).toStdString());
+                oStream << outString.c_str();
+                Logger::write(outString);
+                outString.clear();
             }
-            outString.append(QString::number(avgResults[i].stats.overallError().accuracy).toStdString());
-            outString.append(",");
-            outString.append(QString::number(avgResults[i].stats.overallError().f_score).toStdString());
-            outString.append(",");
-            outString.append(QString::number(avgResults[i].stats.overallError().precision).toStdString());
-            outString.append(",");
-            outString.append(QString::number(avgResults[i].stats.overallError().sensitivity).toStdString());
-            outString.append(",");
-            outString.append(QString::number(avgResults[i].stats.overallError().specificity).toStdString());
-            oStream << outString.c_str();
-            Logger::write(outString);
-            outString.clear();
+        }
+        else{
+            std::string errorString;
+            errorString.append("Failed to append resultingNets on i=");
+            errorString.append(stringPut(i));
+            errorString.append(".\n");
+            Logger::write(errorString);
         }
 
     }
@@ -1412,40 +1423,47 @@ void MainWindow::on_testProcedure_btn_clicked() {
 
         std::vector<int> proposedTopo;
 
-        size_t kLim = resultingTopos[i][0].proposedTopology.size();
-        for (size_t k = 0; k < kLim; k++){
-            // Collect all layer counts
-            std::vector<int> numNodes;
-            size_t jLim = resultingTopos[i].size();
-            for(size_t j = 0; j < jLim; j++){
-                numNodes.push_back(resultingTopos[i][j].proposedTopology[k]);
+        if (resultingTopos[i].size() != 0) {
+            size_t kLim = resultingTopos[i][0].proposedTopology.size();
+            for (size_t k = 0; k < kLim; k++){
+                // Collect all layer counts
+                std::vector<int> numNodes;
+                size_t jLim = resultingTopos[i].size();
+                for(size_t j = 0; j < jLim; j++){
+                    numNodes.push_back(resultingTopos[i][j].proposedTopology[k]);
+                }
+                // Get mode of each layer
+                int modeVal = mode(numNodes);
+                proposedTopo.push_back(modeVal);
             }
-            // Get mode of each layer
-            int modeVal = mode(numNodes);
-            proposedTopo.push_back(modeVal);
-        }
 
-        TrainingParameters newRun = *_params;
-        newRun.np.innerNetNodes = proposedTopo;
-        newRun.fp.enableTopologyTraining = false;
+            TrainingParameters newRun = *_params;
+            newRun.np.innerNetNodes = proposedTopo;
+            newRun.fp.enableTopologyTraining = false;
 
-        // Check that proposed topo is not already in the list.
-        bool notDuplicate = true;
-        for (size_t l = 0; l < proposedNewTests.size(); l++){
-            bool sameVect = true;
-            for (size_t m = 0; m < proposedNewTests[l].np.innerNetNodes.size(); m++){
-                if (proposedNewTests[l].np.innerNetNodes[m] != proposedTopo[m]){
-                    sameVect = false;
+            // Check that proposed topo is not already in the list.
+            bool notDuplicate = true;
+            for (size_t l = 0; l < proposedNewTests.size(); l++){
+                bool sameVect = true;
+                for (size_t m = 0; m < proposedNewTests[l].np.innerNetNodes.size(); m++){
+                    if (proposedNewTests[l].np.innerNetNodes[m] != proposedTopo[m]){
+                        sameVect = false;
+                    }
+                }
+                if (sameVect == true){
+                    notDuplicate = false;
                 }
             }
-            if (sameVect == true){
-                notDuplicate = false;
+            if(notDuplicate){
+                proposedNewTests.push_back(newRun);
             }
+        } else {
+            std::string errorString;
+            errorString.append("Resulting Topos size at i=");
+            errorString.append(stringPut(i));
+            errorString.append(" is 0.\n");
+            Logger::write(errorString);
         }
-        if(notDuplicate){
-            proposedNewTests.push_back(newRun);
-        }
-
     }
 
     /** Proposed New Tests Section **/

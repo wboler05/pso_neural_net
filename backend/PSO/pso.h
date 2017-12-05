@@ -29,6 +29,7 @@ struct PsoParams {
   bool termMinEpochsFlag;
   bool termMaxEpochsFlag;
   bool termDeltaFlag;
+  bool tempDtFlag;
 
   ///TODO These NeuralPso parameters
   bool backPropagation=true;

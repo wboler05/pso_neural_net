@@ -11,11 +11,11 @@ real ReLU(const real & in) {
 }
 
 real Sin(const real & in, const real & k) {
-    return sin(in * 2.0 * M_PI * k);
+    return k*sin(in * 2.0 * M_PI);
 }
 
 real Sigmoid(const real & in, const real & k) {
-    return 1.0 / (1.0 + exp(- k * in));
+    return 1.0 / (1.0 + k*exp(-in));
 }
 
 real HypTan(const real & in, const real & k) {
