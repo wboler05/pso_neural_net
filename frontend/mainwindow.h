@@ -118,7 +118,7 @@ private:
     bool _runPso = false;
     bool _runOnce = false;
 
-    volatile bool _runningAutomatedTestProcedure = true;
+    volatile bool _runningAutomatedTestProcedure = false;
 
 #ifdef OPENCL_DEFINED
     std::vector<cl::Device> _cpuDevices;
