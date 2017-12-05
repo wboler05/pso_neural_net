@@ -143,7 +143,7 @@ namespace NeuralPsoStream {
         std::string vectorString = subStringByToken(s, token);
         int it = 0;
         int i = 0;
-        while (it < static_cast<int>(vectorString.size() - (token.size() + 2))) {
+        while (it < static_cast<int>(vectorString.size() - (token.size()))) {
             T newVal;
             if (!valFromNuggetString(vectorString, stringPut(i++), it, newVal)) {
                 return false;
