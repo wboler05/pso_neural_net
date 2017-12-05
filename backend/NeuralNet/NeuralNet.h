@@ -136,7 +136,7 @@ public:
 
     bool buildANN();
 
-    std::vector<size_t> proposedTopology();
+    std::vector<int> proposedTopology();
 
 private:
     // Weights and Data

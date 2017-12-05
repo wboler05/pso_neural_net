@@ -1035,7 +1035,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
     // this 10 times for each expriment to gauge a good agregation of performance.
     // (We'll get to adding which files to load later.)
     struct BestTopoData {
-        std::vector<size_t> proposedTopology;
+        std::vector<int> proposedTopology;
         NeuralNet::Activation activationFunction;
         GlobalBestObject result;
     };
@@ -1044,8 +1044,15 @@ void MainWindow::on_testProcedure_btn_clicked() {
         BestTopoData doubleHiddenLayer;
         BestTopoData tripleHiddenLayer;
     };
-    struct ExperimentData {
-        // Should this be a vector of the different aggregate trials or a vector of activation function runs?
+    struct AvgExperimentData {
+        std::vector<int> topo;
+        bool topoTrainingEnabled;
+        NeuralNet::Activation activationFunction;
+        size_t history;
+        size_t maxEpochs;
+        real delta;
+        size_t deltaWindow;
+        ConfusionMatrix stats;
     };
 
     // Alright, you just ran 210 tests, right?  That might be a lie.  Depends
@@ -1061,15 +1068,26 @@ void MainWindow::on_testProcedure_btn_clicked() {
         return;
     }
 
+    std::vector<std::vector<BestTopoData>> resultingNets; // Final Nets after training
+    size_t trialsPerExp = expParser.experimentParams().trials_per_experiment;
+    std::vector<AvgExperimentData> avgResults;
+
     /** Auto test section **/
+    qDebug() << "Auto Section: ";
 
     /** Manual Test Section **/
-    std::vector<BestTopoData> bestList;
+    qDebug() << "Manual Section: ";
+    std::vector<TrainingParameters> proposedNewTests;
     for (size_t i = 0; i < expParser.getParamsList().size(); i++) {
+
+        qDebug() << "Test: " << i;
+        AvgExperimentData thisExp;
         *_params = expParser.getParamsList()[i];
         updateParameterGui();
-        std::vector<BestTopoData> lowerBestList;
-        for (size_t k = 0; k < expParser.experimentParams().trials_per_experiment; k++) {
+        std::vector<BestTopoData> topoTrainTrials;
+        std::vector<BestTopoData> resultsPerExp;
+
+        for (size_t k = 0; k < trialsPerExp; k++) {
             qDebug() << "Trial: " << k;
 
             clearPSOState();
@@ -1079,37 +1097,136 @@ void MainWindow::on_testProcedure_btn_clicked() {
             d.proposedTopology = _neuralPsoTrainer->neuralNet()->proposedTopology();
             d.activationFunction = _params->np.act;
             d.result = _neuralPsoTrainer->getOverallBest();
-            lowerBestList.push_back(d);
+            if (_params->fp.enableTopologyTraining){
+                // log each topo trained result
+                topoTrainTrials.push_back(d);
+            }
+            // log each result
+            resultsPerExp.push_back(d);
         }
 
-        real acc = 0;
-        BestTopoData * d = nullptr;
-        for (size_t k = 0; k < lowerBestList.size(); k++) {
-            if (lowerBestList[k].result.cm.overallError().accuracy > acc) {
-                acc = lowerBestList[k].result.cm.overallError().accuracy;
-                d = &lowerBestList[k];
+        // Copy into the final result vector
+        resultingNets.push_back(resultsPerExp);
+        thisExp.delta = _params->pp.delta;
+        thisExp.deltaWindow = _params->pp.windowSize;
+        thisExp.activationFunction = _params->np.act;
+        thisExp.history = _params->inputHistorySize;
+        thisExp.maxEpochs = _params->pp.maxEpochs;
+        thisExp.topoTrainingEnabled = _params->fp.enableTopologyTraining;
+
+        // Make any new proposed tests
+        if (_params->fp.enableTopologyTraining){
+
+            vector<int> proposedTopo;
+            proposedTopo.resize(_params->np.innerNetNodes.size(),0);
+
+            for(size_t i = 0; i < proposedTopo.size(); i++){
+                for(size_t j = 0; j < trialsPerExp; j++){
+                    proposedTopo[i] += topoTrainTrials[j].proposedTopology[i];
+                }
+                proposedTopo[i] = std::round(proposedTopo[i] / trialsPerExp);
             }
+            TrainingParameters newRun = *_params;
+            newRun.np.innerNetNodes = proposedTopo;
+            newRun.fp.enableTopologyTraining = false;
+            // Check that proposed topo is not already in the list.
+            bool notDuplicate = true;
+            for (size_t l = 0; l < proposedNewTests.size(); l++){
+                bool sameVect = true;
+                for (size_t m = 0; m < proposedNewTests[l].np.innerNetNodes.size(); m++){
+                    if (proposedNewTests[l].np.innerNetNodes[m] != proposedTopo[m]){
+                        sameVect = false;
+                    }
+                }
+                if (sameVect == true){
+                    notDuplicate = false;
+                }
+            }
+            if(notDuplicate){
+                proposedNewTests.push_back(newRun);
+            }
+            thisExp.topo = proposedTopo;
         }
-        if (d) {
-            bestList.push_back(*d);
+        else {
+            thisExp.topo = _params->np.innerNetNodes;
         }
+        // Save the average result object
+        avgResults.push_back(thisExp);
     }
+
+    /** Proposed New Tests Section **/
+    qDebug() << "Proposed Topos Section: ";
+    for (size_t i = 0; i < proposedNewTests.size(); i++) {
+
+        qDebug() << "Test: " << i;
+        AvgExperimentData thisExp;
+        *_params = proposedNewTests[i];
+        std::vector<BestTopoData> resultsPerTopoExp;
+
+        thisExp.delta = _params->pp.delta;
+        thisExp.deltaWindow = _params->pp.windowSize;
+        thisExp.activationFunction = _params->np.act;
+        thisExp.history = _params->inputHistorySize;
+        thisExp.maxEpochs = _params->pp.maxEpochs;
+        thisExp.topoTrainingEnabled = _params->fp.enableTopologyTraining;
+        thisExp.topo = _params->np.innerNetNodes;
+        avgResults.push_back(thisExp);
+
+        for (size_t k = 0; k < trialsPerExp; k++) {
+
+            qDebug() << "Trial: " << k;
+
+            clearPSOState();
+            runNeuralPso();
+
+            BestTopoData d;
+            d.proposedTopology = _neuralPsoTrainer->neuralNet()->proposedTopology();
+            d.activationFunction = _params->np.act;
+            d.result = _neuralPsoTrainer->getOverallBest();
+            // log each result
+            resultsPerTopoExp.push_back(d);
+        }
+
+        // Copy into the final result vector
+        resultingNets.push_back(resultsPerTopoExp);
+    }
+
+    // Average Everything
+    for (size_t i = 0; i < avgResults.size(); i++){
+
+        std::vector<ConfusionMatrix> trialStats;
+        for (size_t j = 0; j < trialsPerExp; j++){
+            trialStats.push_back(resultingNets[i][j].result.cm);
+        }
+
+        avgResults[i].stats = ConfusionMatrix::average(trialStats);
+
+    }
+
     *_params = defaultParams;
 
-    qDebug( )<< "Printing Results: ";
+    qDebug( )<< "Printing Results: (" << avgResults.size() << "/" << proposedNewTests.size() << ") ";
     std::string resultString;
-    for (size_t i = 0; i < bestList.size(); i++) {
+    for (size_t i = 0; i < avgResults.size(); i++) {
         resultString.append("(");
         resultString.append(QString::number(i).toStdString());
         resultString.append("): Layers = ");
-        resultString.append(QString::number(bestList[i].proposedTopology.size()).toStdString());
+        resultString.append(QString::number(avgResults[i].topo.size()).toStdString());
         resultString.append(": ");
-        for (size_t j = 0; j < bestList[i].proposedTopology.size(); j++) {
-            resultString.append(QString::number(bestList[i].proposedTopology[j]).toStdString());
+        for (size_t j = 0; j < avgResults[i].topo.size(); j++) {
+            resultString.append(QString::number(avgResults[i].topo[j]).toStdString());
             resultString.append(", ");
         }
         resultString.append("Accuracy: " );
-        resultString.append(QString::number(bestList[i].result.cm.overallError().accuracy).toStdString());
+        resultString.append(QString::number(avgResults[i].stats.overallError().accuracy).toStdString());
+        resultString.append(", F-Score: ");
+        resultString.append(QString::number(avgResults[i].stats.overallError().f_score).toStdString());
+        resultString.append(", Precision: ");
+        resultString.append(QString::number(avgResults[i].stats.overallError().precision).toStdString());
+        resultString.append(", Sensitivity: ");
+        resultString.append(QString::number(avgResults[i].stats.overallError().sensitivity).toStdString());
+        resultString.append(", Specificity: ");
+        resultString.append(QString::number(avgResults[i].stats.overallError().specificity).toStdString());
         resultString.append("\n");
     }
     qDebug() << resultString.c_str();

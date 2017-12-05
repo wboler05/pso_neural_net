@@ -58,6 +58,8 @@ public:
     static std::vector<real> splitMSE(const std::vector<real> &result,
                     const std::vector<real> &expected);
 
+    static ConfusionMatrix average(std::vector<ConfusionMatrix> & matricies);
+
 private:
     // Data Analytics
     TestStatistics _overallStats;
