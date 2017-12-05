@@ -1261,6 +1261,9 @@ void MainWindow::on_testProcedure_btn_clicked() {
     /** Manual Test Section **/
     qDebug() << "Manual Section: ";
     std::vector<TrainingParameters> proposedNewTests;
+    qDebug() << "Param list size: " << expParser.getParamsList().size();
+    qDebug() << "Trials per Exp: " << trialsPerExp;
+    qDebug( )<< "Total Tests: O(" << expParser.getParamsList().size() * 2.0 * trialsPerExp << ")";
     for (size_t i = 0; i < expParser.getParamsList().size(); i++) {
         if (!_runningAutomatedTestProcedure) {
             break;
@@ -1350,7 +1353,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
     }
 
     /** Proposed New Tests Section **/
-    qDebug() << "Proposed Topos Section: ";
+    qDebug() << "Proposed Topos Section: " << proposedNewTests.size();
     for (size_t i = 0; i < proposedNewTests.size(); i++) {
         if (!_runningAutomatedTestProcedure) {
             break;

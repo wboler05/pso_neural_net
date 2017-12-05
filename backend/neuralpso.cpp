@@ -423,7 +423,7 @@ real NeuralPso::flyIteration(const size_t & particleId,
 //        *w_v = -_psoParams.vLimit;
 //    }
 
-    *w_v *= psoParams().dt;
+    *w_v *= psoParams().dt * exp(-6.0 * _epochs / static_cast<real>(std::max(_psoParams.maxEpochs, static_cast<size_t>(10))));
     *w_x += *w_v;
 
     *w_x = std::min(*w_x, *w_x_max);

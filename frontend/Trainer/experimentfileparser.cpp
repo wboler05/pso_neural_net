@@ -263,7 +263,7 @@ std::vector<TrainingParameters> ExperimentFileParser::parseExperimentLine(const 
                 topoIdx = 1;
                 topology[topoIdx] = expansions[h2].first + layer2;
             }
-            else if (counts[h1] == 1){
+            else if (counts[h2] == 1){
                 topoIdx = 1;
                 topology[topoIdx] = std::max(parameterStrings[h2].toInt(&ok),1);
             }
