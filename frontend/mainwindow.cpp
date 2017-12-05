@@ -1437,12 +1437,12 @@ void MainWindow::on_testProcedure_btn_clicked() {
 
     if (!outFile.open(QFile::WriteOnly | QFile::Truncate)) {
         qWarning() << "Unable to write test procedure results to file.";
+    } else {
+        QTextStream oStream(&outFile);
+        oStream << resultString.c_str();
+
+        outFile.close();
     }
-
-    QTextStream oStream(&outFile);
-    oStream << resultString.c_str();
-
-    outFile.close();
 }
 
 void MainWindow::on_testBaseCase_btn_clicked() {
