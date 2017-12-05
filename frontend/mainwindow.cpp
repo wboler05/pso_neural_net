@@ -118,7 +118,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Connect signals to slots
     connect(ui->run_btn, SIGNAL(clicked(bool)), this, SLOT(runNeuralPso()));
-    connect(ui->stop_btn, SIGNAL(clicked(bool)), this, SLOT(stopPso()));
+    //connect(ui->stop_btn, SIGNAL(clicked(bool)), this, SLOT(stopPso()));
     //connect(ui->actionLoad_File, SIGNAL(triggered(bool)), this, SLOT(loadFile_btn()));
     connect(ui->applyParams_btn, SIGNAL(clicked(bool)), this, SLOT(applyParameterChanges()));
     connect(ui->innerNet_btn, SIGNAL(clicked(bool)), this, SLOT(setInnerNetNodesFromGui()));
@@ -1085,14 +1085,17 @@ void MainWindow::testTrainedNetWithInput() {
     }
 }
 
+void MainWindow::on_stop_btn_clicked() {
+    _runningAutomatedTestProcedure = false;
+    stopPso();
+}
+
 void MainWindow::stopPso() {
         _runPso = false;
         qDebug() << "Ending process.  Please wait. ";
     if (_neuralPsoTrainer) {
         _neuralPsoTrainer->stopValidation();
     }
-
-    _runningAutomatedTestProcedure = false;
 
     NeuralPso::interruptProcess();
 }

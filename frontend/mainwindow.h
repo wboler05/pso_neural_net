@@ -98,6 +98,7 @@ protected slots:
     void cleanOutputRangeLineEdit();
     void on_actionLoad_GB_Neural_Net_triggered();
     void updateFromGlobalBestComboBox();
+    void on_stop_btn_clicked();
 
 private:
     Ui::MainWindow *ui;
