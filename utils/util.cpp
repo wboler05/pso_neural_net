@@ -61,3 +61,19 @@ int mode(std::vector<int> vect){
         return median(modes);
     }
 }
+
+template <class T>
+std::string stringPut(T s) {
+  std::stringstream ss;
+  std::string out;
+  ss << s;
+  ss >> out;
+  return out;
+}
+
+template <class T>
+T numberFromString(const std::string & s) {
+    std::istringstream ss(s);
+    T result;
+    return ss >> result ? result : 0;
+}

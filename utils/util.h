@@ -19,20 +19,10 @@
 #include "custommath.h"
 
 template <class T>
-std::string stringPut(T s) {
-  std::stringstream ss;
-  std::string out;
-  ss << s;
-  ss >> out;
-  return out;
-}
+std::string stringPut(T s);
 
 template <class T>
-T numberFromString(const std::string & s) {
-    std::istringstream ss(s);
-    T result;
-    return ss >> result ? result : 0;
-}
+T numberFromString(const std::string & s);
 
 std::vector<real> cdfUniform(const std::vector<real> & nonNormalPdf);
 
