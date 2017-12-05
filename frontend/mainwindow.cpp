@@ -1203,6 +1203,14 @@ void MainWindow::on_testProcedure_btn_clicked() {
     // for each activation function with topo-training.  We're going to run
     // this 10 times for each expriment to gauge a good agregation of performance.
     // (We'll get to adding which files to load later.)
+
+    if (_runningAutomatedTestProcedure) {
+        _runningAutomatedTestProcedure = false;
+        return;
+    } else {
+        _runningAutomatedTestProcedure = true;
+    }
+
     struct BestTopoData {
         std::vector<int> proposedTopology;
         NeuralNet::Activation activationFunction;
@@ -1248,6 +1256,9 @@ void MainWindow::on_testProcedure_btn_clicked() {
     qDebug() << "Manual Section: ";
     std::vector<TrainingParameters> proposedNewTests;
     for (size_t i = 0; i < expParser.getParamsList().size(); i++) {
+        if (!_runningAutomatedTestProcedure) {
+            break;
+        }
 
         qDebug() << "Test: " << i;
         AvgExperimentData thisExp;
@@ -1257,6 +1268,10 @@ void MainWindow::on_testProcedure_btn_clicked() {
         std::vector<BestTopoData> resultsPerExp;
 
         for (size_t k = 0; k < trialsPerExp; k++) {
+            if (!_runningAutomatedTestProcedure) {
+                break;
+            }
+
             qDebug() << "Trial: " << k;
 
             clearPSOState();
@@ -1326,6 +1341,9 @@ void MainWindow::on_testProcedure_btn_clicked() {
     /** Proposed New Tests Section **/
     qDebug() << "Proposed Topos Section: ";
     for (size_t i = 0; i < proposedNewTests.size(); i++) {
+        if (!_runningAutomatedTestProcedure) {
+            break;
+        }
 
         qDebug() << "Test: " << i;
         AvgExperimentData thisExp;
@@ -1342,6 +1360,10 @@ void MainWindow::on_testProcedure_btn_clicked() {
         avgResults.push_back(thisExp);
 
         for (size_t k = 0; k < trialsPerExp; k++) {
+
+            if (!_runningAutomatedTestProcedure) {
+                break;
+            }
 
             qDebug() << "Trial: " << k;
 

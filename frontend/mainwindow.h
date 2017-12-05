@@ -117,6 +117,8 @@ private:
     bool _runPso = false;
     bool _runOnce = false;
 
+    bool _runningAutomatedTestProcedure = true;
+
 #ifdef OPENCL_DEFINED
     std::vector<cl::Device> _cpuDevices;
     std::vector<cl::Device> _gpuDevices;

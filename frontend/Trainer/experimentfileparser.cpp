@@ -186,7 +186,8 @@ std::vector<TrainingParameters> ExperimentFileParser::parseExperimentLine(const 
 
     // Split The Input String
     QStringList parameterStrings = line.split(',');
-    if (parameterStrings.length() < 39) {
+//    if (parameterStrings.length() < 39) {
+    if (parameterStrings.length() < 9) {
         valid = false;
         return runParams;
     }
