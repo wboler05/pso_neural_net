@@ -906,4 +906,20 @@ NeuralNet::NeuralNetParameters nParametersFromString(const std::string & ps) {
     return p;
 }
 
+std::string openToken(const std::string & token) {
+    std::string ps;
+    ps.append("<");
+    ps.append(token);
+    ps.append(">");
+    return ps;
+}
+
+std::string closeToken(const std::string & token) {
+    std::string ps;
+    ps.append("</");
+    ps.append(token);
+    ps.append(">");
+    return ps;
+}
+
 }

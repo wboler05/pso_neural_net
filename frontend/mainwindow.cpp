@@ -1092,6 +1092,8 @@ void MainWindow::stopPso() {
         _neuralPsoTrainer->stopValidation();
     }
 
+    _runningAutomatedTestProcedure = false;
+
     NeuralPso::interruptProcess();
 }
 
@@ -1427,6 +1429,17 @@ void MainWindow::on_testProcedure_btn_clicked() {
     }
 
     Logger::write(resultString);
+
+    QFile outFile("testProcedureResults.txt");
+
+    if (!outFile.open(QFile::WriteOnly | QFile::Truncate)) {
+        qWarning() << "Unable to write test procedure results to file.";
+    }
+
+    QTextStream oStream(&outFile);
+    oStream << resultString.c_str();
+
+    outFile.close();
 }
 
 void MainWindow::on_testBaseCase_btn_clicked() {

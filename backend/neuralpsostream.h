@@ -22,6 +22,10 @@ struct FitnessParameters;
  */
 namespace NeuralPsoStream {
 
+    std::string openToken(const std::string & token);
+
+    std::string closeToken(const std::string & token);
+
     template <class T>
     std::string tokenizedValue(const T & val, const std::string & token);
 
@@ -62,22 +66,6 @@ namespace NeuralPsoStream {
     // Clears spaces, tabs, and new lines from strings
     void cleanInputString(std::string & dirtyString);
     void cleanInputString(std::string & dirtyString, const std::string & badChars);
-
-    std::string openToken(const std::string & token) {
-        std::string ps;
-        ps.append("<");
-        ps.append(token);
-        ps.append(">");
-        return ps;
-    }
-
-    std::string closeToken(const std::string & token) {
-        std::string ps;
-        ps.append("</");
-        ps.append(token);
-        ps.append(">");
-        return ps;
-    }
 
     template <class T>
     std::string stringifyParamsNugget(const std::string & token, const T & val) {
