@@ -1316,14 +1316,17 @@ void MainWindow::on_testProcedure_btn_clicked() {
 
         std::vector<int> proposedTopo;
 
-        for (size_t k = 0; k < resultingTopos[i][0].proposedTopology.size(); k++){
+        size_t kLim = resultingTopos[i][0].proposedTopology.size();
+        for (size_t k = 0; k < kLim; k++){
             // Collect all layer counts
             std::vector<int> numNodes;
-            for(size_t j = 0; j < resultingTopos[i].size(); i++){
+            size_t jLim = resultingTopos[i].size();
+            for(size_t j = 0; j < jLim; j++){
                 numNodes.push_back(resultingTopos[i][j].proposedTopology[k]);
             }
             // Get mode of each layer
-            proposedTopo.push_back(mode(numNodes));
+            int modeVal = mode(numNodes);
+            proposedTopo.push_back(modeVal);
         }
 
         TrainingParameters newRun = *_params;
