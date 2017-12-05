@@ -441,3 +441,25 @@ void OutageTrainer::fullTestState(/*pass the gb or selected best option*/) {
    _sanityCheck_gb.state = bestGb.state;
 
 }
+
+void OutageTrainer::runFullTestOnCustomNet(const NeuralNet::NeuralNetParameters & params) {
+    NeuralNet testNet(params, _customNet.state);
+    std::vector<std::vector<real>> predictions, actuals;
+
+    for (size_t i = 0; i < (*_inputCache).length(); i++) {
+        qApp->processEvents();
+
+        OutageDataWrapper data = (*_inputCache)[i];
+        testNet.loadInputs(_dataSets.normalizeInput(i));
+        std::vector<real> prediction = testNet.process();
+        std::vector<real> actual = data.outputize();
+
+        predictions.push_back(prediction);
+        actuals.push_back(actual);
+    }
+    ConfusionMatrix::ClassifierMatrix results = ConfusionMatrix::evaluateResults(predictions, actuals);
+    ConfusionMatrix cm(results);
+    cm.costlyComputeClassStats();
+    cm.overallError().mse = ConfusionMatrix::MSE(predictions, actuals);
+    _customNet.cm = cm;
+}

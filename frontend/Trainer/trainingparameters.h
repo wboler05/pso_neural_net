@@ -36,11 +36,17 @@ struct EnableParameters {
     bool longitude=false;
     bool population = true;
 
+    const size_t totalElements = 30;
+
     std::vector<size_t> inputSkips();
+    void setSkipsFromVector(const std::vector<size_t> & skips);
+    void setElementEnabled(const size_t & index, bool b);
+    bool elementLookup(const size_t & index);
+
 };
 
 struct TrainingParameters {
-    enum ShowBestSelected { Recent_Global_Best, Selected_Global_Best, Sanity_Check_Best };
+    enum ShowBestSelected { Recent_Global_Best, Selected_Global_Best, Sanity_Check_Best, Current_Net };
     PsoParams pp;
     NeuralNet::NeuralNetParameters np;
     FitnessParameters fp;

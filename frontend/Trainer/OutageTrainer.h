@@ -64,11 +64,16 @@ public:
 
     const size_t & currentFold() { return _dataSets.foldIndex(); }
 
+    void setCustomNet(const GlobalBestObject & customNet) { _customNet = customNet;}
+    GlobalBestObject customNet() { return _customNet; }
+    void runFullTestOnCustomNet(const NeuralNet::NeuralNetParameters & params);
+
 private:
 
     DataPartioner _dataSets;
     std::vector<GlobalBestObject> _validatedBests;
     GlobalBestObject _sanityCheck_gb;
+    GlobalBestObject _customNet;
     std::shared_ptr<TrainingParameters> _params;
     ConfusionMatrix _testConfusionMatrix;
     ConfusionMatrix _validationConfusionMatrix;

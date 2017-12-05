@@ -96,11 +96,14 @@ protected slots:
     void on_testProcedure_btn_clicked();
     void updateFileLabel();
     void cleanOutputRangeLineEdit();
+    void on_actionLoad_GB_Neural_Net_triggered();
+    void updateFromGlobalBestComboBox();
 
 private:
     Ui::MainWindow *ui;
     std::unique_ptr<OutageTrainer> _neuralPsoTrainer;
     std::unique_ptr<NeuralNet> _trainedNeuralNet;
+    ConfusionMatrix _currentNetCm;
     std::shared_ptr<TrainingParameters> _params;
     NeuralNet::State _gb;
     QVector<ParticlePlotWindow *> _particlePlotWindow;

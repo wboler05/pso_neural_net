@@ -11,7 +11,7 @@ ExperimentFileParser::ExperimentFileParser(QMainWindow * parent) : _parent(paren
 
 bool ExperimentFileParser::readFile(const std::shared_ptr<TrainingParameters> & defaultParams) {
 
-    _defaultParams = *defaultParams;
+    //_defaultParams = *defaultParams;
 
     QFileInfo fileInfo(_fileLocation);
     QDir currentDirectory = fileInfo.absolutePath();
