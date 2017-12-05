@@ -612,6 +612,7 @@ void MainWindow::setParameterDefaults() {
     _params->pp.termDeltaFlag = false;
     _params->pp.windowSize = 1500;
     _params->pp.dt = 0.5; // .025
+    _params->pp.tempDtFlag = true;
 
     /*
     NeuralNetParameters nParams;
@@ -725,6 +726,7 @@ void MainWindow::applyParameterChanges() {
     _params->pp.termMaxEpochsFlag = ui->enableMaxEpochs_cb->isChecked();
     _params->pp.termDeltaFlag = static_cast<size_t>(ui->enableDelta_cb->isChecked());
     _params->pp.dt = static_cast<double>(ui->dt_dsb->value());
+    _params->pp.tempDtFlag = ui->tempTrainingFlag_cb->isChecked();
 
     _params->np.trainingIterations = ui->trainingIterations_sb->value();
     _params->np.validationIterations = ui->validationIterations_sb->value();
@@ -768,6 +770,7 @@ void MainWindow::updateParameterGui() {
     ui->enableMaxEpochs_cb->setChecked(_params->pp.termMaxEpochsFlag);
     ui->enableDelta_cb->setChecked(_params->pp.termDeltaFlag);
     ui->dt_dsb->setValue(static_cast<double>(_params->pp.dt));
+    ui->tempTrainingFlag_cb->setChecked(_params->pp.tempDtFlag);
 
     ui->trainingIterations_sb->setValue(_params->np.trainingIterations);
     ui->validationIterations_sb->setValue(_params->np.validationIterations);
@@ -1319,14 +1322,17 @@ void MainWindow::on_testProcedure_btn_clicked() {
 
         std::vector<int> proposedTopo;
 
-        for (size_t k = 0; k < resultingTopos[i][0].proposedTopology.size(); k++){
+        size_t kLim = resultingTopos[i][0].proposedTopology.size();
+        for (size_t k = 0; k < kLim; k++){
             // Collect all layer counts
             std::vector<int> numNodes;
-            for(size_t j = 0; j < resultingTopos[i].size(); i++){
+            size_t jLim = resultingTopos[i].size();
+            for(size_t j = 0; j < jLim; j++){
                 numNodes.push_back(resultingTopos[i][j].proposedTopology[k]);
             }
             // Get mode of each layer
-            proposedTopo.push_back(mode(numNodes));
+            int modeVal = mode(numNodes);
+            proposedTopo.push_back(modeVal);
         }
 
         TrainingParameters newRun = *_params;

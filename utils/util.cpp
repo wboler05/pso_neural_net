@@ -48,16 +48,11 @@ int mode(std::vector<int> vect){
         previous = current;
     }
     int maxCount = 0;
-    std::vector<int> modes;
+    int modeVal;
     for (size_t i = 0; i < histogram.size(); i++){
-        if(histogram[i].second > maxCount){
-            modes.push_back(histogram[i].first);
+        if(histogram[i].second >= maxCount){
+            modeVal = histogram[i].first;
         }
     }
-    if (modes.size() == 1){
-        return modes[0];
-    }
-    else{
-        return median(modes);
-    }
+    return modeVal;
 }

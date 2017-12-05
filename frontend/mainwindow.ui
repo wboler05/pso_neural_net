@@ -776,6 +776,16 @@
            <item row="15" column="1">
             <widget class="QLineEdit" name="outputRange_le"/>
            </item>
+           <item row="9" column="2">
+            <widget class="QCheckBox" name="tempTrainingFlag_cb">
+             <property name="toolTip">
+              <string>Enable training with temperature decay over time (e^-6t/max)</string>
+             </property>
+             <property name="text">
+              <string>Temperature</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
          <item>

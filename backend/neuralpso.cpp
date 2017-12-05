@@ -379,6 +379,12 @@ real NeuralPso::flyIteration(const size_t & particleId,
     const std::vector<real> cdf = cdfUniform(pdf);
     const real C1 = 2.495L, C2 = 2.495L, C3 = 0.05L;
 
+    real dt = _psoParams.dt;
+    if (_psoParams.tempDtFlag && _psoParams.maxEpochs > 0) {
+        real temperature = exp(-(6.0*static_cast<real>(_epochs)) / static_cast<real>(_psoParams.maxEpochs));
+        dt *= temperature;
+    }
+
     if (p->_worstFlag) { // Reset the worst one
         if (choice < cdf[0]) {
             //p->_x[inner_net][left_edge][right_edge] = negPosRange(_randomEngine.engine());
@@ -423,7 +429,7 @@ real NeuralPso::flyIteration(const size_t & particleId,
 //        *w_v = -_psoParams.vLimit;
 //    }
 
-    *w_v *= psoParams().dt * exp(-6.0 * _epochs / static_cast<real>(std::max(_psoParams.maxEpochs, static_cast<size_t>(10))));
+    *w_v *= dt;
     *w_x += *w_v;
 
     *w_x = std::min(*w_x, *w_x_max);
