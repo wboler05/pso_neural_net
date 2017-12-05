@@ -6,7 +6,7 @@
 
 <options>
 	<auto_train> true </auto_train>
-	<trials_per_experiment> 2 </trials_per_experiment>
+	<trials_per_experiment> 5 </trials_per_experiment>
 </options>
 
 <autotest> 
