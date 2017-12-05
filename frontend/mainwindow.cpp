@@ -1252,6 +1252,10 @@ void MainWindow::on_testProcedure_btn_clicked() {
         qWarning( )<< "Unable to read experiment file. on_testProcedure_btn_clicked()";
         return;
     }
+    if (expParser.getParamsList().size() == 0){
+        qWarning( )<< "Experiment list is empty.";
+        return;
+    }
 
     std::vector<std::vector<BestTopoData>> resultingNets; // Final Nets after training
     std::vector<std::vector<BestTopoData>> resultingTopos;
@@ -1267,7 +1271,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
     }
     else {
         std::string headerString;
-        headerString.append("Test Index, Hidden Layers, H1, H2, H3, Accuracy, F-Score, Percision, Sensivity, Specificity");
+        headerString.append("Test Index, Trial, Hidden Layers, H1, H2, H3, Accuracy, F-Score, Percision, Sensivity, Specificity");
         oStream << headerString.c_str();
         Logger::write(headerString);
     }
@@ -1322,6 +1326,32 @@ void MainWindow::on_testProcedure_btn_clicked() {
             }
             // log each result
             resultsPerExp.push_back(d);
+
+            if (writeToFile){
+                outString.append(QString::number(i).toStdString());
+                outString.append(",");
+                outString.append(QString::number(k).toStdString());
+                outString.append(",");
+                outString.append(QString::number(d.proposedTopology.size()).toStdString());
+                outString.append(",");
+                for (size_t j = 0; j < d.proposedTopology.size(); j++) {
+                    outString.append(QString::number(d.proposedTopology[j]).toStdString());
+                    outString.append(",");
+                }
+                outString.append(QString::number(d.result.cm.overallError().accuracy).toStdString());
+                outString.append(",");
+                outString.append(QString::number(d.result.cm.overallError().f_score).toStdString());
+                outString.append(",");
+                outString.append(QString::number(d.result.cm.overallError().precision).toStdString());
+                outString.append(",");
+                outString.append(QString::number(d.result.cm.overallError().sensitivity).toStdString());
+                outString.append(",");
+                outString.append(QString::number(d.result.cm.overallError().specificity).toStdString());
+                oStream << outString.c_str();
+                Logger::write(outString);
+                outString.clear();
+            }
+
         }
 
         // Copy into the final result vector
@@ -1337,6 +1367,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
         avgResults.push_back(thisExp);
         // Copy into topo vector
         resultingTopos.push_back(topoTrainTrials);
+
         // Average results and print
         std::vector<ConfusionMatrix> trialStats;
         for (size_t j = 0; j < trialsPerExp; j++){
@@ -1344,6 +1375,10 @@ void MainWindow::on_testProcedure_btn_clicked() {
         }
         avgResults[i].stats = ConfusionMatrix::average(trialStats);
         if (writeToFile){
+            outString.append(QString::number(i).toStdString());
+            outString.append(",");
+            outString.append(QString::number(0).toStdString());
+            outString.append(",");
             outString.append(QString::number(avgResults[i].topo.size()).toStdString());
             outString.append(",");
             for (size_t j = 0; j < avgResults[i].topo.size(); j++) {
@@ -1455,6 +1490,31 @@ void MainWindow::on_testProcedure_btn_clicked() {
             d.result = _neuralPsoTrainer->getOverallBest();
             // log each result
             resultsPerTopoExp.push_back(d);
+
+            if (writeToFile){
+                outString.append(QString::number(i).toStdString());
+                outString.append(",");
+                outString.append(QString::number(k).toStdString());
+                outString.append(",");
+                outString.append(QString::number(d.proposedTopology.size()).toStdString());
+                outString.append(",");
+                for (size_t j = 0; j < d.proposedTopology.size(); j++) {
+                    outString.append(QString::number(d.proposedTopology[j]).toStdString());
+                    outString.append(",");
+                }
+                outString.append(QString::number(d.result.cm.overallError().accuracy).toStdString());
+                outString.append(",");
+                outString.append(QString::number(d.result.cm.overallError().f_score).toStdString());
+                outString.append(",");
+                outString.append(QString::number(d.result.cm.overallError().precision).toStdString());
+                outString.append(",");
+                outString.append(QString::number(d.result.cm.overallError().sensitivity).toStdString());
+                outString.append(",");
+                outString.append(QString::number(d.result.cm.overallError().specificity).toStdString());
+                oStream << outString.c_str();
+                Logger::write(outString);
+                outString.clear();
+            }
         }
 
         // Copy into the final result vector
@@ -1467,6 +1527,10 @@ void MainWindow::on_testProcedure_btn_clicked() {
         }
         avgResults[startIdx+i].stats = ConfusionMatrix::average(trialStats);
         if (writeToFile){
+            outString.append(QString::number(startIdx+i).toStdString());
+            outString.append(",");
+            outString.append(QString::number(0).toStdString());
+            outString.append(",");
             outString.append(QString::number(avgResults[startIdx+i].topo.size()).toStdString());
             outString.append(",");
             for (size_t j = 0; j < avgResults[startIdx+i].topo.size(); j++) {
