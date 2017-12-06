@@ -1328,15 +1328,21 @@ void MainWindow::on_testProcedure_btn_clicked() {
             resultsPerExp.push_back(d);
 
             if (writeToFile){
-                outString.append(QString::number(i).toStdString());
+                outString.append(QString::number(i+1).toStdString());
                 outString.append(",");
-                outString.append(QString::number(k).toStdString());
+                outString.append(QString::number(k+1).toStdString());
                 outString.append(",");
                 outString.append(QString::number(d.proposedTopology.size()).toStdString());
                 outString.append(",");
                 for (size_t j = 0; j < d.proposedTopology.size(); j++) {
                     outString.append(QString::number(d.proposedTopology[j]).toStdString());
                     outString.append(",");
+                }
+                if (d.proposedTopology.size() < 3){
+                    for (size_t k = d.proposedTopology.size(); k < 3; k++){
+                        outString.append(QString::number(0).toStdString());
+                        outString.append(",");
+                    }
                 }
                 outString.append(QString::number(d.result.cm.overallError().accuracy).toStdString());
                 outString.append(",");
@@ -1369,6 +1375,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
         resultingTopos.push_back(topoTrainTrials);
 
         // Average results and print
+
         if (i < resultingNets.size()) {
             std::vector<ConfusionMatrix> trialStats;
             for (size_t j = 0; j < resultingNets[i].size(); j++){
@@ -1376,7 +1383,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
             }
             avgResults[i].stats = ConfusionMatrix::average(trialStats);
             if (writeToFile){
-                outString.append(QString::number(i).toStdString());
+                outString.append(QString::number(i+1).toStdString());
                 outString.append(",");
                 outString.append(QString::number(0).toStdString());
                 outString.append(",");
@@ -1391,6 +1398,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
                 outString.append(QString::number(avgResults[i].stats.overallError().f_score).toStdString());
                 outString.append(",");
                 outString.append(QString::number(avgResults[i].stats.overallError().precision).toStdString());
+
                 outString.append(",");
                 outString.append(QString::number(avgResults[i].stats.overallError().sensitivity).toStdString());
                 outString.append(",");
@@ -1399,7 +1407,8 @@ void MainWindow::on_testProcedure_btn_clicked() {
                 Logger::write(outString);
                 outString.clear();
             }
-        } else {
+        }
+        else{
             std::string errorString;
             errorString.append("Failed to append resultingNets on i=");
             errorString.append(stringPut(i));
@@ -1507,15 +1516,21 @@ void MainWindow::on_testProcedure_btn_clicked() {
             resultsPerTopoExp.push_back(d);
 
             if (writeToFile){
-                outString.append(QString::number(i).toStdString());
+                outString.append(QString::number(i+1).toStdString());
                 outString.append(",");
-                outString.append(QString::number(k).toStdString());
+                outString.append(QString::number(k+1).toStdString());
                 outString.append(",");
                 outString.append(QString::number(d.proposedTopology.size()).toStdString());
                 outString.append(",");
                 for (size_t j = 0; j < d.proposedTopology.size(); j++) {
                     outString.append(QString::number(d.proposedTopology[j]).toStdString());
                     outString.append(",");
+                }
+                if (d.proposedTopology.size() < 3){
+                    for (size_t k = d.proposedTopology.size(); k < 3; k++){
+                        outString.append(QString::number(0).toStdString());
+                        outString.append(",");
+                    }
                 }
                 outString.append(QString::number(d.result.cm.overallError().accuracy).toStdString());
                 outString.append(",");
@@ -1542,7 +1557,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
         }
         avgResults[startIdx+i].stats = ConfusionMatrix::average(trialStats);
         if (writeToFile){
-            outString.append(QString::number(startIdx+i).toStdString());
+            outString.append(QString::number(startIdx+i+1).toStdString());
             outString.append(",");
             outString.append(QString::number(0).toStdString());
             outString.append(",");
@@ -1551,6 +1566,12 @@ void MainWindow::on_testProcedure_btn_clicked() {
             for (size_t j = 0; j < avgResults[startIdx+i].topo.size(); j++) {
                 outString.append(QString::number(avgResults[startIdx+i].topo[j]).toStdString());
                 outString.append(",");
+            }
+            if (avgResults[startIdx+i].topo.size() < 3){
+                for (size_t k = avgResults[startIdx+i].topo.size(); k < 3; k++){
+                    outString.append(QString::number(0).toStdString());
+                    outString.append(",");
+                }
             }
             outString.append(QString::number(avgResults[startIdx+i].stats.overallError().accuracy).toStdString());
             outString.append(",");
