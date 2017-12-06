@@ -29,6 +29,7 @@ public:
 
     std::vector<TrainingParameters> & getParamsList() { return _paramsList; }
     const ExperimentParams & experimentParams() { return _experimentParams; }
+    const QStringList & getExpList(){return _expList;}
 
     bool built() { return _builtFlag; }
 
@@ -36,6 +37,7 @@ private:
     QMainWindow * _parent = nullptr;
     ExperimentParams _experimentParams;
     TrainingParameters _defaultParams;
+    QStringList _expList;
     std::vector<TrainingParameters> _paramsList;
     QString _fileLocation;
     bool _builtFlag = false;

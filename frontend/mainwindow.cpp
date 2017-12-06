@@ -1261,9 +1261,10 @@ void MainWindow::on_testProcedure_btn_clicked() {
     std::vector<std::vector<BestTopoData>> resultingTopos;
     size_t trialsPerExp = expParser.experimentParams().trials_per_experiment;
     std::vector<AvgExperimentData> avgResults;
-    QFile outFile("testProcedureResults.txt");
+    QFile outFile("testProcedureResults.csv");
     QTextStream oStream(&outFile);
     std::string outString;
+    std::string loggerString;
     bool writeToFile = true;
     if (!outFile.open(QFile::WriteOnly | QFile::Truncate)) {
         qWarning() << "Unable to write test procedure results to file.";
@@ -1271,9 +1272,19 @@ void MainWindow::on_testProcedure_btn_clicked() {
     }
     else {
         std::string headerString;
+        headerString.append("H1, H2, H3, TopoTraining, Activation, History, Max Epoc, Delta, Delta Window\n");
+        QStringList expList = expParser.getExpList();
+        for (size_t i = 0; i < expList.length(); i++){
+            if (expList[i].length() == 0){continue;}
+            headerString.append(expList[i]);
+            headerString.append("\n");
+        }
         headerString.append("Test Index, Trial, Hidden Layers, H1, H2, H3, Accuracy, F-Score, Percision, Sensivity, Specificity");
+        loggerString = headerString;
+        headerString.append("\n");
         oStream << headerString.c_str();
-        Logger::write(headerString);
+        Logger::write(loggerString);
+        loggerString.clear();
     }
 
     /** Auto test section **/
@@ -1353,9 +1364,12 @@ void MainWindow::on_testProcedure_btn_clicked() {
                 outString.append(QString::number(d.result.cm.overallError().sensitivity).toStdString());
                 outString.append(",");
                 outString.append(QString::number(d.result.cm.overallError().specificity).toStdString());
+                loggerString = outString;
+                outString.append("\n");
                 oStream << outString.c_str();
-                Logger::write(outString);
+                Logger::write(loggerString);
                 outString.clear();
+                loggerString.clear();
             }
 
         }
@@ -1409,9 +1423,12 @@ void MainWindow::on_testProcedure_btn_clicked() {
                 outString.append(QString::number(avgResults[i].stats.overallError().sensitivity).toStdString());
                 outString.append(",");
                 outString.append(QString::number(avgResults[i].stats.overallError().specificity).toStdString());
+                loggerString = outString;
+                outString.append("\n");
                 oStream << outString.c_str();
-                Logger::write(outString);
+                Logger::write(loggerString);
                 outString.clear();
+                loggerString.clear();
             }
         }
         else{
@@ -1547,9 +1564,12 @@ void MainWindow::on_testProcedure_btn_clicked() {
                 outString.append(QString::number(d.result.cm.overallError().sensitivity).toStdString());
                 outString.append(",");
                 outString.append(QString::number(d.result.cm.overallError().specificity).toStdString());
+                loggerString = outString;
+                outString.append("\n");
                 oStream << outString.c_str();
-                Logger::write(outString);
+                Logger::write(loggerString);
                 outString.clear();
+                loggerString.clear();
             }
         }
 
@@ -1588,9 +1608,12 @@ void MainWindow::on_testProcedure_btn_clicked() {
             outString.append(QString::number(avgResults[startIdx+i].stats.overallError().sensitivity).toStdString());
             outString.append(",");
             outString.append(QString::number(avgResults[startIdx+i].stats.overallError().specificity).toStdString());
+            loggerString = outString;
+            outString.append("\n");
             oStream << outString.c_str();
-            Logger::write(outString);
+            Logger::write(loggerString);
             outString.clear();
+            loggerString.clear();
         }
     }
 

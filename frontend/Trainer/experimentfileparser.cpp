@@ -124,12 +124,12 @@ bool ExperimentFileParser::readExperiments(const std::string & fullFile) {
 
     std::string badChars(" \t\r");
     cleanInputString(experimentString, badChars);
-    QStringList experimentList = QString(experimentString.c_str()).split('\n');
+    _expList = QString(experimentString.c_str()).split('\n');
 
     bool valid = false;
     _paramsList.clear();
-    for (int i = 0; i < experimentList.length(); i++) {
-        std::vector<TrainingParameters> tp = parseExperimentLine(experimentList[i], valid);
+    for (int i = 0; i < _expList.length(); i++) {
+        std::vector<TrainingParameters> tp = parseExperimentLine(_expList[i], valid);
         if (valid) {
             _paramsList.insert(std::end(_paramsList), std::begin(tp), std::end(tp));
         }
