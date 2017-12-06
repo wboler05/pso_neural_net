@@ -1475,12 +1475,16 @@ void MainWindow::on_testProcedure_btn_clicked() {
     }
 
     // Make new runs from proposed topologies
+    const size_t startIdx = resultingTopos.size();
     for (size_t i = 0; i < resultingTopos.size(); i++){
 
         std::vector<int> proposedTopo;
 
         if (resultingTopos[i].size() != 0) {
+
+            TrainingParameters newRun = *_params;
             size_t kLim = resultingTopos[i][0].proposedTopology.size();
+
             for (size_t k = 0; k < kLim; k++){
                 // Collect all layer counts
                 std::vector<int> numNodes;
@@ -1493,7 +1497,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
                 proposedTopo.push_back(modeVal);
             }
 
-            TrainingParameters newRun = *_params;
+            newRun.np.act = resultingTopos[i][0].activationFunction;
             newRun.np.innerNetNodes = proposedTopo;
             newRun.fp.enableTopologyTraining = false;
 
@@ -1532,7 +1536,6 @@ void MainWindow::on_testProcedure_btn_clicked() {
         Logger::write(outString);
         outString.clear();
     }
-    const size_t startIdx = resultingTopos.size();
     for (size_t i = 0; i < proposedNewTests.size(); i++) {
         if (!_runningAutomatedTestProcedure) {
             break;
@@ -1648,7 +1651,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
             outString.append(",");
             outString.append(QString::number(avgResults[i].activationFunction).toStdString());
             outString.append(",");
-            outString.append(QString::number(static_cast<int>(avgResults[i].topoTrainingEnabled)).toStdString());
+            outString.append(QString::number(0).toStdString()); // Topo Training never enabled here
             loggerString = outString;
             outString.append("\n");
             oStream << outString.c_str();
