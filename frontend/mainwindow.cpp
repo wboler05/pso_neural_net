@@ -612,7 +612,7 @@ void MainWindow::setParameterDefaults() {
     _params->pp.termDeltaFlag = false;
     _params->pp.windowSize = 1500;
     _params->pp.dt = 0.5; // .025
-    _params->pp.tempDtFlag = true;
+    _params->pp.tempDtFlag = false;
 
     /*
     NeuralNetParameters nParams;

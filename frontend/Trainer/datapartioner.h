@@ -64,6 +64,7 @@ private:
     std::shared_ptr<TrainingParameters> _params;
     std::vector<real> _minInputData;
     std::vector<real> _maxInputData;
+    std::vector<real> _meuData;
 
     size_t _totalNumInputs = 0;
     const real _boundRatio = 0.90; // 90% for Training, 10% for Testing
