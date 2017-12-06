@@ -297,6 +297,13 @@ void DataPartioner::updateMinMax() {
             _maxInputData[j] = max(_maxInputData[j], input[j] - _meuData[j]);
         }
     }
+
+    /*
+    std::cout << "Min\tMax\tMeu" << std::endl;
+    for (size_t i = 0; i < totalElements; i++) {
+        std::cout << _minInputData[i]+_meuData[i] << "\t" << _maxInputData[i]+_meuData[i] << "\t" << _meuData[i] << std::endl;
+    }
+    */
 }
 
 std::vector<real> DataPartioner::normalizeInput(const size_t & id){
