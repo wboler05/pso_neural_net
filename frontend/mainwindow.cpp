@@ -1276,7 +1276,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
         QStringList expList = expParser.getExpList();
         for (size_t i = 0; i < expList.length(); i++){
             if (expList[i].length() == 0){continue;}
-            headerString.append(expList[i]);
+            headerString.append(expList[i].toStdString());
             headerString.append("\n");
         }
         headerString.append("Test Index, Trial, Hidden Layers, H1, H2, H3, Accuracy, F-Score, Percision, Sensivity, Specificity");
