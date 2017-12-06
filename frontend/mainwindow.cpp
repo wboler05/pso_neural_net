@@ -1305,7 +1305,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
             headerString.append(expList[i].toStdString());
             headerString.append("\n");
         }
-        headerString.append("Test Index, Trial, Hidden Layers, H1, H2, H3, Accuracy, F-Score, Percision, Sensivity, Specificity");
+        headerString.append("Test Index, Trial, Hidden Layers, H1, H2, H3, Accuracy, F-Score, Percision, Sensivity, Specificity, Activation, TopoTraining");
         loggerString = headerString;
         headerString.append("\n");
         oStream << headerString.c_str();
@@ -1390,6 +1390,10 @@ void MainWindow::on_testProcedure_btn_clicked() {
                 outString.append(QString::number(d.result.cm.overallError().sensitivity).toStdString());
                 outString.append(",");
                 outString.append(QString::number(d.result.cm.overallError().specificity).toStdString());
+                outString.append(",");
+                outString.append(QString::number(static_cast<int>(d.activationFunction)).toStdString());
+                outString.append(",");
+                outString.append(QString::number(static_cast<int>(_params->fp.enableTopologyTraining)).toStdString());
                 loggerString = outString;
                 outString.append("\n");
                 oStream << outString.c_str();
@@ -1444,11 +1448,14 @@ void MainWindow::on_testProcedure_btn_clicked() {
                 outString.append(QString::number(avgResults[i].stats.overallError().f_score).toStdString());
                 outString.append(",");
                 outString.append(QString::number(avgResults[i].stats.overallError().precision).toStdString());
-
                 outString.append(",");
                 outString.append(QString::number(avgResults[i].stats.overallError().sensitivity).toStdString());
                 outString.append(",");
                 outString.append(QString::number(avgResults[i].stats.overallError().specificity).toStdString());
+                outString.append(",");
+                outString.append(QString::number(avgResults[i].activationFunction).toStdString());
+                outString.append(",");
+                outString.append(QString::number(static_cast<int>(avgResults[i].topoTrainingEnabled)).toStdString());
                 loggerString = outString;
                 outString.append("\n");
                 oStream << outString.c_str();
@@ -1590,6 +1597,10 @@ void MainWindow::on_testProcedure_btn_clicked() {
                 outString.append(QString::number(d.result.cm.overallError().sensitivity).toStdString());
                 outString.append(",");
                 outString.append(QString::number(d.result.cm.overallError().specificity).toStdString());
+                outString.append(",");
+                outString.append(QString::number(static_cast<int>(d.activationFunction)).toStdString());
+                outString.append(",");
+                outString.append(QString::number(static_cast<int>(_params->fp.enableTopologyTraining)).toStdString());
                 loggerString = outString;
                 outString.append("\n");
                 oStream << outString.c_str();
@@ -1634,6 +1645,10 @@ void MainWindow::on_testProcedure_btn_clicked() {
             outString.append(QString::number(avgResults[startIdx+i].stats.overallError().sensitivity).toStdString());
             outString.append(",");
             outString.append(QString::number(avgResults[startIdx+i].stats.overallError().specificity).toStdString());
+            outString.append(",");
+            outString.append(QString::number(avgResults[i].activationFunction).toStdString());
+            outString.append(",");
+            outString.append(QString::number(static_cast<int>(avgResults[i].topoTrainingEnabled)).toStdString());
             loggerString = outString;
             outString.append("\n");
             oStream << outString.c_str();
