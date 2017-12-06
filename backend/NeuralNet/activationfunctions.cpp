@@ -36,7 +36,7 @@ real HypTan(const real & in, const real & k) {
 
     //real act = tanh(in * M_PI);
     // Faster than tanh function
-    real act = CustomMath::poly(in * M_PI * k, coeffs, 9);
+    real act = CustomMath::poly(in * M_PI * 2 * k, coeffs, 9);
     act = max(min(act, static_cast<real>(1.0)), static_cast<real>(-1.0));
     return act;
 }
