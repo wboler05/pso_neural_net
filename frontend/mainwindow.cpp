@@ -1383,7 +1383,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
             }
             avgResults[i].stats = ConfusionMatrix::average(trialStats);
             if (writeToFile){
-                outString.append(QString::number(i).toStdString());
+                outString.append(QString::number(i+1).toStdString());
                 outString.append(",");
                 outString.append(QString::number(0).toStdString());
                 outString.append(",");
