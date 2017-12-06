@@ -1510,7 +1510,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
                         sameVect = false;
                     }
                 }
-                if (sameVect == true){
+                if (sameVect == true && proposedNewTests[l].np.act == newRun.np.act){
                     notDuplicate = false;
                 }
             }

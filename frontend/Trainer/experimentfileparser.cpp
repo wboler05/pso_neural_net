@@ -336,10 +336,10 @@ std::vector<TrainingParameters> ExperimentFileParser::parseExperimentLine(const 
                                 runParams[idx].np.act = NeuralNet::HypTan;
                                 break;
                             case 5:
-                                runParams[idx].np.act = NeuralNet::Step;
+                                runParams[idx].np.act = NeuralNet::Sinc;
                                 break;
                             case 6:
-                                runParams[idx].np.act = NeuralNet::Sinc;
+                                runParams[idx].np.act = NeuralNet::Step;
                                 break;
                             }
                         }
