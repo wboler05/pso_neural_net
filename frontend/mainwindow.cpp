@@ -1261,19 +1261,46 @@ void MainWindow::on_testProcedure_btn_clicked() {
     std::vector<std::vector<BestTopoData>> resultingTopos;
     size_t trialsPerExp = expParser.experimentParams().trials_per_experiment;
     std::vector<AvgExperimentData> avgResults;
-    QFile outFile("testProcedureResults.txt");
+
+    time_t now = time(0);
+    tm *gmtm = gmtime(&now);
+    std::string fileName("testProcedureResults_");
+    fileName += stringPut(gmtm->tm_year+1900);
+    fileName += stringPut(gmtm->tm_mon);
+    fileName += stringPut(gmtm->tm_mday);
+    fileName += "_";
+    fileName += stringPut(gmtm->tm_hour);
+    fileName += stringPut(gmtm->tm_min);
+    fileName += stringPut(gmtm->tm_sec);
+    fileName += ".csv";
+
+    //QFile outFile("testProcedureResults.txt");
+    QDir curDirectory = qApp->applicationDirPath();
+    QString finalFileName = curDirectory.filePath(fileName.c_str());
+    QFile outFile(finalFileName);
     QTextStream oStream(&outFile);
     std::string outString;
     bool writeToFile = true;
     if (!outFile.open(QFile::WriteOnly | QFile::Truncate)) {
         qWarning() << "Unable to write test procedure results to file.";
+        std::string headerString;
+        headerString.append("Failed to open output file.\n");
+        headerString.append("Output to: ");
+        headerString.append(finalFileName.toStdString());
+        headerString.append("\n");
+        Logger::write(headerString);
+        qDebug( )<< headerString.c_str();
         writeToFile = false;
     }
     else {
         std::string headerString;
+        headerString.append("Output to: ");
+        headerString.append(finalFileName.toStdString());
+        headerString.append("\n");
         headerString.append("Test Index, Trial, Hidden Layers, H1, H2, H3, Accuracy, F-Score, Percision, Sensivity, Specificity\n");
         oStream << headerString.c_str();
         Logger::write(headerString);
+        qDebug() << headerString.c_str();
     }
 
     /** Auto test section **/
