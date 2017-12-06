@@ -1393,6 +1393,12 @@ void MainWindow::on_testProcedure_btn_clicked() {
                     outString.append(QString::number(avgResults[i].topo[j]).toStdString());
                     outString.append(",");
                 }
+                if (avgResults[i].topo.size() < 3){
+                    for (size_t k = avgResults[i].topo.size(); k < 3; k++){
+                        outString.append(QString::number(0).toStdString());
+                        outString.append(",");
+                    }
+                }
                 outString.append(QString::number(avgResults[i].stats.overallError().accuracy).toStdString());
                 outString.append(",");
                 outString.append(QString::number(avgResults[i].stats.overallError().f_score).toStdString());
@@ -1516,7 +1522,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
             resultsPerTopoExp.push_back(d);
 
             if (writeToFile){
-                outString.append(QString::number(i+1).toStdString());
+                outString.append(QString::number(startIdx+i+1).toStdString());
                 outString.append(",");
                 outString.append(QString::number(k+1).toStdString());
                 outString.append(",");
