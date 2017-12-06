@@ -1649,7 +1649,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
             outString.append(",");
             outString.append(QString::number(avgResults[startIdx+i].stats.overallError().specificity).toStdString());
             outString.append(",");
-            outString.append(QString::number(avgResults[i].activationFunction).toStdString());
+            outString.append(QString::number(avgResults[startIdx+i].activationFunction).toStdString());
             outString.append(",");
             outString.append(QString::number(0).toStdString()); // Topo Training never enabled here
             loggerString = outString;
