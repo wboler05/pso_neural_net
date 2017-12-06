@@ -365,9 +365,13 @@ void MainWindow::cleanOutputRangeLineEdit() {
 
 void MainWindow::setCurrentNet() {
     if (_neuralPsoTrainer != nullptr) {
-        _trainedNeuralNet = _neuralPsoTrainer->buildNeuralNetFromGb();
-        //qDebug() << "Test me baby: " << _trainedNeuralNet->getWeights().size();
-        qDebug() << "Updated new neural net.";
+        //_trainedNeuralNet = _neuralPsoTrainer->buildNeuralNetFromGb();
+        if (_neuralPsoTrainer->getOverallBest().state.size() != 0) {
+            _trainedNeuralNet = std::make_unique<NeuralNet>(_params->np, _neuralPsoTrainer->getOverallBest().state);
+            qDebug() << "Updated current neural net.";
+        } else {
+            qDebug() << "Unable to set current net.";
+        }
     }
 }
 
@@ -393,6 +397,7 @@ void MainWindow::on_actionSaveSelected_ANN_triggered() {
     psoState.append("\n");
     psoState.append(stringifyState(_neuralPsoTrainer->getOverallBest().state));
     psoState.append(closeToken("_best_overall_gb"));
+    psoState.append(stringifyParamsVector<real>("outputRanges", OutageDataWrapper::outputRanges()));
 
 
     QFile outputFile(fileName);
@@ -452,6 +457,22 @@ void MainWindow::on_actionLoad_GB_Neural_Net_triggered() {
 
         std::string stateString = subStringByToken(cleanANNState, "_best_overall_gb");
         NeuralNet::State newState = stateFromString(stateString);
+
+        std::vector<real> outputRanges;
+        if (!vectorFromString<real>(cleanANNState, "outputRanges", outputRanges)) {
+            qDebug( )<< "Unable to load output ranges from ANN.  Please set manually";
+        } else {
+            if (outputRanges.size() != 0) {
+                qDebug() << "Loaded output ranges: ";
+                for (size_t i = 0; i < outputRanges.size(); i++) {
+                    qDebug( )<< " - (" << i << "): " << outputRanges[i];
+                }
+                OutageDataWrapper::setOutputRanges(outputRanges);
+            } else {
+                qDebug() << "Output ranges are zero. Please set manually.";
+            }
+        }
+
 
         OutageDataWrapper::setInputSkips(skips);
         for (size_t i = 0;i < skips.size(); i++) {
@@ -1203,6 +1224,8 @@ void MainWindow::runNeuralPso() {
   disconnect(fitnessPlotTimer, SIGNAL(timeout()), this, SLOT(updateFitnessPlot()));
   fitnessPlotTimer->deleteLater();
 
+  setCurrentNet();
+
   qApp->alert(this);
 }
 
@@ -1720,12 +1743,15 @@ void MainWindow::clearPSOState() {
 }
 
 void MainWindow::tryInjectGB() {
-
     if (ui->actionInject_Global_Best->isChecked()) {
-        if (_neuralPsoTrainer != nullptr) {
-            if (_gb.size() != 0){
-                _neuralPsoTrainer->injectGb(_gb);
+        if (_neuralPsoTrainer != nullptr && _trainedNeuralNet != nullptr) {
+            if (_trainedNeuralNet->state().size() != 0){
+                _neuralPsoTrainer->injectGb(_trainedNeuralNet->state());
+            } else {
+                qDebug() << "Global best does not exist. tryInjectGB()";
             }
+        } else {
+            qDebug() << "NeuralPsoTrainer has not been initialized. tryInjectGB()";
         }
     }
 }
