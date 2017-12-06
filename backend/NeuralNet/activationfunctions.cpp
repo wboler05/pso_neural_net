@@ -11,7 +11,7 @@ real ReLU(const real & in) {
 }
 
 real Sin(const real & in, const real & k) {
-    return k*sin(in * 2.0 * M_PI);
+    return sin(in * 2.0 * M_PI*k);
 }
 
 real Sigmoid(const real & in, const real & k) {

@@ -601,8 +601,8 @@ void MainWindow::setParameterDefaults() {
 
     initializeCache();
 
-    _params->pp.population = 90; // 50 | 150
-    _params->pp.neighbors = 9; // 10 | 30
+    _params->pp.population = 50; // 90 | 50 | 150
+    _params->pp.neighbors = 5; // 5 | 10 | 30
     _params->pp.minEpochs = 50;
     _params->pp.maxEpochs = 100; // 500 | 1000
     _params->pp.delta = 5E-8L;
@@ -612,7 +612,7 @@ void MainWindow::setParameterDefaults() {
     _params->pp.termDeltaFlag = false;
     _params->pp.windowSize = 1500;
     _params->pp.dt = 0.5; // .025
-    _params->pp.tempDtFlag = true;
+    _params->pp.tempDtFlag = false;
 
     /*
     NeuralNetParameters nParams;
@@ -631,10 +631,10 @@ qDebug() << "Made it here.";
     _params->np.innerNetNodes.resize(1, 8);
     //_params->np.innerNetNodes.push_back(8);
     _params->np.outputs = static_cast<int>(dataWrapper.outputSize());
-    _params->np.trainingIterations = 200; // 20
+    _params->np.trainingIterations = 20; // 20
     _params->np.validationIterations = 200;
     _params->np.testIterations = 500; //500
-    _params->np.act = NeuralNet::Sin;
+    _params->np.act = NeuralNet::ReLU;
 
     _params->fp.enableTopologyTraining = true;
 
@@ -1274,7 +1274,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
         std::string headerString;
         headerString.append("H1, H2, H3, TopoTraining, Activation, History, Max Epoc, Delta, Delta Window\n");
         QStringList expList = expParser.getExpList();
-        for (size_t i = 0; i < expList.length(); i++){
+        for (int i = 0; i < expList.length(); i++){
             if (expList[i].length() == 0){continue;}
             headerString.append(expList[i].toStdString());
             headerString.append("\n");

@@ -274,14 +274,27 @@ void DataPartioner::calcImplicitBiasWeights() {
 
 void DataPartioner::updateMinMax() {
     std::vector<real> tempVector = (*_inputCache)[0].inputize(_params->inputHistorySize);
-    _minInputData.resize(tempVector.size(),  std::numeric_limits<real>::max());
-    _maxInputData.resize(tempVector.size(), -std::numeric_limits<real>::max());
+    size_t totalElements = tempVector.size();
+    _minInputData.resize(totalElements,  std::numeric_limits<real>::max());
+    _maxInputData.resize(totalElements, -std::numeric_limits<real>::max());
+    _meuData.resize(totalElements, 0);
 
     for (size_t i = 0; i < _totalNumInputs; i++) {
         std::vector<real> input = (*_inputCache)[i].inputize(_params->inputHistorySize);
         for (size_t j = 0; j < input.size(); j++) {
-            _minInputData[j] = min(_minInputData[j], input[j]);
-            _maxInputData[j] = max(_maxInputData[j], input[j]);
+            _meuData[j] += input[j];
+        }
+    }
+
+    for (size_t i = 0; i < totalElements; i++) {
+        _meuData[i] /= static_cast<real>(_totalNumInputs);
+    }
+
+    for (size_t i = 0; i < _totalNumInputs; i++) {
+        std::vector<real> input = (*_inputCache)[i].inputize(_params->inputHistorySize);
+        for (size_t j = 0; j < input.size(); j++) {
+            _minInputData[j] = min(_minInputData[j], input[j] - _meuData[j]);
+            _maxInputData[j] = max(_maxInputData[j], input[j] - _meuData[j]);
         }
     }
 }
@@ -318,7 +331,7 @@ std::vector<real> DataPartioner::normalizeInput(const size_t & id){
 std::vector<real> DataPartioner::normalizeInput(std::vector<real> & input){
     for (size_t i = 0; i < input.size(); i++) {
         if (_maxInputData[i] - _minInputData[i] != 0) {
-            input[i] = (2.0*input[i] - (_minInputData[i] + _maxInputData[i])) /
+            input[i] = (2.0*(input[i]-_meuData[i]) - (_minInputData[i] + _maxInputData[i])) /
                     (_maxInputData[i] - _minInputData[i]);
         }
     }

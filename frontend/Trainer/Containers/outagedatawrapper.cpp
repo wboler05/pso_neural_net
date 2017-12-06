@@ -308,33 +308,36 @@ std::vector<real> OutageDataWrapper::outputize() {
     // 1 9 72
     // 3 42
 
+    const real minVal = -1.0;
+    const real maxVal =  1.0;
+
     if (_outputRanges.size() > 1) {
-        output.resize(_outputRanges.size()+2, -1);
+        output.resize(_outputRanges.size()+2, minVal);
 
         for (size_t i = 0; i < _outputRanges.size()+2; i++) {
             if (i == 0) {
                 if (_affectedCustomers == 0) {
-                    output[0] = 1;
+                    output[0] = maxVal;
                     break;
                 }
             } else if (i == _outputRanges.size() + 1) {
                 if (_affectedCustomers >= _outputRanges[i-2]) {
-                    output[i] = 1;
+                    output[i] = maxVal;
                     break;
                 }
             } else {
-                if (_affectedCustomers <= _outputRanges[i-1]) {
-                    output[i] = 1;
+                if (_affectedCustomers < _outputRanges[i-1]) {
+                    output[i] = maxVal;
                     break;
                 }
             }
         }
     } else if (_outputRanges.size() == 1) {
-        output.resize(2, -1);
+        output.resize(2, minVal);
         if (_affectedCustomers < _outputRanges[0]) {
-            output[0] = 1.0;
+            output[0] = maxVal;
         } else {
-            output[1] = 1.0;
+            output[1] = maxVal;
         }
     } else {
         qDebug() << "What are you doing?";
