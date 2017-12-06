@@ -326,7 +326,7 @@ std::vector<real> OutageDataWrapper::outputize() {
                     break;
                 }
             } else {
-                if (_affectedCustomers < _outputRanges[i-1]) {
+                if (_affectedCustomers <= _outputRanges[i-1]) {
                     output[i] = maxVal;
                     break;
                 }
