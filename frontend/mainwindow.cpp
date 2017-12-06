@@ -601,8 +601,8 @@ void MainWindow::setParameterDefaults() {
 
     initializeCache();
 
-    _params->pp.population = 90; // 50 | 150
-    _params->pp.neighbors = 9; // 10 | 30
+    _params->pp.population = 50; // 90 | 50 | 150
+    _params->pp.neighbors = 5; // 5 | 10 | 30
     _params->pp.minEpochs = 50;
     _params->pp.maxEpochs = 100; // 500 | 1000
     _params->pp.delta = 5E-8L;
@@ -631,10 +631,10 @@ qDebug() << "Made it here.";
     _params->np.innerNetNodes.resize(1, 8);
     //_params->np.innerNetNodes.push_back(8);
     _params->np.outputs = static_cast<int>(dataWrapper.outputSize());
-    _params->np.trainingIterations = 200; // 20
+    _params->np.trainingIterations = 20; // 20
     _params->np.validationIterations = 200;
     _params->np.testIterations = 500; //500
-    _params->np.act = NeuralNet::Sin;
+    _params->np.act = NeuralNet::ReLU;
 
     _params->fp.enableTopologyTraining = true;
 
@@ -1271,7 +1271,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
     }
     else {
         std::string headerString;
-        headerString.append("Test Index, Trial, Hidden Layers, H1, H2, H3, Accuracy, F-Score, Percision, Sensivity, Specificity");
+        headerString.append("Test Index, Trial, Hidden Layers, H1, H2, H3, Accuracy, F-Score, Percision, Sensivity, Specificity\n");
         oStream << headerString.c_str();
         Logger::write(headerString);
     }
@@ -1353,6 +1353,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
                 outString.append(QString::number(d.result.cm.overallError().sensitivity).toStdString());
                 outString.append(",");
                 outString.append(QString::number(d.result.cm.overallError().specificity).toStdString());
+                outString.append("\n");
                 oStream << outString.c_str();
                 Logger::write(outString);
                 outString.clear();
@@ -1403,6 +1404,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
                 outString.append(QString::number(avgResults[i].stats.overallError().sensitivity).toStdString());
                 outString.append(",");
                 outString.append(QString::number(avgResults[i].stats.overallError().specificity).toStdString());
+                outString.append("\n");
                 oStream << outString.c_str();
                 Logger::write(outString);
                 outString.clear();
@@ -1541,6 +1543,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
                 outString.append(QString::number(d.result.cm.overallError().sensitivity).toStdString());
                 outString.append(",");
                 outString.append(QString::number(d.result.cm.overallError().specificity).toStdString());
+                outString.append("\n");
                 oStream << outString.c_str();
                 Logger::write(outString);
                 outString.clear();
@@ -1582,6 +1585,7 @@ void MainWindow::on_testProcedure_btn_clicked() {
             outString.append(QString::number(avgResults[startIdx+i].stats.overallError().sensitivity).toStdString());
             outString.append(",");
             outString.append(QString::number(avgResults[startIdx+i].stats.overallError().specificity).toStdString());
+            outString.append("\n");
             oStream << outString.c_str();
             Logger::write(outString);
             outString.clear();
