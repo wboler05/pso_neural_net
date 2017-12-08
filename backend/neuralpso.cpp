@@ -416,10 +416,13 @@ real NeuralPso::flyIteration(const size_t & particleId,
     real c2 = C2 * _randomEngine.uniformReal(probRange[0], probRange[1]);
 //    real c3 = C3 * _randomEngine.uniformReal(probRange[0], probRange[1]);
 
+    real vel1 = c1*(*w_pb - *w_x);
+    real vel2 = c2*(*w_lb - *w_x);
+
     *w_v = (
                 inertia * (*w_v)
-                + (c1*(*w_pb - *w_x))
-                + (c2*(*w_lb - *w_x))
+                + CustomMath::getSign(vel1) * CustomMath::pow(vel1, 2)
+                + CustomMath::getSign(vel2) * CustomMath::pow(vel2, 2)
 //                + (c3*(*w_gb - *w_x))
                 );
 
